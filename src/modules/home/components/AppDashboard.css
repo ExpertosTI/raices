@@ -179,6 +179,11 @@
     border-color: rgba(37, 99, 235, 0.3);
 }
 
+.action-card.sports {
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(234, 88, 12, 0.1));
+    border-color: rgba(249, 115, 22, 0.3);
+}
+
 .action-card.register {
     background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(180, 150, 46, 0.1));
     border-color: rgba(212, 175, 55, 0.3);

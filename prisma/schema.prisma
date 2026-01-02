@@ -166,6 +166,18 @@ model Event {
   createdAt   DateTime  @default(now())
 }
 
+model Vote {
+  id        String   @id @default(cuid())
+  userId    String
+  sportName String   // The sport they are voting for
+  
+  user      User     @relation(fields: [userId], references: [id])
+  
+  createdAt DateTime @default(now())
+
+  @@unique([userId, sportName]) // Prevent duplicate votes for same sport by same user
+}
+
 enum EventType {
   BIRTHDAY
   ANNIVERSARY

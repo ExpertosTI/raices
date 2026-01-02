@@ -8,6 +8,7 @@ import { EventsScreen } from './modules/home/components/EventsScreen';
 import { FeedScreen } from './modules/home/components/FeedScreen';
 import { RegisterScreen } from './modules/home/components/RegisterScreen';
 import { LoginScreen } from './modules/home/components/LoginScreen';
+import { SportsScreen } from './modules/home/components/SportsScreen';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/feed" element={<FeedScreen />} />
         <Route path="/login" element={<LoginScreen />} />
         <Route path="/register" element={<RegisterScreen />} />
+        <Route path="/sports" element={<SportsScreen />} />
         {/* Redirect unknown routes to home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

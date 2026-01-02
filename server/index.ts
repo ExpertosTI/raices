@@ -9,6 +9,10 @@ import { canEditMember } from './middleware/permissions';
 import { getFeed, createPost, likePost, createComment } from './controllers/feed';
 import { getUpcomingBirthdays } from './services/birthday';
 
+// Security Imports
+import { securityHeaders, apiLimiter, authLimiter, validateEnvironment, validateJwtSecret } from './middleware/security';
+import { validateMemberInput, validatePostInput } from './middleware/validation';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -16,7 +20,14 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const isProduction = process.env.NODE_ENV === 'production';
 
+// ==================== STARTUP VALIDATION ====================
+validateEnvironment();
+validateJwtSecret();
+
 // ==================== MIDDLEWARE ====================
+
+// Security Headers (always apply)
+app.use(securityHeaders);
 
 // CORS
 const allowedOrigins = isProduction
@@ -25,44 +36,17 @@ const allowedOrigins = isProduction
 
 app.use(cors({
     origin: allowedOrigins,
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.json());
+// Body Parser with size limit
+app.use(express.json({ limit: '1mb' }));
 
-// Security headers (production only)
-if (isProduction) {
-    app.use((req, res, next) => {
-        res.setHeader('X-Content-Type-Options', 'nosniff');
-        res.setHeader('X-Frame-Options', 'DENY');
-        res.setHeader('X-XSS-Protection', '1; mode=block');
-        res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-        next();
-    });
-}
-
-// Rate limiting for API
-const apiLimiter = new Map<string, { count: number; resetTime: number }>();
-const RATE_LIMIT = 100; // requests
-const RATE_WINDOW = 60 * 1000; // 1 minute
-
-app.use('/api', (req, res, next) => {
-    const ip = req.ip || 'unknown';
-    const now = Date.now();
-    const record = apiLimiter.get(ip);
-
-    if (!record || now > record.resetTime) {
-        apiLimiter.set(ip, { count: 1, resetTime: now + RATE_WINDOW });
-        return next();
-    }
-
-    if (record.count >= RATE_LIMIT) {
-        return res.status(429).json({ error: 'Too many requests' });
-    }
-
-    record.count++;
-    next();
-});
+// Rate Limiting (improved version from security module)
+app.use('/api', apiLimiter);
+app.use('/api/auth', authLimiter); // Stricter limit for auth endpoints
 
 // ==================== STATIC FILES (Production) ====================
 if (isProduction) {
@@ -85,11 +69,17 @@ app.get('/api/health', (req: Request, res: Response) => {
 app.post('/api/auth/google', googleLogin);
 app.get('/api/auth/me', authenticateToken, me);
 
+// Dev-only mock login (disabled in production for security)
+if (!isProduction) {
+    app.post('/api/auth/login', login);
+}
+
 // Members
 import { claimProfile } from './controllers/members';
 app.post('/api/members/claim', authenticateToken, claimProfile);
 
-app.get('/api/members', async (req: Request, res: Response) => {
+// Protected: Members list now requires authentication
+app.get('/api/members', authenticateToken, async (req: Request, res: Response) => {
     try {
         const members = await prisma.familyMember.findMany({
             include: { branch: true },
@@ -101,7 +91,8 @@ app.get('/api/members', async (req: Request, res: Response) => {
     }
 });
 
-app.post('/api/members', async (req: any, res: Response) => {
+// Protected + Validated: Member creation
+app.post('/api/members', authenticateToken, validateMemberInput, async (req: any, res: Response) => {
     try {
         const { name, branchId, relation, birthDate, parentId, preferredColor } = req.body;
         const member = await prisma.familyMember.create({
@@ -111,8 +102,9 @@ app.post('/api/members', async (req: any, res: Response) => {
                 relation,
                 birthDate: birthDate ? new Date(birthDate) : null,
                 parentId: parentId || null,
-                userId: req.user?.id || null,
                 preferredColor: preferredColor || null
+                // Note: We do NOT assign userId here. The new member is a distinct entity.
+                // They can claim their profile later if they create an account.
             }
         });
         res.json(member);
@@ -183,6 +175,13 @@ app.get('/api/events', async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Failed to fetch events' });
     }
 });
+
+import { registerTeam } from './controllers/sports';
+app.post('/api/sports/register', authenticateToken, registerTeam);
+
+import { castVote, getVotes } from './controllers/votes';
+app.post('/api/votes', authenticateToken, castVote);
+app.get('/api/votes', authenticateToken, getVotes);
 
 // ==================== SPA FALLBACK (Production) ====================
 if (isProduction) {

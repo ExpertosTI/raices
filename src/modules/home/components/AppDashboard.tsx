@@ -21,7 +21,6 @@ export const AppDashboard: React.FC = () => {
     const navigate = useNavigate();
     const [branches, setBranches] = useState<BranchData[]>([]);
     const [events, setEvents] = useState<BirthdayEvent[]>([]);
-    const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<any>(null);
     const [showClaimModal, setShowClaimModal] = useState(false);
 
@@ -46,8 +45,7 @@ export const AppDashboard: React.FC = () => {
                 setUser(userData);
                 localStorage.setItem('user', JSON.stringify(userData));
             }
-            setLoading(false);
-        }).catch(() => setLoading(false));
+        }).catch(() => { });
     }, []);
 
     const getMonth = (dateStr: string) => {
@@ -138,6 +136,10 @@ export const AppDashboard: React.FC = () => {
                             <span className="action-icon">🎂</span>
                             <span className="action-label">Cumpleaños</span>
                         </button>
+                        <button className="action-card sports" onClick={() => navigate('/sports')}>
+                            <span className="action-icon">🏆</span>
+                            <span className="action-label">Copa Familia</span>
+                        </button>
                         <button className="action-card feed" onClick={() => navigate('/feed')}>
                             <span className="action-icon">📰</span>
                             <span className="action-label">Actividad</span>
@@ -181,9 +183,9 @@ export const AppDashboard: React.FC = () => {
                     <span>🌳</span>
                     <span>Árbol</span>
                 </div>
-                <div className="nav-item" onClick={() => navigate('/events')}>
-                    <span>📅</span>
-                    <span>Eventos</span>
+                <div className="nav-item" onClick={() => navigate('/sports')}>
+                    <span>🏆</span>
+                    <span>Deportes</span>
                 </div>
                 <div className="nav-item" onClick={() => navigate('/feed')}>
                     <span>💬</span>

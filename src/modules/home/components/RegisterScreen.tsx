@@ -50,9 +50,24 @@ export const RegisterScreen: React.FC = () => {
     useEffect(() => {
         // Auth Check
         const token = localStorage.getItem('token');
+        const storedUser = localStorage.getItem('user');
+
         if (!token) {
             navigate('/login');
             return;
+        }
+
+        // Pre-fill data from logged user
+        if (storedUser) {
+            const user = JSON.parse(storedUser);
+            if (user.familyMember) {
+                setFormData(prev => ({
+                    ...prev,
+                    branchId: user.familyMember.branchId,
+                    parentId: user.familyMember.id, // Assume registering a child by default
+                    relation: 'CHILD'
+                }));
+            }
         }
 
         // Fetch branches
