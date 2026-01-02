@@ -1,0 +1,113 @@
+.splash-screen {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #0A0A0F 0%, #1a1a2e 50%, #0A0A0F 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
+    padding: 2rem;
+}
+
+.splash-screen.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* Animated Tree */
+.splash-tree {
+    font-size: 8rem;
+    margin-bottom: 1rem;
+    animation: float 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 40px rgba(212, 175, 55, 0.5));
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-15px);
+    }
+}
+
+/* Title */
+.splash-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 4rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #D4AF37, #F4E4BA, #D4AF37);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+}
+
+.splash-subtitle {
+    font-family: 'Dancing Script', cursive;
+    font-size: 1.8rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 2rem;
+}
+
+/* Warning Card */
+.splash-warning {
+    background: rgba(120, 53, 15, 0.3);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 16px;
+    padding: 1.5rem 2rem;
+    max-width: 500px;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.warning-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.warning-title {
+    color: #D4AF37;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 0.5rem;
+}
+
+.warning-text {
+    color: #EF4444;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.warning-details {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* Enter Button */
+.splash-enter-btn {
+    background: linear-gradient(135deg, #D4AF37, #B8962E);
+    color: #1a1a2e;
+    border: none;
+    padding: 1rem 3rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 40px rgba(212, 175, 55, 0.4);
+}
+
+.splash-enter-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 15px 50px rgba(212, 175, 55, 0.6);
+}

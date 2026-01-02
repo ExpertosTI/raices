@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: raices_db
+    environment:
+      POSTGRES_USER: raices
+      POSTGRES_PASSWORD: raices_secret_2024
+      POSTGRES_DB: raices_db
+    volumes:
+      - raices_pgdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U raices -d raices_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: raices_app
+    ports:
+      - "6789:6789"
+    environment:
+      - DATABASE_URL=postgresql://raices:raices_secret_2024@db:5432/raices_db
+      - NODE_ENV=development
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+    command: npm run dev
+
+volumes:
+  raices_pgdata:

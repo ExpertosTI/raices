@@ -1,0 +1,97 @@
+:root {
+    /* Los 12 colores de los hijos */
+    --color-1: #DC2626;
+    /* Rojo */
+    --color-2: #EA580C;
+    /* Naranja */
+    --color-3: #D97706;
+    /* Ámbar */
+    --color-4: #CA8A04;
+    /* Amarillo */
+    --color-5: #65A30D;
+    /* Lima */
+    --color-6: #16A34A;
+    /* Verde */
+    --color-7: #0D9488;
+    /* Teal */
+    --color-8: #0891B2;
+    /* Cyan */
+    --color-9: #2563EB;
+    /* Azul */
+    --color-10: #7C3AED;
+    /* Violeta */
+    --color-11: #C026D3;
+    /* Fucsia */
+    --color-12: #DB2777;
+    /* Rosa */
+
+    --bg-dark: #0A0A0F;
+    --bg-card: rgba(255, 255, 255, 0.05);
+    --text-primary: #FFFFFF;
+    --text-secondary: rgba(255, 255, 255, 0.6);
+    --gold: #D4AF37;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-15px);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+}

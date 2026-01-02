@@ -1,0 +1,59 @@
+# =====================================================
+# Raíces App - Production Docker Compose
+# Domain: raices.renace.tech
+# =====================================================
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: raices_db_prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-raices}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-raices_db}
+    volumes:
+      - raices_pgdata_prod:/var/lib/postgresql/data
+    networks:
+      - raices_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-raices} -d ${DB_NAME:-raices_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: raices_app_prod
+    restart: unless-stopped
+    ports:
+      - "6789:6789"
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER:-raices}:${DB_PASSWORD}@db:5432/${DB_NAME:-raices_db}
+      - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - ALLOWED_ORIGIN=https://raices.renace.tech
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - raices_network
+    deploy:
+      resources:
+        limits:
+          memory: 400M
+          cpus: '1.0'
+        reservations:
+          memory: 100M
+          cpus: '0.25'
+
+networks:
+  raices_network:
+    driver: bridge
+
+volumes:
+  raices_pgdata_prod:

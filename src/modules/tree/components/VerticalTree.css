@@ -1,0 +1,110 @@
+.vertical-tree {
+    padding: 1rem;
+}
+
+/* Tree Sections */
+.tree-section {
+    margin-bottom: 2rem;
+}
+
+.section-label {
+    text-align: center;
+    font-family: 'Dancing Script', cursive;
+    font-size: 1.3rem;
+    color: #D4AF37;
+    margin-bottom: 1.5rem;
+}
+
+/* Tree Levels */
+.tree-level {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.tree-level.parents {
+    align-items: center;
+}
+
+.tree-level.children {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 1rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* Tree Nodes */
+.tree-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.tree-node:hover {
+    transform: translateY(-5px);
+    border-color: rgba(212, 175, 55, 0.5);
+}
+
+.tree-node.patriarch {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(180, 150, 46, 0.1));
+    border-color: #D4AF37;
+}
+
+.tree-node.sibling {
+    min-width: 100px;
+}
+
+/* Node Avatar */
+.node-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    border: 3px solid #D4AF37;
+}
+
+/* Node Labels */
+.node-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-align: center;
+    margin-bottom: 0.2rem;
+}
+
+.node-year {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Connectors */
+.tree-connector {
+    background: linear-gradient(180deg, #D4AF37, rgba(212, 175, 55, 0.3));
+}
+
+.tree-connector.horizontal {
+    width: 40px;
+    height: 3px;
+}
+
+.tree-connector.vertical {
+    width: 3px;
+    height: 40px;
+    margin: 0 auto;
+}
+
+.tree-connector.vertical.main {
+    height: 60px;
+}
