@@ -1,55 +1,25 @@
 #!/bin/bash
-# =====================================================
-# Raíces App - Deploy Script
-# Usage: ./deploy.sh
-# =====================================================
+# Despliegue de Raíces App en Servidor (Hostinger/VPS)
 
-set -e
+echo "🌳 Desplegando Raíces App..."
 
-echo "🚀 Deploying Raíces App..."
-echo "   Target: raices.renace.tech"
+# 1. Obtener últimas cambios
+git pull origin main
 
-# Check if .env.production exists
-if [ ! -f ".env.production" ]; then
-    echo "❌ Error: .env.production not found!"
-    echo "   Run: cp .env.production.example .env.production"
-    echo "   Then edit .env.production with real values"
-    exit 1
-fi
+# 2. Generar cliente Prisma (por si hubo cambios de esquema)
+echo "📦 Generando Prisma Client..."
+docker-compose -f docker-compose.prod.yml exec app npx prisma generate
 
-# Load production environment
-set -a
-source .env.production
-set +a
+# 3. Aplicar migraciones DB
+echo "🗄️ Migrando Base de Datos..."
+docker-compose -f docker-compose.prod.yml exec app npx prisma migrate deploy
 
-echo "📦 Building production containers..."
-docker-compose -f docker-compose.prod.yml build --no-cache
+# 4. Reconstruir y Reiniciar Contenedores (Sin caché para asegurar cambios de build)
+echo "🚀 Reiniciando Contenedores..."
+docker-compose -f docker-compose.prod.yml up -d --build
 
-echo "🔄 Stopping old containers..."
-docker-compose -f docker-compose.prod.yml down --remove-orphans || true
+# 5. Limpieza
+docker image prune -f
 
-echo "🚀 Starting production containers..."
-docker-compose -f docker-compose.prod.yml up -d
-
-echo "⏳ Waiting for database to be ready..."
-sleep 15
-
-echo "🗄️ Running database migrations..."
-docker exec raices_app_prod npx prisma migrate deploy
-
-echo "🌱 Running database seed (if first deploy)..."
-docker exec raices_app_prod npx prisma db seed || echo "   (Seed already applied or skipped)"
-
-echo ""
-echo "✅ Deployment complete!"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "   📍 Local: http://localhost:6789"
-echo "   🌐 Domain: https://raices.renace.tech"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo "📋 Container status:"
-docker-compose -f docker-compose.prod.yml ps
-
-echo ""
-echo "📋 Recent logs:"
-docker-compose -f docker-compose.prod.yml logs --tail=10
+echo "✅ Despliegue Completado!"
+echo "Verifica logs con: docker logs -f raices_app"
