@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: raices
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: raices_db
+    volumes:
+      - raices_db_data:/var/lib/postgresql/data
+    networks:
+      - raices_internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U raices -d raices_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  app:
+    image: raices-app:latest
+    environment:
+      - DATABASE_URL=postgresql://raices:${DB_PASSWORD}@db:5432/raices_db
+      - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - ALLOWED_ORIGIN=https://raices.renace.tech
+      - SMTP_HOST=${SMTP_HOST:-smtp.hostinger.com}
+      - SMTP_PORT=${SMTP_PORT:-465}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-expertostird@gmail.com}
+    networks:
+      - raices_internal
+      - RenaceNet
+    depends_on:
+      - db
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.raices.rule=Host(`raices.renace.tech`)"
+        - "traefik.http.routers.raices.entrypoints=websecure"
+        - "traefik.http.routers.raices.tls=true"
+        - "traefik.http.routers.raices.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.raices.loadbalancer.server.port=6789"
+        - "traefik.docker.network=RenaceNet"
+
+networks:
+  raices_internal:
+    driver: overlay
+  RenaceNet:
+    external: true
+
+volumes:
+  raices_db_data:
