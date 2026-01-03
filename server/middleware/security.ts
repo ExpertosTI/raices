@@ -21,11 +21,11 @@ export const securityHeaders = (req: Request, res: Response, next: NextFunction)
     res.setHeader('Content-Security-Policy',
         "default-src 'self'; " +
         "script-src 'self' 'unsafe-inline' https://accounts.google.com; " +
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com; " +
         "font-src 'self' https://fonts.gstatic.com; " +
         "img-src 'self' data: https: blob:; " +
         "connect-src 'self' https://accounts.google.com https://*.googleapis.com; " +
-        "frame-src https://accounts.google.com; " +
+        "frame-src 'self' https://accounts.google.com; " +
         "object-src 'none'; " +
         "base-uri 'self';"
     );

@@ -95,7 +95,8 @@ export const googleLogin = async (req: Request, res: Response) => {
 
     } catch (error) {
         console.error('Google Login error:', error);
-        res.status(500).json({ error: 'Failed to verify Google Token' });
+        console.error(`Config Check: CLIENT_ID_LEN=${process.env.GOOGLE_CLIENT_ID?.length}`);
+        res.status(500).json({ error: 'Failed to verify Google Token', details: error instanceof Error ? error.message : String(error) });
     }
 };
 
