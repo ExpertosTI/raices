@@ -155,8 +155,18 @@ export const approveRegistration = async (req: any, res: Response) => {
             return res.status(400).json({ error: 'Esta solicitud ya fue procesada' });
         }
 
+        // Check if user already has a FamilyMember linked
+        const existingMember = await prisma.familyMember.findUnique({
+            where: { userId: request.userId }
+        });
+
+        if (existingMember) {
+            return res.status(400).json({
+                error: `Este usuario ya está vinculado a "${existingMember.name}". Primero debes desvincular ese perfil desde la pestaña Usuarios.`
+            });
+        }
+
         // Create the FamilyMember from the request
-        // Note: parentId is intentionally null - the grandparentId in the request is actually a branch ID
         const member = await prisma.familyMember.create({
             data: {
                 userId: request.userId,
@@ -168,9 +178,8 @@ export const approveRegistration = async (req: any, res: Response) => {
                 whatsapp: request.whatsapp || null,
                 bio: request.bio || null,
                 preferredColor: request.preferredColor || null,
-                parentId: null, // Will be linked later if needed
+                parentId: null,
 
-                // Social fields
                 nickname: request.nickname || null,
                 skills: request.skills || []
             }

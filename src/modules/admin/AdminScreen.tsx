@@ -186,6 +186,24 @@ export const AdminScreen = () => {
         }
     };
 
+    const handleUnclaimUser = async (memberId: string) => {
+        if (!window.confirm('¿Seguro que deseas desvincular este perfil del usuario?')) return;
+        try {
+            const res = await fetch(`/api/admin/members/${memberId}/unclaim`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                setMessage('✅ Perfil desvinculado correctamente');
+                fetchData();
+            } else {
+                setMessage('❌ Error al desvincular');
+            }
+        } catch (err) {
+            setMessage('❌ Error de conexión');
+        }
+    };
+
     return (
         <div className="admin-screen">
             <header className="admin-header">
@@ -360,6 +378,14 @@ export const AdminScreen = () => {
                                             </div>
                                         </div>
                                         <div className="card-actions">
+                                            {user.familyMember && (
+                                                <button
+                                                    className="reject-btn"
+                                                    onClick={() => handleUnclaimUser(user.familyMember!.id)}
+                                                >
+                                                    🔗 Desvincular
+                                                </button>
+                                            )}
                                             {user.role === 'MEMBER' ? (
                                                 <button
                                                     className="role-btn promote"

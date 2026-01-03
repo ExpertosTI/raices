@@ -8,14 +8,26 @@ interface ThreeDTreeProps {
     members: FamilyMember[];
 }
 
+// Helper to create deterministic "random" value from string (hash-based)
+const hashString = (str: string): number => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    return hash;
+};
+
+const pseudoRandom = (seed: string, index: number): number => {
+    const hash = hashString(seed + index.toString());
+    return (hash % 1000) / 1000; // Returns 0-1
+};
+
 // Helper to calculate 3D positions
 const calculatePositions = (members: FamilyMember[]) => {
     const positions = new Map<string, THREE.Vector3>();
     const branchAngles = new Map<string, number>();
-
-    // Find root (Grandparents/Patriarchs - usually earliest birth dates or no parents)
-    // For this app, we know there are 12 main branches.
-    // Let's group by branch.
 
     // Get unique branches
     const branches = Array.from(new Set(members.map(m => m.branchId).filter(Boolean)));
@@ -25,25 +37,22 @@ const calculatePositions = (members: FamilyMember[]) => {
         branchAngles.set(branchId!, angle);
     });
 
-    const generationHeight = 4; // Height between generations
-    // Unused baseRadius removed
+    const generationHeight = 4;
 
-    members.forEach(member => {
+    members.forEach((member) => {
         const branchId = member.branchId;
         if (!branchId || !branchAngles.has(branchId)) {
-            // Fallback for root or unknown
             positions.set(member.id, new THREE.Vector3(0, 5, 0));
             return;
         }
 
         const angle = branchAngles.get(branchId)!;
 
-        // Estimate generation based on relation (simplified)
         let generation = 0;
         let radius = 0;
 
         switch (member.relation) {
-            case 'SIBLING': // The original 12
+            case 'SIBLING':
                 generation = 0;
                 radius = 3;
                 break;
@@ -59,20 +68,15 @@ const calculatePositions = (members: FamilyMember[]) => {
                 generation = 3;
                 radius = 12;
                 break;
-            default: // Spouses, etc
-                generation = 1; // Default
+            default:
+                generation = 1;
                 radius = 6;
         }
 
-        // Add some random jitter to avoid perfect overlaps
-        const jitterX = (Math.random() - 0.5) * 1.5;
-        const jitterZ = (Math.random() - 0.5) * 1.5;
-        const jitterY = (Math.random() - 0.5) * 1;
-
-        // Cylindrical to Cartesian
-        // x = r * cos(theta)
-        // z = r * sin(theta)
-        // y = -generation * height
+        // Deterministic jitter based on member ID (consistent across renders)
+        const jitterX = (pseudoRandom(member.id, 0) - 0.5) * 1.5;
+        const jitterZ = (pseudoRandom(member.id, 1) - 0.5) * 1.5;
+        const jitterY = (pseudoRandom(member.id, 2) - 0.5) * 1;
 
         const x = (radius * Math.cos(angle)) + jitterX;
         const z = (radius * Math.sin(angle)) + jitterZ;

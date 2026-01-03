@@ -4,6 +4,7 @@ import { VerticalTree } from './VerticalTree';
 import { HorizontalTree } from './HorizontalTree';
 import { RadialTree } from './RadialTree';
 import { ThreeDTree } from './ThreeDTree';
+import { MemberDetailModal } from './MemberDetailModal';
 import type { FamilyMember } from '../../../types';
 import './TreeScreen.css';
 
@@ -12,6 +13,7 @@ export const TreeScreen: React.FC = () => {
     const [view, setView] = useState<'vertical' | 'horizontal' | 'radial' | '3d'>('vertical');
     const [members, setMembers] = useState<FamilyMember[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedMember, setSelectedMember] = useState<FamilyMember | null>(null);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -25,6 +27,10 @@ export const TreeScreen: React.FC = () => {
             })
             .catch(() => setLoading(false));
     }, []);
+
+    const handleMemberClick = (member: FamilyMember) => {
+        setSelectedMember(member);
+    };
 
     if (loading) {
         return (
@@ -82,13 +88,21 @@ export const TreeScreen: React.FC = () => {
                     </div>
                 ) : (
                     <>
-                        {view === 'vertical' && <VerticalTree members={members} />}
+                        {view === 'vertical' && <VerticalTree members={members} onMemberClick={handleMemberClick} />}
                         {view === 'horizontal' && <HorizontalTree members={members} />}
                         {view === 'radial' && <RadialTree members={members} />}
                         {view === '3d' && <ThreeDTree members={members} />}
                     </>
                 )}
             </div>
+
+            {/* Member Detail Modal */}
+            {selectedMember && (
+                <MemberDetailModal
+                    member={selectedMember}
+                    onClose={() => setSelectedMember(null)}
+                />
+            )}
 
             {/* Bottom Navigation */}
             <nav className="app-nav">
