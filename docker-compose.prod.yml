@@ -48,6 +48,14 @@ services:
         condition: service_healthy
     networks:
       - raices_network
+      - RenaceNet
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.raices.rule=Host(`raices.renace.tech`)"
+      - "traefik.http.routers.raices.entrypoints=websecure"
+      - "traefik.http.routers.raices.tls.certresolver=letsencryptresolver"
+      - "traefik.http.services.raices.loadbalancer.server.port=6789"
+      - "traefik.docker.network=RenaceNet"
     deploy:
       resources:
         limits:
@@ -60,6 +68,8 @@ services:
 networks:
   raices_network:
     driver: bridge
+  RenaceNet:
+    external: true
 
 volumes:
   raices_pgdata_prod:
