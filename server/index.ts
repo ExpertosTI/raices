@@ -56,13 +56,66 @@ if (isProduction) {
 
 // ==================== API ROUTES ====================
 
-// Health check
-app.get('/api/health', (req: Request, res: Response) => {
+// Health check with DB status
+app.get('/api/health', async (req: Request, res: Response) => {
+    let dbStatus = 'unknown';
+    try {
+        await prisma.$queryRaw`SELECT 1`;
+        dbStatus = 'connected';
+    } catch (e) {
+        dbStatus = 'disconnected';
+    }
+
     res.json({
         status: 'ok',
         timestamp: new Date(),
-        environment: process.env.NODE_ENV || 'development'
+        environment: process.env.NODE_ENV || 'development',
+        database: dbStatus,
+        uptime: process.uptime()
     });
+});
+
+// Stats endpoint for Admin Dashboard
+app.get('/api/admin/stats', authenticateToken, async (req: any, res: Response) => {
+    if (req.user?.role !== 'PATRIARCH') {
+        return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    try {
+        const [totalMembers, totalUsers, totalBranches, pendingRegistrations, pendingClaims] = await Promise.all([
+            prisma.familyMember.count(),
+            prisma.user.count(),
+            prisma.branch.count(),
+            prisma.registrationRequest.count({ where: { status: 'PENDING' } }),
+            prisma.pendingClaim.count({ where: { status: 'PENDING' } })
+        ]);
+
+        // Members per branch
+        const membersPerBranch = await prisma.branch.findMany({
+            select: {
+                name: true,
+                color: true,
+                _count: { select: { members: true } }
+            },
+            orderBy: { order: 'asc' }
+        });
+
+        res.json({
+            totalMembers,
+            totalUsers,
+            totalBranches,
+            pendingRegistrations,
+            pendingClaims,
+            membersPerBranch: membersPerBranch.map(b => ({
+                name: b.name,
+                color: b.color,
+                count: b._count.members
+            }))
+        });
+    } catch (error) {
+        console.error('Stats Error:', error);
+        res.status(500).json({ error: 'Failed to fetch stats' });
+    }
 });
 
 // Auth
@@ -105,6 +158,18 @@ app.put('/api/admin/users/:id/role', authenticateToken, requireAdmin, updateUser
 // New Admin Endpoint for auditing
 import { getAllMembers } from './controllers/admin';
 app.get('/api/admin/members', authenticateToken, requireAdmin, getAllMembers);
+
+// Delete a member (Admin only)
+app.delete('/api/admin/members/:id', authenticateToken, requireAdmin, async (req: any, res: Response) => {
+    const { id } = req.params;
+    try {
+        await prisma.familyMember.delete({ where: { id } });
+        res.json({ message: 'Member deleted successfully' });
+    } catch (error) {
+        console.error('Delete Member Error:', error);
+        res.status(500).json({ error: 'Failed to delete member' });
+    }
+});
 
 // Registration Request from Onboarding (creates pending request for admin approval)
 app.post('/api/registration-request', authenticateToken, async (req: any, res: Response) => {

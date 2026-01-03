@@ -11,6 +11,7 @@ import { LoginScreen } from './modules/home/components/LoginScreen';
 import { SportsScreen } from './modules/home/components/SportsScreen';
 import { AdminScreen } from './modules/admin/AdminScreen';
 import { OnboardingScreen } from './modules/onboarding/OnboardingScreen';
+import { ProfileScreen } from './modules/profile/ProfileScreen';
 import { ProtectedRoute } from './modules/auth/components/ProtectedRoute';
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
           <Route path="/sports" element={<SportsScreen />} />
           <Route path="/admin" element={<AdminScreen />} />
           <Route path="/onboarding" element={<OnboardingScreen />} />
+          <Route path="/profile" element={<ProfileScreen />} />
         </Route>
         {/* Redirect unknown routes to home */}
         <Route path="*" element={<Navigate to="/" replace />} />

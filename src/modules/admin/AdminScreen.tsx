@@ -32,11 +32,12 @@ interface User {
 
 export const AdminScreen = () => {
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<'claims' | 'registrations' | 'users' | 'members'>('claims');
+    const [activeTab, setActiveTab] = useState<'claims' | 'registrations' | 'users' | 'members' | 'stats'>('stats');
     const [claims, setClaims] = useState<PendingClaim[]>([]);
     const [registrations, setRegistrations] = useState<RegistrationRequest[]>([]);
     const [users, setUsers] = useState<User[]>([]);
-    const [members, setMembers] = useState<any[]>([]); // Use simplified type for now
+    const [members, setMembers] = useState<any[]>([]);
+    const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState('');
 
@@ -54,7 +55,10 @@ export const AdminScreen = () => {
         setLoading(true);
         try {
             const headers = { 'Authorization': `Bearer ${token}` };
-            if (activeTab === 'claims') {
+            if (activeTab === 'stats') {
+                const res = await fetch('/api/admin/stats', { headers });
+                if (res.ok) setStats(await res.json());
+            } else if (activeTab === 'claims') {
                 const res = await fetch('/api/admin/claims', { headers });
                 if (res.ok) setClaims(await res.json());
             } else if (activeTab === 'registrations') {
@@ -71,6 +75,24 @@ export const AdminScreen = () => {
             console.error('Failed to fetch data', err);
         }
         setLoading(false);
+    };
+
+    const handleDeleteMember = async (id: string) => {
+        if (!window.confirm('¿Seguro que deseas eliminar este miembro? Esta acción es irreversible.')) return;
+        try {
+            const res = await fetch(`/api/admin/members/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                setMessage('✅ Miembro eliminado');
+                fetchData();
+            } else {
+                setMessage('❌ Error al eliminar');
+            }
+        } catch (err) {
+            setMessage('❌ Error de conexión');
+        }
     };
 
     const handleApproveClaim = async (id: string) => {
@@ -153,6 +175,12 @@ export const AdminScreen = () => {
             {/* Tabs */}
             <div className="admin-tabs">
                 <button
+                    className={`tab-btn ${activeTab === 'stats' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('stats')}
+                >
+                    📊 Dashboard
+                </button>
+                <button
                     className={`tab-btn ${activeTab === 'claims' ? 'active' : ''}`}
                     onClick={() => setActiveTab('claims')}
                 >
@@ -185,6 +213,45 @@ export const AdminScreen = () => {
                     <div className="loading">Cargando...</div>
                 ) : (
                     <>
+                        {/* Stats Dashboard Tab */}
+                        {activeTab === 'stats' && stats && (
+                            <div className="stats-dashboard">
+                                <div className="stat-cards">
+                                    <div className="stat-card">
+                                        <div className="stat-number">{stats.totalMembers}</div>
+                                        <div className="stat-label">Miembros</div>
+                                    </div>
+                                    <div className="stat-card">
+                                        <div className="stat-number">{stats.totalUsers}</div>
+                                        <div className="stat-label">Usuarios</div>
+                                    </div>
+                                    <div className="stat-card pending">
+                                        <div className="stat-number">{stats.pendingRegistrations}</div>
+                                        <div className="stat-label">Pendientes</div>
+                                    </div>
+                                </div>
+
+                                <div className="branch-chart glass-panel">
+                                    <h3>Miembros por Rama</h3>
+                                    {stats.membersPerBranch?.map((branch: any) => (
+                                        <div key={branch.name} className="branch-bar-row">
+                                            <span className="branch-label">{branch.name.split(' ')[0]}</span>
+                                            <div className="branch-bar-track">
+                                                <div
+                                                    className="branch-bar-fill"
+                                                    style={{
+                                                        width: `${Math.max(5, (branch.count / (stats.totalMembers || 1)) * 100)}%`,
+                                                        backgroundColor: branch.color
+                                                    }}
+                                                />
+                                            </div>
+                                            <span className="branch-count">{branch.count}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Claims Tab */}
                         {activeTab === 'claims' && (
                             <div className="admin-list">
@@ -306,12 +373,9 @@ export const AdminScreen = () => {
                                             </div>
                                         </div>
                                         <div className="card-actions">
-                                            {/* Future: Add Delete/Edit buttons here */}
-                                            <button className="reject-btn" onClick={() => {
-                                                if (window.confirm('¿Borrar miembro? Esto es irreversible.')) {
-                                                    // Implement delete logic
-                                                }
-                                            }}>🗑️</button>
+                                            <button className="reject-btn" onClick={() => handleDeleteMember(member.id)}>
+                                                🗑️
+                                            </button>
                                         </div>
                                     </div>
                                 ))}
