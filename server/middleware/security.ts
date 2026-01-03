@@ -81,9 +81,9 @@ export const createRateLimiter = (limit: number, windowMs: number) => {
 };
 
 // Pre-configured limiters
-export const apiLimiter = createRateLimiter(100, 60 * 1000); // 100 req/min
-export const authLimiter = createRateLimiter(10, 60 * 1000);  // 10 auth attempts/min
-export const strictLimiter = createRateLimiter(5, 60 * 1000); // 5 req/min for sensitive ops
+export const apiLimiter = createRateLimiter(200, 60 * 1000); // 200 req/min
+export const authLimiter = createRateLimiter(30, 60 * 1000);  // 30 auth attempts/min
+export const strictLimiter = createRateLimiter(10, 60 * 1000); // 10 req/min for sensitive ops
 
 // ==================== JWT VALIDATION ====================
 export const validateJwtSecret = () => {

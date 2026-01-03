@@ -30,7 +30,10 @@ export const ClaimProfileModal: React.FC<ClaimProfileModalProps> = ({ isOpen, on
     const fetchCandidates = async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/members');
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/members', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
             const data = await res.json();
             // Filter only Siblings/Patriarchs who are not claimed yet (this check ideally happens on backend too, but filtering here for UI)
             // Note: In a real app we might want a specific endpoint for this. 
