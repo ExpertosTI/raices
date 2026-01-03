@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Text, Html, Stars } from '@react-three/drei';
+import { OrbitControls, Html, Stars, Line } from '@react-three/drei';
 import * as THREE from 'three';
 import type { FamilyMember } from '../../../types';
 
@@ -26,7 +26,7 @@ const calculatePositions = (members: FamilyMember[]) => {
     });
 
     const generationHeight = 4; // Height between generations
-    const baseRadius = 5; // Radius for 1st gen
+    // Unused baseRadius removed
 
     members.forEach(member => {
         const branchId = member.branchId;
@@ -134,24 +134,16 @@ const Connections = ({ members, positions }: { members: FamilyMember[], position
     return (
         <group>
             {points.map((linePoints, i) => (
-                <Line key={i} points={linePoints} color="rgba(255,255,255,0.2)" />
+                <Line
+                    key={i}
+                    points={linePoints}
+                    color="rgba(255,255,255,0.2)"
+                    lineWidth={1}
+                    transparent
+                    opacity={0.3}
+                />
             ))}
         </group>
-    );
-};
-
-// Simple Line component using raw Three.js buffer geometry if needed, 
-// strictly we can use @react-three/drei Line for thick lines, but basic LineSegments is cheaper.
-const Line = ({ points, color }: { points: THREE.Vector3[], color: string }) => {
-    const lineGeometry = useMemo(() => {
-        const geometry = new THREE.BufferGeometry().setFromPoints(points);
-        return geometry;
-    }, [points]);
-
-    return (
-        <line geometry={lineGeometry}>
-            <lineBasicMaterial color={color} transparent opacity={0.3} />
-        </line>
     );
 };
 

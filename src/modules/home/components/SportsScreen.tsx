@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import {
-    Trophy, Users, Timer, Sparkles, Medal, Activity,
-    Calendar, Heart, ArrowRight, Share2, Info
+    Trophy, Users, Sparkles, Medal, Activity,
+    Heart, ArrowRight
 } from 'lucide-react';
 import './SportsScreen.css';
 
@@ -167,7 +167,7 @@ export const SportsScreen = () => {
     const [voteSport, setVoteSport] = useState('');
     const [toastMsg, setToastMsg] = useState('');
     const [showToast, setShowToast] = useState(false);
-    const [selectedSport, setSelectedSport] = useState<Sport | null>(null); // For modal if needed
+    // Removed unused selectedSport state
 
     const triggerConfetti = () => {
         confetti({
