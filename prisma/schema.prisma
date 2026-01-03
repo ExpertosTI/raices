@@ -228,6 +228,7 @@ model RegistrationRequest {
   branchId       String
   grandparentId  String?       // Which of the 12 siblings is grandparent
   parentName     String?       // Parent name (text, not linked)
+  parentType     String?       // FATHER or MOTHER
   relation       String
   phone          String?
   whatsapp       String?

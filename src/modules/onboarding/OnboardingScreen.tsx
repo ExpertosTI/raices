@@ -20,6 +20,7 @@ export const OnboardingScreen = () => {
         grandparentId: '',
         grandparentName: '',
         parentName: '',
+        parentType: 'MOTHER' as 'FATHER' | 'MOTHER', // Default to mother
         relation: 'GRANDCHILD',
         nickname: '',
         birthDate: '',
@@ -86,6 +87,7 @@ export const OnboardingScreen = () => {
                     branchId: formData.grandparentId,
                     grandparentId: formData.grandparentId,
                     parentName: formData.parentName,
+                    parentType: formData.parentType,
                     relation: formData.relation,
                     birthDate: formData.birthDate || null,
                     phone: formData.phone,
@@ -179,6 +181,22 @@ export const OnboardingScreen = () => {
                             value={formData.parentName}
                             onChange={e => setFormData({ ...formData, parentName: e.target.value })}
                         />
+
+                        <h3 className="sub-question">¿Es tu padre o madre?</h3>
+                        <div className="relation-options">
+                            <button
+                                className={`relation-btn ${formData.parentType === 'MOTHER' ? 'active' : ''}`}
+                                onClick={() => setFormData({ ...formData, parentType: 'MOTHER' })}
+                            >
+                                👩 Madre
+                            </button>
+                            <button
+                                className={`relation-btn ${formData.parentType === 'FATHER' ? 'active' : ''}`}
+                                onClick={() => setFormData({ ...formData, parentType: 'FATHER' })}
+                            >
+                                👨 Padre
+                            </button>
+                        </div>
 
                         <h3 className="sub-question">¿Cuál es tu relación con {selectedBranch?.name?.split(' ')[0]}?</h3>
                         <div className="relation-options">

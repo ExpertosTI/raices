@@ -110,7 +110,7 @@ app.get('/api/admin/members', authenticateToken, requireAdmin, getAllMembers);
 app.post('/api/registration-request', authenticateToken, async (req: any, res: Response) => {
     try {
         const userId = req.user?.id;
-        const { name, nickname, branchId, grandparentId, parentName, relation, birthDate, phone, whatsapp, bio, skills } = req.body;
+        const { name, nickname, branchId, grandparentId, parentName, parentType, relation, birthDate, phone, whatsapp, bio, skills } = req.body;
 
         if (!branchId || !name) {
             return res.status(400).json({ error: 'Missing required fields' });
@@ -125,6 +125,7 @@ app.post('/api/registration-request', authenticateToken, async (req: any, res: R
                 branchId,
                 grandparentId: grandparentId || null,
                 parentName: parentName || null,
+                parentType: parentType || null,
                 relation,
                 birthDate: birthDate ? new Date(birthDate) : null,
                 phone: phone || null,

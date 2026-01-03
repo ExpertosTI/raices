@@ -14,6 +14,7 @@ interface RegistrationRequest {
     id: string;
     name: string;
     parentName: string;
+    parentType?: 'FATHER' | 'MOTHER';
     status: string;
     createdAt: string;
     user: { id: string; email: string; name: string; image?: string };
@@ -228,7 +229,11 @@ export const AdminScreen = () => {
                                                 <div>
                                                     <h3>{reg.name}</h3>
                                                     <p>Rama: <strong>{reg.branch.name}</strong></p>
-                                                    {reg.parentName && <p>Padre: {reg.parentName}</p>}
+                                                    {reg.parentName && (
+                                                        <p>
+                                                            {reg.parentType === 'FATHER' ? '👨 Padre' : '👩 Madre'}: {reg.parentName}
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="card-actions">
