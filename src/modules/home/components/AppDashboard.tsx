@@ -150,6 +150,12 @@ export const AppDashboard: React.FC = () => {
                             <span className="action-icon">➕</span>
                             <span className="action-label">Registrar Descendiente</span>
                         </button>
+                        {user?.role === 'PATRIARCH' && (
+                            <button className="action-card admin" onClick={() => navigate('/admin')}>
+                                <span className="action-icon">⚙️</span>
+                                <span className="action-label">Panel Admin</span>
+                            </button>
+                        )}
                     </div>
                 </div>
 

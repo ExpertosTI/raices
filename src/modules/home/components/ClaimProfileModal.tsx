@@ -156,9 +156,9 @@ export const ClaimProfileModal: React.FC<ClaimProfileModalProps> = ({ isOpen, on
 
                 {step === 'SUCCESS' && (
                     <div className="success-view">
-                        <div className="success-icon">✅</div>
-                        <h2>¡Perfil Reclamado!</h2>
-                        <p>Tu identidad ha sido verificada.</p>
+                        <div className="success-icon">📨</div>
+                        <h2>¡Solicitud Enviada!</h2>
+                        <p>Un administrador revisará tu reclamo y te notificaremos por correo cuando sea aprobado.</p>
                     </div>
                 )}
             </div>

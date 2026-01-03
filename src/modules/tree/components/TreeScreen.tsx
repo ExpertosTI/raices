@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { VerticalTree } from './VerticalTree';
 import { HorizontalTree } from './HorizontalTree';
 import { RadialTree } from './RadialTree';
+import { ThreeDTree } from './ThreeDTree';
 import type { FamilyMember } from '../../../types';
 import './TreeScreen.css';
 
 export const TreeScreen: React.FC = () => {
     const navigate = useNavigate();
-    const [view, setView] = useState<'vertical' | 'horizontal' | 'radial'>('vertical');
+    const [view, setView] = useState<'vertical' | 'horizontal' | 'radial' | '3d'>('vertical');
     const [members, setMembers] = useState<FamilyMember[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -57,13 +58,33 @@ export const TreeScreen: React.FC = () => {
                     >
                         Radial
                     </button>
+                    <button
+                        className={`toggle-btn ${view === '3d' ? 'active' : ''}`}
+                        onClick={() => setView('3d')}
+                    >
+                        3D 🪐
+                    </button>
                 </div>
             </header>
 
             <div className="tree-content">
-                {view === 'vertical' && <VerticalTree members={members} />}
-                {view === 'horizontal' && <HorizontalTree members={members} />}
-                {view === 'radial' && <RadialTree members={members} />}
+                {members.length === 0 ? (
+                    <div className="empty-state">
+                        <div className="empty-icon">🌳</div>
+                        <h3>El árbol está creciendo</h3>
+                        <p>Aún no hay miembros registrados en la base de datos.</p>
+                        <button className="empty-action" onClick={() => navigate('/register')}>
+                            Registrar Primer Miembro
+                        </button>
+                    </div>
+                ) : (
+                    <>
+                        {view === 'vertical' && <VerticalTree members={members} />}
+                        {view === 'horizontal' && <HorizontalTree members={members} />}
+                        {view === 'radial' && <RadialTree members={members} />}
+                        {view === '3d' && <ThreeDTree members={members} />}
+                    </>
+                )}
             </div>
 
             {/* Bottom Navigation */}

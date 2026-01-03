@@ -10,6 +10,7 @@ import { RegisterScreen } from './modules/home/components/RegisterScreen';
 import { LoginScreen } from './modules/home/components/LoginScreen';
 import { SportsScreen } from './modules/home/components/SportsScreen';
 import { AdminScreen } from './modules/admin/AdminScreen';
+import { OnboardingScreen } from './modules/onboarding/OnboardingScreen';
 import { ProtectedRoute } from './modules/auth/components/ProtectedRoute';
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
           <Route path="/register" element={<RegisterScreen />} />
           <Route path="/sports" element={<SportsScreen />} />
           <Route path="/admin" element={<AdminScreen />} />
+          <Route path="/onboarding" element={<OnboardingScreen />} />
         </Route>
         {/* Redirect unknown routes to home */}
         <Route path="*" element={<Navigate to="/" replace />} />

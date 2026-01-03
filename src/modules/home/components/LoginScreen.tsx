@@ -31,7 +31,13 @@ export const LoginScreen = () => {
                 const data = await res.json();
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('user', JSON.stringify(data.user));
-                navigate('/app');
+
+                // Check if user needs to complete onboarding
+                if (!data.user.familyMember) {
+                    navigate('/onboarding');
+                } else {
+                    navigate('/app');
+                }
             } else {
                 const errData = await res.json();
                 setError(errData.error || 'No pudimos verificar tu cuenta. Intenta de nuevo.');

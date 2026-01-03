@@ -33,11 +33,12 @@
 
 /* Header */
 .tree-header {
-    padding: 1rem 1rem 0.5rem;
+    padding: 1rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.8rem;
+    gap: 1.2rem;
+    position: relative;
 }
 
 .tree-header .back-btn {
@@ -45,20 +46,30 @@
     top: 1rem;
     left: 1rem;
     z-index: 10;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
 }
 
 .tree-title {
     font-family: 'Playfair Display', serif;
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     background: linear-gradient(135deg, #D4AF37, #F4E4BA);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     margin: 0;
     text-align: center;
-    padding-top: 2.5rem;
-    /* Space for absolute back button */
+    padding-top: 2rem;
+    /* Added padding to prevent overlap */
 }
+
+
 
 /* View Toggles */
 .view-toggles {
@@ -74,11 +85,15 @@
     background: transparent;
     border: none;
     color: rgba(255, 255, 255, 0.5);
-    padding: 0.5rem 1rem;
+    padding: 0.8rem 1.2rem;
+    /* Increased padding */
     border-radius: 50px;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
+    /* Increased font size */
     cursor: pointer;
     transition: all 0.3s ease;
+    min-width: 80px;
+    /* Minimum width for tap target */
 }
 
 .toggle-btn:hover {
@@ -95,6 +110,57 @@
 .tree-content {
     padding: 1rem;
     overflow-x: auto;
+    min-height: 60vh;
+    display: flex;
+    justify-content: center;
+}
+
+/* Empty State */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    margin-top: 2rem;
+    max-width: 300px;
+}
+
+.empty-icon {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state h3 {
+    margin: 0;
+    color: #F4E4BA;
+}
+
+.empty-state p {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+}
+
+.empty-action {
+    background: linear-gradient(135deg, #D4AF37, #B8962E);
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 50px;
+    color: #1a1a2e;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: transform 0.2s;
+}
+
+.empty-action:hover {
+    transform: scale(1.05);
 }
 
 /* Bottom Navigation (copied from Dashboard) */
@@ -130,4 +196,47 @@
 
 .nav-item span:first-child {
     font-size: 1.3rem;
+}
+
+/* 3D Tree Styles */
+.tree-label-3d {
+    pointer-events: none;
+    transition: all 0.2s ease;
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+.tree-label-3d.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.label-content {
+    background: rgba(10, 10, 15, 0.8);
+    backdrop-filter: blur(4px);
+    padding: 0.3rem 0.6rem;
+    border-radius: 8px;
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    color: #F4E4BA;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.tree-3d-overlay {
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.tree-3d-overlay p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
 }

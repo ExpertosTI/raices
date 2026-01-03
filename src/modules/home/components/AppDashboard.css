@@ -23,10 +23,7 @@
     position: relative;
 }
 
-.app-header .logout-btn {
-    flex-shrink: 0;
-    margin-left: auto;
-}
+
 
 .user-badge {
     display: flex;
@@ -100,7 +97,50 @@
     background: rgba(255, 255, 255, 0.2);
 }
 
-/* Logout Button */
+/* Header Actions */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+.user-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.user-role-badge {
+    font-size: 0.65rem !important;
+    background: rgba(212, 175, 55, 0.2);
+    color: #D4AF37 !important;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    width: fit-content;
+    opacity: 1 !important;
+}
+
+/* Edit Profile & Logout Buttons */
+.edit-profile-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.edit-profile-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
 .logout-btn {
     background: rgba(255, 255, 255, 0.1);
     border: none;
@@ -111,11 +151,11 @@
     cursor: pointer;
     transition: all 0.3s ease;
     white-space: nowrap;
-    flex-shrink: 0;
 }
 
 .logout-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
 }
 
 /* Banner */
@@ -132,40 +172,65 @@
     border: 2px solid rgba(212, 175, 55, 0.3);
 }
 
-/* Stats Grid */
+/* Stats Cards */
 .stats-section {
-    padding: 0 1rem;
+    padding: 1rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+.stats-section::-webkit-scrollbar {
+    display: none;
+    /* Chrome/Safari */
 }
 
 .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
     gap: 1rem;
-    margin-bottom: 1.5rem;
+    min-width: max-content;
+    /* Ensure horizontal scroll on small screens */
+    padding: 0.5rem;
 }
 
 .stat-card {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 16px;
-    padding: 1.2rem;
+    padding: 1rem;
     text-align: center;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.08);
+    min-width: 100px;
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(212, 175, 55, 0.3);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #D4AF37, transparent);
+    opacity: 0.5;
 }
 
 .stat-number {
-    font-size: 2rem;
+    font-size: 1.8rem;
     font-weight: 700;
     background: linear-gradient(135deg, #D4AF37, #F4E4BA);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-}
-
-.stat-label {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
-    margin-top: 0.3rem;
+    margin-bottom: 0.2rem;
 }
 
 /* Sections */
@@ -226,6 +291,96 @@
 .action-card.feed {
     background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(29, 78, 216, 0.1));
     border-color: rgba(37, 99, 235, 0.3);
+}
+
+/* Special pulsing animation for "Soy uno de los 12" button */
+.action-card.claim {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.3), rgba(184, 150, 46, 0.2));
+    border: 2px solid #D4AF37;
+    position: relative;
+    overflow: hidden;
+    animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.action-card.claim::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(from 0deg,
+            transparent,
+            rgba(212, 175, 55, 0.3),
+            transparent,
+            transparent);
+    animation: rotate 4s linear infinite;
+}
+
+.action-card.claim::after {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.3), rgba(26, 26, 46, 0.95));
+    border-radius: 18px;
+    z-index: 0;
+}
+
+.action-card.claim .action-icon,
+.action-card.claim .action-label {
+    position: relative;
+    z-index: 1;
+}
+
+.action-card.claim .action-icon {
+    animation: crownBounce 1.5s ease-in-out infinite;
+}
+
+.action-card.claim .action-label {
+    background: linear-gradient(135deg, #D4AF37, #F4E4BA);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+}
+
+.action-card.claim:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 15px 40px rgba(212, 175, 55, 0.4);
+}
+
+@keyframes pulseGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 0 40px rgba(212, 175, 55, 0.6);
+    }
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes crownBounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
 }
 
 .action-card.sports {

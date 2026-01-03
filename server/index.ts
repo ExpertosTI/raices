@@ -102,6 +102,60 @@ app.post('/api/admin/registrations/:id/reject', authenticateToken, requireAdmin,
 app.get('/api/admin/users', authenticateToken, requireAdmin, getAllUsers);
 app.put('/api/admin/users/:id/role', authenticateToken, requireAdmin, updateUserRole);
 
+// Registration Request from Onboarding (creates pending request for admin approval)
+app.post('/api/registration-request', authenticateToken, async (req: any, res: Response) => {
+    try {
+        const userId = req.user?.id;
+        const { name, branchId, grandparentId, parentName, relation, birthDate, phone, whatsapp, bio } = req.body;
+
+        if (!branchId || !name) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        // Create registration request
+        const request = await prisma.registrationRequest.create({
+            data: {
+                userId,
+                name,
+                branchId,
+                grandparentId: grandparentId || null,
+                parentName: parentName || null,
+                relation,
+                birthDate: birthDate ? new Date(birthDate) : null,
+                phone: phone || null,
+                whatsapp: whatsapp || null,
+                bio: bio || null,
+                status: 'PENDING'
+            }
+        });
+
+        // Send email notification to admin
+        const adminEmail = process.env.ADMIN_EMAIL;
+        if (adminEmail) {
+            const { sendEmail } = await import('./services/email');
+            try {
+                await sendEmail(
+                    adminEmail,
+                    '📋 Nueva solicitud de registro - Raíces App',
+                    `<h2>Nueva Solicitud de Registro</h2>
+                    <p><strong>${name}</strong> quiere registrarse como descendiente.</p>
+                    <p><strong>Padre/Madre:</strong> ${parentName || 'No especificado'}</p>
+                    <p><strong>Relación:</strong> ${relation}</p>
+                    <br>
+                    <p><a href="https://raices.renace.tech/admin">Ir al Panel de Administración</a></p>`
+                );
+            } catch (emailError) {
+                console.error('Failed to send admin notification:', emailError);
+            }
+        }
+
+        res.json({ message: 'Solicitud enviada exitosamente', request });
+    } catch (error) {
+        console.error('Registration Request Error:', error);
+        res.status(500).json({ error: 'Failed to create registration request' });
+    }
+});
+
 // Protected: Members list now requires authentication
 app.get('/api/members', authenticateToken, async (req: Request, res: Response) => {
     try {

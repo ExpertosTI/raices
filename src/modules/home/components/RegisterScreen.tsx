@@ -38,6 +38,7 @@ export const RegisterScreen: React.FC = () => {
         whatsapp: '',
         bio: '',
         parentId: '',
+        parentName: '', // For when no parents exist to select
         preferredColor: '#D4AF37',
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -108,8 +109,11 @@ export const RegisterScreen: React.FC = () => {
 
         // Validar padre si es requerido
         const needsParent = ['CHILD', 'GRANDCHILD', 'GREAT_GRANDCHILD'].includes(formData.relation);
-        if (needsParent && !formData.parentId) {
-            setMessage('❌ Debes seleccionar quién es tu padre/madre');
+        const hasParent = formData.parentId && formData.parentId !== '__NEW__';
+        const hasParentName = formData.parentName && formData.parentName.trim().length > 0;
+
+        if (needsParent && !hasParent && !hasParentName) {
+            setMessage('❌ Debes seleccionar o escribir el nombre de tu padre/madre');
             return;
         }
 
@@ -117,10 +121,16 @@ export const RegisterScreen: React.FC = () => {
         setMessage('');
 
         try {
+            const token = localStorage.getItem('token');
+            const payload = { ...formData }; // Assuming formData is already structured correctly
+
             const res = await fetch('/api/members', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
             });
 
             if (res.ok) {
@@ -147,6 +157,17 @@ export const RegisterScreen: React.FC = () => {
             </header>
 
             <form className="register-form" onSubmit={handleSubmit}>
+
+                {/* Photo Upload Placeholder */}
+                <div className="form-group photo-upload-section">
+                    <div className="photo-placeholder">
+                        <span className="camera-icon">📷</span>
+                        <span className="photo-text">Agregar foto</span>
+                    </div>
+                </div>
+
+                <div className="section-divider">Datos Personales</div>
+
                 {/* Name */}
                 <div className="form-group">
                     <label>Nombre Completo</label>
@@ -204,20 +225,34 @@ export const RegisterScreen: React.FC = () => {
                 {['CHILD', 'GRANDCHILD', 'GREAT_GRANDCHILD'].includes(formData.relation) && (
                     <div className="form-group">
                         <label>¿De quién eres hijo/a?</label>
-                        <select
-                            value={formData.parentId}
-                            onChange={e => setFormData({ ...formData, parentId: e.target.value })}
-                            required
-                        >
-                            <option value="">Selecciona tu padre/madre</option>
-                            {availableParents.map(parent => (
-                                <option key={parent.id} value={parent.id}>
-                                    {parent.name} ({new Date(parent.birthDate).getFullYear()})
-                                </option>
-                            ))}
-                        </select>
-                        {availableParents.length === 0 && (
-                            <p className="field-hint">No se encontraron miembros en esta rama. Registra primero a tus padres.</p>
+                        {availableParents.length > 0 ? (
+                            <select
+                                value={formData.parentId}
+                                onChange={e => setFormData({ ...formData, parentId: e.target.value })}
+                            >
+                                <option value="">Selecciona tu padre/madre</option>
+                                {availableParents.map(parent => (
+                                    <option key={parent.id} value={parent.id}>
+                                        {parent.name} {parent.birthDate ? `(${new Date(parent.birthDate).getFullYear()})` : ''}
+                                    </option>
+                                ))}
+                                <option value="__NEW__">+ Registrar nuevo padre/madre</option>
+                            </select>
+                        ) : (
+                            <p className="field-hint info">
+                                📝 No hay padres registrados en esta rama. Escribe el nombre de tu padre/madre abajo y lo crearemos automáticamente.
+                            </p>
+                        )}
+
+                        {/* Text input for new parent name */}
+                        {(formData.parentId === '__NEW__' || availableParents.length === 0) && (
+                            <input
+                                type="text"
+                                placeholder="Nombre completo de tu padre/madre"
+                                value={(formData as any).parentName || ''}
+                                onChange={e => setFormData({ ...formData, parentName: e.target.value } as any)}
+                                className="new-parent-input"
+                            />
                         )}
                     </div>
                 )}
@@ -248,10 +283,11 @@ export const RegisterScreen: React.FC = () => {
                 <div className="form-group">
                     <label>Biografía Corta</label>
                     <textarea
+                        className="textarea"
                         placeholder="Cuéntanos algo sobre ti..."
                         value={formData.bio}
                         onChange={e => setFormData({ ...formData, bio: e.target.value })}
-                        rows={3}
+                        rows={4}
                     />
                 </div>
 
