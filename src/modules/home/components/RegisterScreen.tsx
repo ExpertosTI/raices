@@ -70,16 +70,20 @@ export const RegisterScreen: React.FC = () => {
             }
         }
 
-        // Fetch branches
-        fetch('/api/branches')
+        // Fetch branches (token already retrieved at line 52)
+        fetch('/api/branches', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
             .then(res => res.json())
-            .then(data => setBranches(data))
+            .then(data => setBranches(Array.isArray(data) ? data : []))
             .catch(err => console.error('Failed to fetch branches', err));
 
         // Fetch members
-        fetch('/api/members')
+        fetch('/api/members', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
             .then(res => res.json())
-            .then(data => setMembers(data))
+            .then(data => setMembers(Array.isArray(data) ? data : []))
             .catch(err => console.error('Failed to fetch members', err));
     }, [navigate]);
 

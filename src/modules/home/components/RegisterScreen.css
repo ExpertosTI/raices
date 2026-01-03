@@ -3,28 +3,35 @@
     background: linear-gradient(180deg, #0A0A0F 0%, #1a1a2e 100%);
     color: white;
     padding-bottom: 120px;
+    overflow-x: hidden;
 }
 
 /* Header */
 .register-header {
-    padding: 1.5rem;
+    padding: 1rem;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
+    gap: 0.8rem;
+    position: relative;
 }
 
-.back-btn {
+.register-header .back-btn {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
     background: rgba(255, 255, 255, 0.1);
     border: none;
     color: white;
-    padding: 0.6rem 1.2rem;
+    padding: 0.5rem 1rem;
     border-radius: 50px;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     cursor: pointer;
     transition: all 0.3s ease;
+    z-index: 10;
 }
 
-.back-btn:hover {
+.register-header .back-btn:hover {
     background: rgba(255, 255, 255, 0.2);
 }
 
@@ -36,6 +43,8 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
     margin: 0;
+    text-align: center;
+    padding-top: 2.5rem;
 }
 
 /* Form */

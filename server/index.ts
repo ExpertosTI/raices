@@ -78,6 +78,30 @@ if (!isProduction) {
 import { claimProfile } from './controllers/members';
 app.post('/api/members/claim', authenticateToken, claimProfile);
 
+// Admin Routes (require PATRIARCH role)
+import {
+    getPendingClaims, approveClaim, rejectClaim,
+    getRegistrationRequests, approveRegistration, rejectRegistration,
+    getAllUsers, updateUserRole
+} from './controllers/admin';
+
+// Middleware to check admin role
+const requireAdmin = (req: any, res: any, next: any) => {
+    if (req.user?.role !== 'PATRIARCH') {
+        return res.status(403).json({ error: 'Admin access required' });
+    }
+    next();
+};
+
+app.get('/api/admin/claims', authenticateToken, requireAdmin, getPendingClaims);
+app.post('/api/admin/claims/:id/approve', authenticateToken, requireAdmin, approveClaim);
+app.post('/api/admin/claims/:id/reject', authenticateToken, requireAdmin, rejectClaim);
+app.get('/api/admin/registrations', authenticateToken, requireAdmin, getRegistrationRequests);
+app.post('/api/admin/registrations/:id/approve', authenticateToken, requireAdmin, approveRegistration);
+app.post('/api/admin/registrations/:id/reject', authenticateToken, requireAdmin, rejectRegistration);
+app.get('/api/admin/users', authenticateToken, requireAdmin, getAllUsers);
+app.put('/api/admin/users/:id/role', authenticateToken, requireAdmin, updateUserRole);
+
 // Protected: Members list now requires authentication
 app.get('/api/members', authenticateToken, async (req: Request, res: Response) => {
     try {

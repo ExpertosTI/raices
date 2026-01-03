@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { prisma } from '../db';
+import { sendEmail } from '../services/email';
 
-// Claim a Patriarch Profile
+// Claim a Patriarch Profile - Creates pending request for admin approval
 export const claimProfile = async (req: any, res: Response) => {
     const { memberId } = req.body;
     const userId = req.user?.id;
@@ -14,7 +15,7 @@ export const claimProfile = async (req: any, res: Response) => {
         // 1. Check if Member exists and is valid for claiming
         const member = await prisma.familyMember.findUnique({
             where: { id: memberId },
-            include: { user: true }
+            include: { user: true, branch: true }
         });
 
         if (!member) {
@@ -22,31 +23,54 @@ export const claimProfile = async (req: any, res: Response) => {
         }
 
         if (member.user) {
-            return res.status(400).json({ error: 'This profile has already been claimed' });
+            return res.status(400).json({ error: 'Este perfil ya ha sido reclamado' });
         }
 
-        // 2. Perform Link (Simulate Email Confirmation here)
-        console.log(`[EMAIL SIMULATION] Sending confirmation email to user ${userId} for claiming member ${member.name}`);
-
-        // Update Member with User ID
-        await prisma.familyMember.update({
-            where: { id: memberId },
-            data: { userId: userId }
+        // 2. Check if there's already a pending claim
+        const existingClaim = await prisma.pendingClaim.findFirst({
+            where: { userId, memberId, status: 'PENDING' }
         });
 
-        // Update User Role to PATRIARCH (if claiming a patriarch/sibling)
-        // We assume the initial 12 are patriarchs/siblings
-        if (member.relation === 'PATRIARCH' || member.relation === 'SIBLING') {
-            await prisma.user.update({
-                where: { id: userId },
-                data: { role: 'PATRIARCH' }
-            });
+        if (existingClaim) {
+            return res.status(400).json({ error: 'Ya tienes una solicitud pendiente para este perfil' });
         }
 
-        res.json({ message: 'Profile claimed successfully', member });
+        // 3. Create PendingClaim
+        const claim = await prisma.pendingClaim.create({
+            data: { userId, memberId }
+        });
+
+        // 4. Get user info for email
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+
+        // 5. Send email to Admin
+        const adminEmail = process.env.ADMIN_EMAIL;
+        if (adminEmail) {
+            try {
+                await sendEmail(
+                    adminEmail,
+                    `🔔 Nueva solicitud de reclamo - ${member.name}`,
+                    `<h2>Nueva Solicitud de Reclamo</h2>
+                    <p><strong>${user?.name || user?.email}</strong> quiere reclamar el perfil de <strong>${member.name}</strong>.</p>
+                    <p><strong>Rama:</strong> ${member.branch.name}</p>
+                    <p><strong>Email del solicitante:</strong> ${user?.email}</p>
+                    <br>
+                    <p>Ingresa al panel de administración para aprobar o rechazar esta solicitud.</p>
+                    <p><a href="https://raices.renace.tech/admin">Ir al Panel de Administración</a></p>`
+                );
+            } catch (emailError) {
+                console.error('Failed to send admin notification:', emailError);
+            }
+        }
+
+        res.json({
+            message: '✅ Solicitud enviada. Un administrador revisará tu reclamo.',
+            claim,
+            pending: true
+        });
 
     } catch (error) {
         console.error('Claim Profile Error:', error);
-        res.status(500).json({ error: 'Failed to claim profile' });
+        res.status(500).json({ error: 'Failed to create claim request' });
     }
 };

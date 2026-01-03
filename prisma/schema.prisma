@@ -26,6 +26,8 @@ model User {
   posts         Post[]
   votes         Vote[]
   comments      Comment[]
+  pendingClaims PendingClaim[]
+  registrationRequests RegistrationRequest[]
   
   // OAuth
   accounts      Account[]
@@ -83,6 +85,7 @@ model Branch {
   isAlive   Boolean  @default(true)
   
   members   FamilyMember[]
+  registrationRequests RegistrationRequest[]
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -112,6 +115,7 @@ model FamilyMember {
   
   user         User?         @relation(fields: [userId], references: [id])
   branch       Branch        @relation(fields: [branchId], references: [id])
+  pendingClaims PendingClaim[]
   
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
@@ -187,4 +191,53 @@ enum EventType {
   REUNION
   MEMORIAL
   OTHER
+}
+
+// ============= APPROVAL WORKFLOW MODELS =============
+
+model PendingClaim {
+  id          String     @id @default(cuid())
+  userId      String
+  memberId    String
+  status      ClaimStatus @default(PENDING)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  member      FamilyMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, memberId])
+}
+
+enum ClaimStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model RegistrationRequest {
+  id             String        @id @default(cuid())
+  userId         String
+  name           String
+  birthDate      DateTime?
+  branchId       String
+  grandparentId  String?       // Which of the 12 siblings is grandparent
+  parentName     String?       // Parent name (text, not linked)
+  relation       String
+  phone          String?
+  whatsapp       String?
+  bio            String?       @db.Text
+  preferredColor String?
+  status         RequestStatus @default(PENDING)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch         Branch        @relation(fields: [branchId], references: [id])
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
