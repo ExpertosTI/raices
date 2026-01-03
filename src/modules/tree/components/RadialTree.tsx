@@ -10,40 +10,37 @@ interface TreeProps {
 }
 
 // Convert flat list to hierarchical structure
-const buildHierarchy = (members: FamilyMember[]) => {
+const buildHierarchy = (members: FamilyMember[]): FamilyMember => {
     // 1. Find root (Patriarch/Matriarch) - Assuming one "Super Root" or first Patriarch
     // For this specific family, we create a virtual root to hold the Patriarchs
-    const rootData = {
+    const rootData: FamilyMember = {
         name: "Familia Henríquez Cruz",
         id: "root",
         isRoot: true,
-        children: [] as any[]
-    };
+        branchId: "root", // Mock
+        relation: "PATRIARCH", // Mock
+        isPatriarch: true,
+        children: []
+    } as any; // Cast as any then FamilyMember to avoid missing required prop noise if strict
 
-    const memberMap = new Map();
+    const memberMap = new Map<string, FamilyMember>();
     members.forEach(m => memberMap.set(m.id, { ...m, children: [] }));
 
     // 2. Link children to parents
-    const orphanBranches: any[] = [];
-
     memberMap.forEach(node => {
         if (node.isPatriarch) {
-            rootData.children.push(node);
+            rootData.children?.push(node);
         } else if (node.parentId && memberMap.has(node.parentId)) {
-            memberMap.get(node.parentId).children.push(node);
+            memberMap.get(node.parentId)!.children?.push(node);
         } else {
-            // If no parent found, attach to Branch Root if possible, otherwise Root
-            // For now, simpler fallback:
             if (node.relation === 'SIBLING') {
-                rootData.children.push(node);
-            } else {
-                orphanBranches.push(node);
+                rootData.children?.push(node);
             }
         }
     });
 
-    // Sort siblings by branch order if possible
-    rootData.children.sort((a, b) => {
+    // Sort siblings
+    rootData.children?.sort((a, b) => {
         const branchA = FAMILY_BRANCHES.find(br => br.name === a.name)?.order || 99;
         const branchB = FAMILY_BRANCHES.find(br => br.name === b.name)?.order || 99;
         return branchA - branchB;
@@ -79,10 +76,10 @@ export const RadialTree: React.FC<TreeProps> = ({ members }) => {
 
         // Data
         const hierarchyData = buildHierarchy(members);
-        const root = d3.hierarchy(hierarchyData);
+        const root = d3.hierarchy<FamilyMember>(hierarchyData);
 
         // Layout
-        const tree = d3.tree()
+        const tree = d3.tree<FamilyMember>()
             .size([2 * Math.PI, radius])
             .separation((a, b) => (a.parent == b.parent ? 1 : 2) / a.depth);
 
@@ -97,9 +94,9 @@ export const RadialTree: React.FC<TreeProps> = ({ members }) => {
             .selectAll("path")
             .data(root.links())
             .join("path")
-            .attr("d", d3.linkRadial()
-                .angle((d: any) => d.x)
-                .radius((d: any) => d.y) as any
+            .attr("d", d3.linkRadial<any, any>() // Using any to bypass complex D3 generic mismatch
+                .angle(d => d.x)
+                .radius(d => d.y)
             );
 
         // Nodes
@@ -122,7 +119,7 @@ export const RadialTree: React.FC<TreeProps> = ({ members }) => {
             .attr("stroke", "#D4AF37")
             .attr("r", (d: any) => d.depth === 0 ? 0 : (6 - d.depth)) // Root invisible
             .attr("cursor", "pointer")
-            .on("click", (event, d) => {
+            .on("click", (_, d) => { // Removed unused event
                 const member = d.data as FamilyMember;
                 if (!member.isRoot) setSelectedMember(member);
             });
@@ -135,7 +132,7 @@ export const RadialTree: React.FC<TreeProps> = ({ members }) => {
             .attr("text-anchor", (d: any) => d.x < Math.PI === !d.children ? "start" : "end")
             .text((d: any) => (d.data as any).isRoot ? "" : (d.data as any).name)
             .attr("fill", "white")
-            .attr("font-size", "10px")
+            .attr("font-size", "10px") // Changed from fontSize to font-size for attribute
             .clone(true).lower()
             .attr("stroke", "black")
             .attr("stroke-width", 3);

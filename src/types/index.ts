@@ -20,6 +20,8 @@ export interface FamilyMember {
     parentId?: string;
     preferredColor?: string;
     branch?: Branch;
+    isRoot?: boolean;
+    children?: FamilyMember[]; // For hierarchical view
 }
 
 export interface Post {

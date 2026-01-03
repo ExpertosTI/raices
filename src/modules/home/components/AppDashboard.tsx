@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+
 import { ClaimProfileModal } from './ClaimProfileModal';
 import { PWAInstall } from './PWAInstall';
 import './AppDashboard.css';
