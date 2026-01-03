@@ -9,7 +9,7 @@ export const SplashScreen: React.FC = () => {
     const handleEnter = () => {
         setIsExiting(true);
         setTimeout(() => {
-            navigate('/select');
+            navigate('/login');
         }, 800);
     };
 
