@@ -161,7 +161,7 @@ export const OnboardingScreen = () => {
                     </div>
                 )}
 
-                {/* Step 2: Parent Info */}
+                {/* Step 2: Parent Info / Relation */}
                 {step === 2 && (
                     <div className="onboarding-step">
                         <button className="back-link" onClick={() => setStep(1)}>← Atrás</button>
@@ -171,58 +171,64 @@ export const OnboardingScreen = () => {
                             <strong>{selectedBranch?.name}</strong>
                         </div>
 
-                        <h2 className="question">¿Cómo se llama tu papá o mamá?</h2>
-                        <p className="step-hint">El que sea hijo/a de {selectedBranch?.name?.split(' ')[0]}</p>
-
-                        <input
-                            type="text"
-                            className="text-input"
-                            placeholder="Ej: María García"
-                            value={formData.parentName}
-                            onChange={e => setFormData({ ...formData, parentName: e.target.value })}
-                        />
-
-                        <h3 className="sub-question">¿Es tu padre o madre?</h3>
+                        {/* First ask for relation type */}
+                        <h2 className="question">¿Cuál es tu relación con {selectedBranch?.name?.split(' ')[0]}?</h2>
                         <div className="relation-options">
                             <button
-                                className={`relation-btn ${formData.parentType === 'MOTHER' ? 'active' : ''}`}
-                                onClick={() => setFormData({ ...formData, parentType: 'MOTHER' })}
+                                className={`relation-btn ${formData.relation === 'CHILD' ? 'active' : ''}`}
+                                onClick={() => setFormData({ ...formData, relation: 'CHILD', parentName: selectedBranch?.name || '' })}
                             >
-                                👩 Madre
+                                👶 Hijo/a directo
                             </button>
-                            <button
-                                className={`relation-btn ${formData.parentType === 'FATHER' ? 'active' : ''}`}
-                                onClick={() => setFormData({ ...formData, parentType: 'FATHER' })}
-                            >
-                                👨 Padre
-                            </button>
-                        </div>
-
-                        <h3 className="sub-question">¿Cuál es tu relación con {selectedBranch?.name?.split(' ')[0]}?</h3>
-                        <div className="relation-options">
                             <button
                                 className={`relation-btn ${formData.relation === 'GRANDCHILD' ? 'active' : ''}`}
                                 onClick={() => setFormData({ ...formData, relation: 'GRANDCHILD' })}
                             >
-                                Nieto/a
+                                🧒 Nieto/a
                             </button>
                             <button
                                 className={`relation-btn ${formData.relation === 'GREAT_GRANDCHILD' ? 'active' : ''}`}
                                 onClick={() => setFormData({ ...formData, relation: 'GREAT_GRANDCHILD' })}
                             >
-                                Bisnieto/a
-                            </button>
-                            <button
-                                className={`relation-btn ${formData.relation === 'CHILD' ? 'active' : ''}`}
-                                onClick={() => setFormData({ ...formData, relation: 'CHILD' })}
-                            >
-                                Hijo/a directo
+                                👶 Bisnieto/a
                             </button>
                         </div>
 
+                        {/* Only show parent info if NOT a direct child */}
+                        {formData.relation !== 'CHILD' && (
+                            <>
+                                <h3 className="sub-question">¿Cómo se llama tu papá o mamá?</h3>
+                                <p className="step-hint">El que sea hijo/a de {selectedBranch?.name?.split(' ')[0]}</p>
+
+                                <input
+                                    type="text"
+                                    className="text-input"
+                                    placeholder="Ej: María García"
+                                    value={formData.parentName}
+                                    onChange={e => setFormData({ ...formData, parentName: e.target.value })}
+                                />
+
+                                <h3 className="sub-question">¿Es tu padre o madre?</h3>
+                                <div className="relation-options">
+                                    <button
+                                        className={`relation-btn ${formData.parentType === 'MOTHER' ? 'active' : ''}`}
+                                        onClick={() => setFormData({ ...formData, parentType: 'MOTHER' })}
+                                    >
+                                        👩 Madre
+                                    </button>
+                                    <button
+                                        className={`relation-btn ${formData.parentType === 'FATHER' ? 'active' : ''}`}
+                                        onClick={() => setFormData({ ...formData, parentType: 'FATHER' })}
+                                    >
+                                        👨 Padre
+                                    </button>
+                                </div>
+                            </>
+                        )}
+
                         <button
                             className="next-btn"
-                            disabled={!formData.parentName}
+                            disabled={formData.relation !== 'CHILD' && !formData.parentName}
                             onClick={() => setStep(3)}
                         >
                             Continuar →

@@ -16,6 +16,12 @@ export const useConfirmDialog = () => {
     return context;
 };
 
+// Alias que devuelve solo la función confirm
+export const useConfirm = () => {
+    const { confirm } = useConfirmDialog();
+    return confirm;
+};
+
 interface ConfirmDialogProviderProps {
     children: ReactNode;
 }

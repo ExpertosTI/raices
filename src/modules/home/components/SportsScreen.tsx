@@ -5,6 +5,7 @@ import {
     Trophy, Users, Sparkles, Medal, Activity,
     Heart, ArrowRight
 } from 'lucide-react';
+import { useConfirm } from '../../../components/ConfirmDialog';
 import './SportsScreen.css';
 
 // --- Types ---
@@ -163,6 +164,7 @@ const VoteVisualization = () => {
 
 export const SportsScreen = () => {
     const navigate = useNavigate();
+    const confirm = useConfirm();
     const [activeTab, setActiveTab] = useState('Todos');
     const [voteSport, setVoteSport] = useState('');
     const [toastMsg, setToastMsg] = useState('');
@@ -185,7 +187,7 @@ export const SportsScreen = () => {
     };
 
     const handleRegister = async (sport: Sport) => {
-        const confirmed = window.confirm(`¿Seguro que quieres inscribir a tu rama en ${sport.name}?`);
+        const confirmed = await confirm(`¿Seguro que quieres inscribir a tu rama en ${sport.name}?`);
         if (!confirmed) return;
 
         // Logic to register

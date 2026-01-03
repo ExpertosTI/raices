@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useConfirm } from '../../components/ConfirmDialog';
 import './AdminScreen.css';
 
 interface PendingClaim {
@@ -32,6 +33,7 @@ interface User {
 
 export const AdminScreen = () => {
     const navigate = useNavigate();
+    const confirm = useConfirm();
     const [activeTab, setActiveTab] = useState<'claims' | 'registrations' | 'users' | 'members' | 'stats'>('stats');
     const [claims, setClaims] = useState<PendingClaim[]>([]);
     const [registrations, setRegistrations] = useState<RegistrationRequest[]>([]);
@@ -78,7 +80,8 @@ export const AdminScreen = () => {
     };
 
     const handleDeleteMember = async (id: string) => {
-        if (!window.confirm('¿Seguro que deseas eliminar este miembro? Esta acción es irreversible.')) return;
+        const confirmed = await confirm('¿Seguro que deseas eliminar este miembro? Esta acción es irreversible.');
+        if (!confirmed) return;
         try {
             const res = await fetch(`/api/admin/members/${id}`, {
                 method: 'DELETE',
@@ -148,7 +151,8 @@ export const AdminScreen = () => {
     };
 
     const handleRejectRegistration = async (id: string) => {
-        if (!window.confirm('¿Seguro que deseas rechazar este registro?')) return;
+        const confirmed = await confirm('¿Seguro que deseas rechazar este registro?');
+        if (!confirmed) return;
         try {
             const res = await fetch(`/api/admin/registrations/${id}/reject`, {
                 method: 'POST',
@@ -187,7 +191,8 @@ export const AdminScreen = () => {
     };
 
     const handleUnclaimUser = async (memberId: string) => {
-        if (!window.confirm('¿Seguro que deseas desvincular este perfil del usuario?')) return;
+        const confirmed = await confirm('¿Seguro que deseas desvincular este perfil del usuario?');
+        if (!confirmed) return;
         try {
             const res = await fetch(`/api/admin/members/${memberId}/unclaim`, {
                 method: 'POST',

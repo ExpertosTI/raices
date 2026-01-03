@@ -19,6 +19,19 @@ export const MemberDetailModal: React.FC<Props> = ({ member, onClose }) => {
         });
     };
 
+    const translateRelation = (relation: string) => {
+        const translations: Record<string, string> = {
+            'SIBLING': 'Hermano/a',
+            'CHILD': 'Hijo/a',
+            'GRANDCHILD': 'Nieto/a',
+            'GREAT_GRANDCHILD': 'Bisnieto/a',
+            'SPOUSE': 'Esposo/a',
+            'PARENT': 'Padre/Madre',
+            'PATRIARCH': 'Patriarca'
+        };
+        return translations[relation] || relation.replace('_', ' ');
+    };
+
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -36,7 +49,7 @@ export const MemberDetailModal: React.FC<Props> = ({ member, onClose }) => {
                     </div>
                     <h2>{member.name}</h2>
                     <span className="member-relation-badge">
-                        {member.relation.replace('_', ' ')}
+                        {translateRelation(member.relation)}
                     </span>
                 </div>
 
