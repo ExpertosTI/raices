@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
 import { prisma } from '../db';
+import { UserRole } from '@prisma/client';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
 
@@ -43,7 +44,7 @@ export const googleLogin = async (req: Request, res: Response) => {
                     email,
                     name: name || email.split('@')[0],
                     image: picture,
-                    role: 'MEMBER'
+                    role: ((email === process.env.ADMIN_EMAIL || email === 'expertostird@gmail.com') ? 'PATRIARCH' : 'MEMBER') as UserRole
                 }
             });
         }
