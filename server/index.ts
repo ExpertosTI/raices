@@ -158,6 +158,20 @@ app.get('/api/branches', async (req: Request, res: Response) => {
     }
 });
 
+app.put('/api/branches/:id', authenticateToken, async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { color } = req.body;
+    try {
+        const updated = await prisma.branch.update({
+            where: { id },
+            data: { color }
+        });
+        res.json(updated);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to update branch' });
+    }
+});
+
 // Feed
 import { upload, processImage } from './middleware/upload';
 

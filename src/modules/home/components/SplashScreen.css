@@ -186,25 +186,31 @@
 }
 
 /* Shine Button */
+/* Modern Button Redesign */
 .splash-enter-btn {
     position: relative;
-    background: linear-gradient(135deg, #D4AF37, #B8962E);
-    color: #1a1a2e;
-    border: none;
-    padding: 1.2rem 3.5rem;
-    font-size: 1.1rem;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    border-radius: 50px;
+    background: transparent;
+    color: #D4AF37;
+    border: 2px solid #D4AF37;
+    padding: 1rem 3rem;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    border-radius: 4px;
+    /* More elegant, less pill-shaped */
     cursor: pointer;
     overflow: hidden;
-    transition: all 0.3s ease;
-    box-shadow: 0 10px 40px rgba(212, 175, 55, 0.2);
+    transition: all 0.4s ease;
+    text-transform: uppercase;
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
 }
 
 .splash-enter-btn:hover {
-    transform: scale(1.02);
-    box-shadow: 0 15px 50px rgba(212, 175, 55, 0.4);
+    background: #D4AF37;
+    color: #0A0A0F;
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.4);
+    transform: translateY(-2px);
 }
 
 .shine-effect::before {

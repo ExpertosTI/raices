@@ -79,7 +79,8 @@ export const RadialTree: React.FC<TreeProps> = ({ members }) => {
         const root = d3.hierarchy<FamilyMember>(hierarchyData);
 
         // Layout
-        const tree = d3.tree<FamilyMember>()
+        // Layout
+        const tree = d3.tree<any>()
             .size([2 * Math.PI, radius])
             .separation((a, b) => (a.parent == b.parent ? 1 : 2) / a.depth);
 
@@ -113,13 +114,20 @@ export const RadialTree: React.FC<TreeProps> = ({ members }) => {
         node.append("circle")
             .attr("fill", (d: any) => {
                 const m = d.data as FamilyMember;
-                const branch = FAMILY_BRANCHES.find(b => b.name === m.name) || m.branch;
-                return branch?.color || (d.depth === 0 ? "#fff" : "#555");
+                // Priority: Member Preferred -> Branch DB Color -> Constant -> Default
+                const branch = m.branch;
+                const constantBranch = FAMILY_BRANCHES.find(b => b.name === m.name);
+
+                if (m.preferredColor) return m.preferredColor;
+                if (branch?.color) return branch.color;
+                if (constantBranch?.color) return constantBranch.color;
+
+                return d.depth === 0 ? "#fff" : "#555";
             })
             .attr("stroke", "#D4AF37")
             .attr("r", (d: any) => d.depth === 0 ? 0 : (6 - d.depth)) // Root invisible
             .attr("cursor", "pointer")
-            .on("click", (_, d) => { // Removed unused event
+            .on("click", (_, d) => {
                 const member = d.data as FamilyMember;
                 if (!member.isRoot) setSelectedMember(member);
             });

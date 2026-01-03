@@ -78,7 +78,6 @@ export const SelectionScreen: React.FC = () => {
                             </div>
                         )}
                         <span className="child-name">{sibling.name}</span>
-                        <span className="child-order">{sibling.date}</span>
                     </div>
                 ))}
             </div>
