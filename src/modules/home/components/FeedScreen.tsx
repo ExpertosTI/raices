@@ -137,7 +137,7 @@ export const FeedScreen: React.FC = () => {
             });
 
             if (res.ok) {
-                const newComment = await res.json();
+                await res.json();
                 // Optimistic update mechanism would be better, but re-fetching is reliable
                 fetchFeed();
             }
