@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
+import { GrowingRoots } from './GrowingRoots';
 import './LoginScreen.css';
 
 export const LoginScreen = () => {
@@ -45,7 +46,7 @@ export const LoginScreen = () => {
 
     return (
         <div className="login-screen">
-            <div className="login-particles"></div>
+            <GrowingRoots />
 
             <div className="login-card">
                 {/* Reusing SVG Logo Concept */}
