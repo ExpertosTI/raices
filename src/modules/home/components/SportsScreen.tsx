@@ -185,6 +185,9 @@ export const SportsScreen = () => {
     };
 
     const handleRegister = async (sport: Sport) => {
+        const confirmed = window.confirm(`¿Seguro que quieres inscribir a tu rama en ${sport.name}?`);
+        if (!confirmed) return;
+
         // Logic to register
         successToast(`¡Inscrito en ${sport.name}!`);
     };

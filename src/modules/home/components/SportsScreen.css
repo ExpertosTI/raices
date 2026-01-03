@@ -452,3 +452,32 @@
     border-radius: 10px 10px 0 0;
     box-shadow: 0 -5px 10px var(--neon-gold);
 }
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 768px) {
+    .sports-header-premium h1 {
+        font-size: 1.8rem;
+    }
+
+    .countdown-card.glass-panel {
+        gap: 0.5rem;
+        padding: 0.8rem;
+    }
+
+    .time-block .number {
+        font-size: 1.4rem;
+    }
+
+    .separator {
+        font-size: 1.2rem;
+    }
+
+    .sports-grid-premium {
+        grid-template-columns: 1fr;
+        /* Stack cards on mobile */
+    }
+
+    .intro-text h3 {
+        font-size: 1.1rem;
+    }
+}

@@ -65,20 +65,32 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.post-input {
+.post-input,
+.comment-input {
     width: 100%;
-    background: transparent;
-    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem;
     color: white;
     font-size: 1rem;
     resize: none;
     min-height: 80px;
     font-family: inherit;
     margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
 }
 
-.post-input:focus {
+.post-input:focus,
+.comment-input:focus {
     outline: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #D4AF37;
+}
+
+.comment-input {
+    min-height: 50px;
+    /* Smaller for comments */
 }
 
 .post-toolbar {
