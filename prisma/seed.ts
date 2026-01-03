@@ -20,6 +20,13 @@ const BRANCHES = [
 async function main() {
     console.log('Seeding database...')
 
+    // Check if already seeded
+    const existingBranches = await prisma.branch.count();
+    if (existingBranches > 0) {
+        console.log(`⚠️ Database already has ${existingBranches} branches. Skipping seed to avoid duplicates.`);
+        return;
+    }
+
     // Create Branches and their Patriarch FamilyMembers
     for (const branch of BRANCHES) {
         const branchRecord = await prisma.branch.create({

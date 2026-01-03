@@ -15,10 +15,17 @@
 
 /* Header */
 .app-header {
-    padding: 1.5rem;
+    padding: 1rem 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
+    position: relative;
+}
+
+.app-header .logout-btn {
+    flex-shrink: 0;
+    margin-left: auto;
 }
 
 .user-badge {
@@ -90,6 +97,24 @@
 }
 
 .back-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Logout Button */
+.logout-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.logout-btn:hover {
     background: rgba(255, 255, 255, 0.2);
 }
 

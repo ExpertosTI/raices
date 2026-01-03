@@ -78,7 +78,7 @@ export const AppDashboard: React.FC = () => {
                             <span>{user?.familyMember ? user.familyMember.name : 'Bienvenido a tu legado'}</span>
                         </div>
                     </div>
-                    <button className="back-btn" onClick={() => {
+                    <button className="logout-btn" onClick={() => {
                         localStorage.removeItem('token');
                         localStorage.removeItem('user');
                         navigate('/login');
