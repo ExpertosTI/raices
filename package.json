@@ -16,6 +16,8 @@
     "@react-oauth/google": "^0.13.4",
     "@types/d3": "^7.4.3",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.0.0",
+    "@types/uuid": "^10.0.0",
     "clsx": "^2.1.1",
     "cors": "^2.8.5",
     "d3": "^7.9.0",
@@ -29,11 +31,14 @@
     "jsonwebtoken": "^9.0.3",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.562.0",
+    "multer": "^2.0.2",
     "nodemailer": "^7.0.12",
     "prisma": "^6.0.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.11.0",
+    "sharp": "^0.34.5",
+    "uuid": "^13.0.0",
     "vite-plugin-pwa": "^1.2.0"
   },
   "devDependencies": {

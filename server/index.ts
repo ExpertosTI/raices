@@ -159,8 +159,20 @@ app.get('/api/branches', async (req: Request, res: Response) => {
 });
 
 // Feed
+import { upload, processImage } from './middleware/upload';
+
+// Static uploads serving (both dev and prod) -> security: consider separate domain in future
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
 app.get('/api/feed', getFeed);
-app.post('/api/feed', authenticateToken, createPost);
+// Updated post creation with image support
+app.post('/api/feed',
+    authenticateToken,
+    upload.single('image'),
+    processImage,
+    validatePostInput, // Make sure validation handles the now populated body
+    createPost
+);
 app.post('/api/feed/:id/like', authenticateToken, likePost);
 app.post('/api/feed/:id/comment', authenticateToken, createComment);
 

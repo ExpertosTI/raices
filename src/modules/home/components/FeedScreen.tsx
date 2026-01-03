@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './FeedScreen.css';
 
@@ -24,6 +24,10 @@ export const FeedScreen: React.FC = () => {
     const [newPostContent, setNewPostContent] = useState('');
     const [isPosting, setIsPosting] = useState(false);
 
+    const [selectedImage, setSelectedImage] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     const fetchFeed = async () => {
         try {
             const res = await fetch('/api/feed');
@@ -42,23 +46,39 @@ export const FeedScreen: React.FC = () => {
         fetchFeed();
     }, []);
 
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setSelectedImage(file);
+            setPreviewUrl(URL.createObjectURL(file));
+        }
+    };
+
     const handleCreatePost = async () => {
-        if (!newPostContent.trim()) return;
+        if (!newPostContent.trim() && !selectedImage) return;
 
         setIsPosting(true);
         try {
             const token = localStorage.getItem('token');
+            const formData = new FormData();
+            formData.append('content', newPostContent);
+            if (selectedImage) {
+                formData.append('image', selectedImage);
+            }
+
             const res = await fetch('/api/feed', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
+                    // Do NOT set Content-Type for FormData, browser sets it with boundary
                 },
-                body: JSON.stringify({ content: newPostContent }) // Image URL support can be added later
+                body: formData
             });
 
             if (res.ok) {
                 setNewPostContent('');
+                setSelectedImage(null);
+                setPreviewUrl(null);
                 fetchFeed(); // Refresh feed
             }
         } catch (error) {
@@ -126,10 +146,35 @@ export const FeedScreen: React.FC = () => {
                         onChange={(e) => setNewPostContent(e.target.value)}
                         className="post-input"
                     />
+
+                    {previewUrl && (
+                        <div className="image-preview-container">
+                            <img src={previewUrl} alt="Preview" className="image-preview" />
+                            <button className="remove-image-btn" onClick={() => {
+                                setSelectedImage(null);
+                                setPreviewUrl(null);
+                            }}>✕</button>
+                        </div>
+                    )}
+
                     <div className="post-toolbar">
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            style={{ display: 'none' }}
+                            accept="image/*"
+                            onChange={handleImageSelect}
+                        />
+                        <button
+                            className="icon-btn"
+                            onClick={() => fileInputRef.current?.click()}
+                            title="Agregar foto"
+                        >
+                            📷
+                        </button>
                         <button
                             className="post-btn"
-                            disabled={isPosting || !newPostContent.trim()}
+                            disabled={isPosting || (!newPostContent.trim() && !selectedImage)}
                             onClick={handleCreatePost}
                         >
                             {isPosting ? 'Publicando...' : 'Publicar'}

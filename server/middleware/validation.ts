@@ -61,16 +61,20 @@ export const validateMemberInput = (req: Request, res: Response, next: NextFunct
 
 // Middleware: Validate Post Creation
 export const validatePostInput = (req: Request, res: Response, next: NextFunction) => {
-    const { content } = req.body;
+    const { content, imageUrl } = req.body;
 
-    if (!content || typeof content !== 'string' || content.trim().length < 1) {
-        return res.status(400).json({ error: 'El contenido es requerido.' });
+    // Allow post if it has EITHER content OR an image (imageUrl is set by processImage middleware)
+    if ((!content || !content.trim()) && !imageUrl) {
+        return res.status(400).json({ error: 'La publicación debe tener texto o una imagen.' });
     }
 
-    if (content.length > 2000) {
+    if (content && content.length > 2000) {
         return res.status(400).json({ error: 'El contenido excede el límite de 2000 caracteres.' });
     }
 
-    req.body.content = sanitizeString(content);
+    if (content) {
+        req.body.content = sanitizeString(content);
+    }
+
     next();
 };
