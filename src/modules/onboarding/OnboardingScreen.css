@@ -116,6 +116,40 @@
     margin-bottom: 2rem;
 }
 
+/* Skills Grid */
+.skills-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-bottom: 2rem;
+    justify-content: center;
+}
+
+.skill-tag {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 50px;
+    padding: 0.6rem 1.2rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.skill-tag:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #D4AF37;
+}
+
+.skill-tag.selected {
+    background: linear-gradient(135deg, #D4AF37, #B8962E);
+    color: #1a1a2e;
+    border-color: transparent;
+    font-weight: 600;
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+
 .branch-card {
     background: rgba(255, 255, 255, 0.05);
     border: 2px solid transparent;

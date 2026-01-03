@@ -21,11 +21,19 @@ export const OnboardingScreen = () => {
         grandparentName: '',
         parentName: '',
         relation: 'GRANDCHILD',
+        nickname: '',
         birthDate: '',
         phone: '',
         whatsapp: '',
-        bio: ''
+        bio: '',
+        skills: [] as string[]
     });
+
+    const SKILLS_LIST = [
+        "Ordenado/a", "Puntual", "Deportista", "Cocinero/a", "Estudioso/a",
+        "Amable", "Solidario/a", "Creativo/a", "Valiente", "Líder",
+        "Tecnológico/a", "Músico/a", "Aventurero/a", "Paciente", "Trabajador/a"
+    ];
 
     const token = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
@@ -53,6 +61,14 @@ export const OnboardingScreen = () => {
         }
     };
 
+    const toggleSkill = (skill: string) => {
+        if (formData.skills.includes(skill)) {
+            setFormData({ ...formData, skills: formData.skills.filter(s => s !== skill) });
+        } else {
+            setFormData({ ...formData, skills: [...formData.skills, skill] });
+        }
+    };
+
     const handleSubmit = async () => {
         setLoading(true);
         setMessage('');
@@ -66,6 +82,7 @@ export const OnboardingScreen = () => {
                 },
                 body: JSON.stringify({
                     name: user?.name || 'Usuario',
+                    nickname: formData.nickname,
                     branchId: formData.grandparentId,
                     grandparentId: formData.grandparentId,
                     parentName: formData.parentName,
@@ -73,18 +90,20 @@ export const OnboardingScreen = () => {
                     birthDate: formData.birthDate || null,
                     phone: formData.phone,
                     whatsapp: formData.whatsapp,
-                    bio: formData.bio
+                    bio: formData.bio,
+                    skills: formData.skills
                 })
             });
 
             if (res.ok) {
-                setStep(4); // Success step
+                setStep(5); // Success step
             } else {
                 const data = await res.json();
                 setMessage(data.error || 'Error al enviar solicitud');
             }
         } catch (err) {
-            setMessage('Error de conexión');
+            setMessage('Error de conexión - Intenta nuevamente');
+            console.error(err);
         }
 
         setLoading(false);
@@ -96,7 +115,7 @@ export const OnboardingScreen = () => {
         <div className="onboarding-screen">
             {/* Progress Bar */}
             <div className="progress-bar">
-                <div className="progress-fill" style={{ width: `${(step / 4) * 100}%` }}></div>
+                <div className="progress-fill" style={{ width: `${(step / 5) * 100}%` }}></div>
             </div>
 
             <div className="onboarding-content">
@@ -193,13 +212,24 @@ export const OnboardingScreen = () => {
                     </div>
                 )}
 
-                {/* Step 3: Contact Info */}
+                {/* Step 3: Personal Info + Nickname */}
                 {step === 3 && (
                     <div className="onboarding-step">
                         <button className="back-link" onClick={() => setStep(2)}>← Atrás</button>
 
-                        <h2 className="question">Información de contacto</h2>
-                        <p className="step-hint">Opcional, pero ayuda a mantenernos conectados</p>
+                        <h2 className="question">Más sobre ti</h2>
+                        <p className="step-hint">Cuéntanos quién eres</p>
+
+                        <div className="form-group">
+                            <label>Apodo (¿Cómo te dicen?)</label>
+                            <input
+                                type="text"
+                                className="text-input"
+                                placeholder="Ej: Juancito, La rubia..."
+                                value={formData.nickname}
+                                onChange={e => setFormData({ ...formData, nickname: e.target.value })}
+                            />
+                        </div>
 
                         <div className="form-group">
                             <label>Fecha de Nacimiento</label>
@@ -234,11 +264,40 @@ export const OnboardingScreen = () => {
                             </div>
                         </div>
 
-                        <div className="form-group">
-                            <label>Algo sobre ti (opcional)</label>
+                        <button
+                            className="next-btn"
+                            onClick={() => setStep(4)}
+                        >
+                            Continuar →
+                        </button>
+                    </div>
+                )}
+
+                {/* Step 4: Superpowers (Skills) */}
+                {step === 4 && (
+                    <div className="onboarding-step">
+                        <button className="back-link" onClick={() => setStep(3)}>← Atrás</button>
+
+                        <h2 className="question">Tus Superpoderes ⚡</h2>
+                        <p className="step-hint">Selecciona tus fortalezas y bondades (Multiselección)</p>
+
+                        <div className="skills-grid">
+                            {SKILLS_LIST.map(skill => (
+                                <button
+                                    key={skill}
+                                    className={`skill-tag ${formData.skills.includes(skill) ? 'selected' : ''}`}
+                                    onClick={() => toggleSkill(skill)}
+                                >
+                                    {skill}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="form-group" style={{ marginTop: '2rem' }}>
+                            <label>Algo más que quieras contar (Bio)</label>
                             <textarea
                                 className="text-input textarea"
-                                placeholder="Cuéntanos algo..."
+                                placeholder="Me encanta organizar eventos..."
                                 value={formData.bio}
                                 onChange={e => setFormData({ ...formData, bio: e.target.value })}
                                 rows={3}
@@ -257,8 +316,8 @@ export const OnboardingScreen = () => {
                     </div>
                 )}
 
-                {/* Step 4: Success */}
-                {step === 4 && (
+                {/* Step 5: Success */}
+                {step === 5 && (
                     <div className="onboarding-step success-step">
                         <div className="success-icon">🎉</div>
                         <h1>¡Solicitud Enviada!</h1>
@@ -272,6 +331,7 @@ export const OnboardingScreen = () => {
                             <p><strong>Rama:</strong> {selectedBranch?.name}</p>
                             <p><strong>Padre/Madre:</strong> {formData.parentName}</p>
                             <p><strong>Relación:</strong> {formData.relation}</p>
+                            {formData.nickname && <p><strong>Apodo:</strong> {formData.nickname}</p>}
                         </div>
 
                         <button className="next-btn" onClick={() => navigate('/app')}>

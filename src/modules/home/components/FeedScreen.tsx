@@ -2,6 +2,33 @@ import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './FeedScreen.css';
 
+/* Inline styles for comments (or move to CSS file if preferred) */
+/* 
+.comments-section {
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 10px;
+    margin-top: 10px;
+}
+.comment {
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}
+.comment-author {
+    font-weight: bold;
+    color: #D4AF37;
+    margin-right: 5px;
+}
+.comment-input {
+    width: 100%;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 8px 12px;
+    color: white;
+    margin-top: 10px;
+}
+*/
+
 interface User {
     name: string;
     image: string;
@@ -88,7 +115,38 @@ export const FeedScreen: React.FC = () => {
         }
     };
 
-    const handleLike = async (postId: string) => {
+
+    const [showComments, setShowComments] = useState<{ [key: string]: boolean }>({});
+
+    const toggleComments = (postId: string) => {
+        setShowComments(prev => ({ ...prev, [postId]: !prev[postId] }));
+    };
+
+    const handleComment = async (postId: string, content: string) => {
+        if (!content.trim()) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`/api/feed/${postId}/comment`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ content })
+            });
+
+            if (res.ok) {
+                const newComment = await res.json();
+                // Optimistic update mechanism would be better, but re-fetching is reliable
+                fetchFeed();
+            }
+        } catch (error) {
+            console.error('Error commenting:', error);
+        }
+    };
+
+    const handleLike = async (postId: string) => { // ... existing code
         try {
             const token = localStorage.getItem('token');
             const res = await fetch(`/api/feed/${postId}/like`, {
@@ -201,9 +259,50 @@ export const FeedScreen: React.FC = () => {
                             <button className="action-btn" onClick={() => handleLike(post.id)}>
                                 ❤️ {post.likes}
                             </button>
-                            <button className="action-btn">💬 {post.comments.length}</button>
-                            <button className="action-btn">📤</button>
+                            <button className="action-btn" onClick={() => toggleComments(post.id)}>
+                                💬 {post.comments.length}
+                            </button>
+                            {/* Download Image Button */}
+                            {post.imageUrl && (
+                                <a
+                                    href={post.imageUrl}
+                                    download={`raices-post-${post.id}.jpg`}
+                                    className="action-btn"
+                                    title="Descargar Foto"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    📥
+                                </a>
+                            )}
                         </div>
+
+                        {/* Comments Section */}
+                        {showComments[post.id] && (
+                            <div className="comments-section">
+                                <div className="comments-list">
+                                    {post.comments.map((comment: any) => (
+                                        <div key={comment.id} className="comment">
+                                            <span className="comment-author">{comment.user.name}:</span>
+                                            <span className="comment-text">{comment.content}</span>
+                                        </div>
+                                    ))}
+                                    {post.comments.length === 0 && <p className="no-comments">Sé el primero en comentar.</p>}
+                                </div>
+                                <div className="comment-input-wrapper">
+                                    <input
+                                        type="text"
+                                        placeholder="Escribe un comentario..."
+                                        className="comment-input"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                handleComment(post.id, e.currentTarget.value);
+                                                e.currentTarget.value = '';
+                                            }
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        )}
                     </div>
                 ))}
 

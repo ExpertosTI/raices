@@ -167,7 +167,11 @@ export const approveRegistration = async (req: any, res: Response) => {
                 whatsapp: request.whatsapp,
                 bio: request.bio,
                 preferredColor: request.preferredColor,
-                parentId: request.grandparentId // Link to the grandparent initially
+                parentId: request.grandparentId, // Link to the grandparent initially
+
+                // Social fields
+                nickname: request.nickname,
+                skills: request.skills
             }
         });
 

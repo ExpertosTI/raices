@@ -104,6 +104,10 @@ model FamilyMember {
   bio          String?       @db.Text
   preferredColor String?     // Color personalizado elegido por el miembro
   
+  // New Social Fields
+  nickname     String?       // Apodo
+  skills       String[]      // Habilidades / Fortalezas
+  
   // Contact info (optional)
   phone        String?
   whatsapp     String?
@@ -219,6 +223,7 @@ model RegistrationRequest {
   id             String        @id @default(cuid())
   userId         String
   name           String
+  nickname       String?       // Apodo
   birthDate      DateTime?
   branchId       String
   grandparentId  String?       // Which of the 12 siblings is grandparent
@@ -227,6 +232,7 @@ model RegistrationRequest {
   phone          String?
   whatsapp       String?
   bio            String?       @db.Text
+  skills         String[]      // Fortalezas / Habilidades
   preferredColor String?
   status         RequestStatus @default(PENDING)
   createdAt      DateTime      @default(now())

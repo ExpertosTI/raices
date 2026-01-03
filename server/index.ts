@@ -106,7 +106,7 @@ app.put('/api/admin/users/:id/role', authenticateToken, requireAdmin, updateUser
 app.post('/api/registration-request', authenticateToken, async (req: any, res: Response) => {
     try {
         const userId = req.user?.id;
-        const { name, branchId, grandparentId, parentName, relation, birthDate, phone, whatsapp, bio } = req.body;
+        const { name, nickname, branchId, grandparentId, parentName, relation, birthDate, phone, whatsapp, bio, skills } = req.body;
 
         if (!branchId || !name) {
             return res.status(400).json({ error: 'Missing required fields' });
@@ -117,6 +117,7 @@ app.post('/api/registration-request', authenticateToken, async (req: any, res: R
             data: {
                 userId,
                 name,
+                nickname: nickname || null,
                 branchId,
                 grandparentId: grandparentId || null,
                 parentName: parentName || null,
@@ -125,6 +126,7 @@ app.post('/api/registration-request', authenticateToken, async (req: any, res: R
                 phone: phone || null,
                 whatsapp: whatsapp || null,
                 bio: bio || null,
+                skills: skills || [],
                 status: 'PENDING'
             }
         });
