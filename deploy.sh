@@ -22,7 +22,7 @@ if [ -n "$CONTAINER_ID" ]; then
     # Quitamos -it para evitar errores en scripts no interactivos, usamos solo exec
     docker exec $CONTAINER_ID npx prisma generate
     # Agregamos migrate deploy por seguridad ya que hubo cambios en la DB
-    docker exec $CONTAINER_ID npx prisma migrate deploy
+    docker exec $CONTAINER_ID npx prisma db push
 else
     echo "⚠️ No se encontró el contenedor para ejecutar comandos de Prisma."
 fi
