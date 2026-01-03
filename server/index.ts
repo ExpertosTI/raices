@@ -164,10 +164,32 @@ app.delete('/api/admin/members/:id', authenticateToken, requireAdmin, async (req
     const { id } = req.params;
     try {
         await prisma.familyMember.delete({ where: { id } });
-        res.json({ message: 'Member deleted successfully' });
+        res.json({ message: 'Miembro eliminado correctamente' });
     } catch (error) {
         console.error('Delete Member Error:', error);
-        res.status(500).json({ error: 'Failed to delete member' });
+        res.status(500).json({ error: 'Error al eliminar miembro' });
+    }
+});
+
+// Unclaim a member (Admin only) - removes user link from a patriarch
+app.post('/api/admin/members/:id/unclaim', authenticateToken, requireAdmin, async (req: any, res: Response) => {
+    const { id } = req.params;
+    try {
+        const member = await prisma.familyMember.findUnique({ where: { id } });
+        if (!member) {
+            return res.status(404).json({ error: 'Miembro no encontrado' });
+        }
+
+        // Remove the user link
+        await prisma.familyMember.update({
+            where: { id },
+            data: { userId: null }
+        });
+
+        res.json({ message: 'Perfil desvinculado correctamente' });
+    } catch (error) {
+        console.error('Unclaim Member Error:', error);
+        res.status(500).json({ error: 'Error al desvincular perfil' });
     }
 });
 

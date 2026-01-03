@@ -14,7 +14,10 @@ export const TreeScreen: React.FC = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('/api/members')
+        const token = localStorage.getItem('token');
+        fetch('/api/members', {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        })
             .then(res => res.json())
             .then(data => {
                 setMembers(Array.isArray(data) ? data : []);

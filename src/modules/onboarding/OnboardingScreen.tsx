@@ -347,8 +347,12 @@ export const OnboardingScreen = () => {
                         <div className="summary-card">
                             <h3>Resumen</h3>
                             <p><strong>Rama:</strong> {selectedBranch?.name}</p>
-                            <p><strong>Padre/Madre:</strong> {formData.parentName}</p>
-                            <p><strong>Relación:</strong> {formData.relation}</p>
+                            <p><strong>{formData.parentType === 'FATHER' ? 'Padre' : 'Madre'}:</strong> {formData.parentName}</p>
+                            <p><strong>Relación:</strong> {
+                                formData.relation === 'GRANDCHILD' ? 'Nieto/a' :
+                                    formData.relation === 'GREAT_GRANDCHILD' ? 'Bisnieto/a' :
+                                        formData.relation === 'CHILD' ? 'Hijo/a directo' : formData.relation
+                            }</p>
                             {formData.nickname && <p><strong>Apodo:</strong> {formData.nickname}</p>}
                         </div>
 

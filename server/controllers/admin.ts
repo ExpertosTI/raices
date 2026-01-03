@@ -148,14 +148,15 @@ export const approveRegistration = async (req: any, res: Response) => {
         });
 
         if (!request) {
-            return res.status(404).json({ error: 'Request not found' });
+            return res.status(404).json({ error: 'Solicitud no encontrada' });
         }
 
         if (request.status !== 'PENDING') {
-            return res.status(400).json({ error: 'Request already processed' });
+            return res.status(400).json({ error: 'Esta solicitud ya fue procesada' });
         }
 
         // Create the FamilyMember from the request
+        // Note: parentId is intentionally null - the grandparentId in the request is actually a branch ID
         const member = await prisma.familyMember.create({
             data: {
                 userId: request.userId,
@@ -167,7 +168,7 @@ export const approveRegistration = async (req: any, res: Response) => {
                 whatsapp: request.whatsapp || null,
                 bio: request.bio || null,
                 preferredColor: request.preferredColor || null,
-                parentId: request.grandparentId || null, // Link to the grandparent initially
+                parentId: null, // Will be linked later if needed
 
                 // Social fields
                 nickname: request.nickname || null,
@@ -195,10 +196,11 @@ export const approveRegistration = async (req: any, res: Response) => {
             console.error('Failed to send approval email:', emailError);
         }
 
-        res.json({ message: 'Registration approved', member });
-    } catch (error) {
+        res.json({ message: 'Registro aprobado', member });
+    } catch (error: any) {
         console.error('Approve Registration Error:', error);
-        res.status(500).json({ error: 'Failed to approve registration' });
+        console.error('Error details:', error.message);
+        res.status(500).json({ error: 'Error al aprobar registro. Detalles: ' + (error.message || 'Unknown') });
     }
 };
 

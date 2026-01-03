@@ -17,15 +17,16 @@ export const securityHeaders = (req: Request, res: Response, next: NextFunction)
     // HSTS (HTTP Strict Transport Security) - 1 year
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 
-    // Content Security Policy
+    // Content Security Policy (updated for Three.js workers)
     res.setHeader('Content-Security-Policy',
         "default-src 'self'; " +
-        "script-src 'self' 'unsafe-inline' https://accounts.google.com; " +
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com blob:; " +
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com; " +
         "font-src 'self' https://fonts.gstatic.com; " +
         "img-src 'self' data: https: blob:; " +
         "connect-src 'self' https://accounts.google.com https://*.googleapis.com; " +
         "frame-src 'self' https://accounts.google.com; " +
+        "worker-src 'self' blob:; " +
         "object-src 'none'; " +
         "base-uri 'self';"
     );

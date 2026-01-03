@@ -13,31 +13,34 @@ import { AdminScreen } from './modules/admin/AdminScreen';
 import { OnboardingScreen } from './modules/onboarding/OnboardingScreen';
 import { ProfileScreen } from './modules/profile/ProfileScreen';
 import { ProtectedRoute } from './modules/auth/components/ProtectedRoute';
+import { ConfirmDialogProvider } from './components/ConfirmDialog';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<SplashScreen />} />
-        <Route path="/select" element={<SelectionScreen />} />
-        <Route path="/login" element={<LoginScreen />} />
+    <ConfirmDialogProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<SplashScreen />} />
+          <Route path="/select" element={<SelectionScreen />} />
+          <Route path="/login" element={<LoginScreen />} />
 
-        {/* Protected Routes */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/app" element={<AppDashboard />} />
-          <Route path="/tree" element={<TreeScreen />} />
-          <Route path="/events" element={<EventsScreen />} />
-          <Route path="/feed" element={<FeedScreen />} />
-          <Route path="/register" element={<RegisterScreen />} />
-          <Route path="/sports" element={<SportsScreen />} />
-          <Route path="/admin" element={<AdminScreen />} />
-          <Route path="/onboarding" element={<OnboardingScreen />} />
-          <Route path="/profile" element={<ProfileScreen />} />
-        </Route>
-        {/* Redirect unknown routes to home */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>
+          {/* Protected Routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/app" element={<AppDashboard />} />
+            <Route path="/tree" element={<TreeScreen />} />
+            <Route path="/events" element={<EventsScreen />} />
+            <Route path="/feed" element={<FeedScreen />} />
+            <Route path="/register" element={<RegisterScreen />} />
+            <Route path="/sports" element={<SportsScreen />} />
+            <Route path="/admin" element={<AdminScreen />} />
+            <Route path="/onboarding" element={<OnboardingScreen />} />
+            <Route path="/profile" element={<ProfileScreen />} />
+          </Route>
+          {/* Redirect unknown routes to home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </ConfirmDialogProvider>
   );
 }
 

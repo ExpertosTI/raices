@@ -138,9 +138,32 @@ export const AdminScreen = () => {
             if (res.ok) {
                 setMessage('✅ Registro aprobado');
                 fetchData();
+            } else {
+                const data = await res.json();
+                setMessage(`❌ Error: ${data.error || 'No se pudo aprobar'}`);
             }
         } catch (err) {
-            setMessage('❌ Error al aprobar');
+            setMessage('❌ Error de conexión');
+        }
+    };
+
+    const handleRejectRegistration = async (id: string) => {
+        if (!window.confirm('¿Seguro que deseas rechazar este registro?')) return;
+        try {
+            const res = await fetch(`/api/admin/registrations/${id}/reject`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ reason: 'Información no verificada' })
+            });
+            if (res.ok) {
+                setMessage('❌ Registro rechazado');
+                fetchData();
+            }
+        } catch (err) {
+            setMessage('Error al rechazar');
         }
     };
 
@@ -306,6 +329,9 @@ export const AdminScreen = () => {
                                             <div className="card-actions">
                                                 <button className="approve-btn" onClick={() => handleApproveRegistration(reg.id)}>
                                                     ✅ Aprobar
+                                                </button>
+                                                <button className="reject-btn" onClick={() => handleRejectRegistration(reg.id)}>
+                                                    ❌ Rechazar
                                                 </button>
                                             </div>
                                         </div>
