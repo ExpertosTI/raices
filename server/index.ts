@@ -102,6 +102,10 @@ app.post('/api/admin/registrations/:id/reject', authenticateToken, requireAdmin,
 app.get('/api/admin/users', authenticateToken, requireAdmin, getAllUsers);
 app.put('/api/admin/users/:id/role', authenticateToken, requireAdmin, updateUserRole);
 
+// New Admin Endpoint for auditing
+import { getAllMembers } from './controllers/admin';
+app.get('/api/admin/members', authenticateToken, requireAdmin, getAllMembers);
+
 // Registration Request from Onboarding (creates pending request for admin approval)
 app.post('/api/registration-request', authenticateToken, async (req: any, res: Response) => {
     try {

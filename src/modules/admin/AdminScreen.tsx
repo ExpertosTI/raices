@@ -31,10 +31,11 @@ interface User {
 
 export const AdminScreen = () => {
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<'claims' | 'registrations' | 'users'>('claims');
+    const [activeTab, setActiveTab] = useState<'claims' | 'registrations' | 'users' | 'members'>('claims');
     const [claims, setClaims] = useState<PendingClaim[]>([]);
     const [registrations, setRegistrations] = useState<RegistrationRequest[]>([]);
     const [users, setUsers] = useState<User[]>([]);
+    const [members, setMembers] = useState<any[]>([]); // Use simplified type for now
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState('');
 
@@ -51,21 +52,19 @@ export const AdminScreen = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
+            const headers = { 'Authorization': `Bearer ${token}` };
             if (activeTab === 'claims') {
-                const res = await fetch('/api/admin/claims', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const res = await fetch('/api/admin/claims', { headers });
                 if (res.ok) setClaims(await res.json());
             } else if (activeTab === 'registrations') {
-                const res = await fetch('/api/admin/registrations', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const res = await fetch('/api/admin/registrations', { headers });
                 if (res.ok) setRegistrations(await res.json());
-            } else {
-                const res = await fetch('/api/admin/users', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+            } else if (activeTab === 'users') {
+                const res = await fetch('/api/admin/users', { headers });
                 if (res.ok) setUsers(await res.json());
+            } else if (activeTab === 'members') {
+                const res = await fetch('/api/admin/members', { headers });
+                if (res.ok) setMembers(await res.json());
             }
         } catch (err) {
             console.error('Failed to fetch data', err);
@@ -170,6 +169,12 @@ export const AdminScreen = () => {
                 >
                     Usuarios
                 </button>
+                <button
+                    className={`tab-btn ${activeTab === 'members' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('members')}
+                >
+                    Miembros ({members.length})
+                </button>
             </div>
 
             {message && <div className="admin-message">{message}</div>}
@@ -272,6 +277,36 @@ export const AdminScreen = () => {
                                                     Degradar a Miembro
                                                 </button>
                                             )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Members Tab (Audit) */}
+                        {activeTab === 'members' && (
+                            <div className="admin-list">
+                                {members.map(member => (
+                                    <div key={member.id} className="admin-card">
+                                        <div className="card-header">
+                                            <div className="branch-badge" style={{ backgroundColor: member.branch?.color }}>
+                                                {member.branch?.name.charAt(0)}
+                                            </div>
+                                            <div>
+                                                <h3>{member.name}</h3>
+                                                <p>Rama: <strong>{member.branch?.name}</strong></p>
+                                                <p style={{ fontSize: '0.8rem', color: '#888' }}>
+                                                    {member.isPatriarch ? '👑 Patriarca' : '👤 Miembro'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="card-actions">
+                                            {/* Future: Add Delete/Edit buttons here */}
+                                            <button className="reject-btn" onClick={() => {
+                                                if (window.confirm('¿Borrar miembro? Esto es irreversible.')) {
+                                                    // Implement delete logic
+                                                }
+                                            }}>🗑️</button>
                                         </div>
                                     </div>
                                 ))}

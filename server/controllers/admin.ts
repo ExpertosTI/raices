@@ -163,15 +163,15 @@ export const approveRegistration = async (req: any, res: Response) => {
                 name: request.name,
                 birthDate: request.birthDate,
                 relation: request.relation as any,
-                phone: request.phone,
-                whatsapp: request.whatsapp,
-                bio: request.bio,
-                preferredColor: request.preferredColor,
-                parentId: request.grandparentId, // Link to the grandparent initially
+                phone: request.phone || null,
+                whatsapp: request.whatsapp || null,
+                bio: request.bio || null,
+                preferredColor: request.preferredColor || null,
+                parentId: request.grandparentId || null, // Link to the grandparent initially
 
                 // Social fields
-                nickname: request.nickname,
-                skills: request.skills
+                nickname: request.nickname || null,
+                skills: request.skills || []
             }
         });
 
@@ -277,7 +277,24 @@ export const updateUserRole = async (req: any, res: Response) => {
 
         res.json({ message: 'Role updated', user });
     } catch (error) {
+
         console.error('Update User Role Error:', error);
         res.status(500).json({ error: 'Failed to update user role' });
+    }
+};
+
+// Get all family members (Admin Audit)
+export const getAllMembers = async (req: any, res: Response) => {
+    try {
+        const members = await prisma.familyMember.findMany({
+            include: {
+                branch: { select: { name: true, color: true } }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+        res.json(members);
+    } catch (error) {
+        console.error('Get All Members Error:', error);
+        res.status(500).json({ error: 'Failed to fetch members' });
     }
 };
