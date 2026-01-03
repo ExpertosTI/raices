@@ -28,8 +28,8 @@ services:
       dockerfile: Dockerfile.prod
     container_name: raices_app_prod
     restart: unless-stopped
-    ports:
-      - "6789:6789"
+    # ports:
+    #   - "6789:6789"  # Traefik will handle this
     environment:
       - DATABASE_URL=postgresql://${DB_USER:-raices}:${DB_PASSWORD}@db:5432/${DB_NAME:-raices_db}
       - NODE_ENV=production
@@ -48,6 +48,12 @@ services:
         condition: service_healthy
     networks:
       - raices_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.raices.rule=Host(`raices.renace.tech`)"
+      - "traefik.http.routers.raices.entrypoints=websecure"
+      - "traefik.http.routers.raices.tls.certresolver=letsencrypt"
+      - "traefik.http.services.raices.loadbalancer.server.port=6789"
     deploy:
       resources:
         limits:
