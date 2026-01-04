@@ -1,38 +1,20 @@
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Trash2, Heart, MessageCircle, Share2, Download } from 'lucide-react';
 import { FloatingDock } from '../../../components/FloatingDock';
 import './FeedScreen.css';
-
-/* Inline styles for comments (or move to CSS file if preferred) */
-/* 
-.comments-section {
-    border-top: 1px solid rgba(255,255,255,0.1);
-    padding-top: 10px;
-    margin-top: 10px;
-}
-.comment {
-    font-size: 0.9rem;
-    margin-bottom: 5px;
-}
-.comment-author {
-    font-weight: bold;
-    color: #D4AF37;
-    margin-right: 5px;
-}
-.comment-input {
-    width: 100%;
-    background: rgba(0,0,0,0.2);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 20px;
-    padding: 8px 12px;
-    color: white;
-    margin-top: 10px;
-}
-*/
 
 interface User {
     name: string;
     image: string;
+    id?: string;
+    role?: string;
+}
+
+interface Comment {
+    id: string;
+    content: string;
+    user: User;
 }
 
 interface Post {
@@ -42,7 +24,7 @@ interface Post {
     likes: number;
     createdAt: string;
     user: User;
-    comments: any[];
+    comments: Comment[];
 }
 
 export const FeedScreen: React.FC = () => {
@@ -51,10 +33,12 @@ export const FeedScreen: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [newPostContent, setNewPostContent] = useState('');
     const [isPosting, setIsPosting] = useState(false);
+    const [currentUser, setCurrentUser] = useState<any>(null);
 
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [showComments, setShowComments] = useState<{ [key: string]: boolean }>({});
 
     const fetchFeed = async () => {
         try {
@@ -71,6 +55,8 @@ export const FeedScreen: React.FC = () => {
     };
 
     useEffect(() => {
+        const u = localStorage.getItem('user');
+        if (u) setCurrentUser(JSON.parse(u));
         fetchFeed();
     }, []);
 
@@ -98,7 +84,6 @@ export const FeedScreen: React.FC = () => {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
-                    // Do NOT set Content-Type for FormData, browser sets it with boundary
                 },
                 body: formData
             });
@@ -107,7 +92,7 @@ export const FeedScreen: React.FC = () => {
                 setNewPostContent('');
                 setSelectedImage(null);
                 setPreviewUrl(null);
-                fetchFeed(); // Refresh feed
+                fetchFeed();
             }
         } catch (error) {
             console.error('Error creating post:', error);
@@ -116,8 +101,39 @@ export const FeedScreen: React.FC = () => {
         }
     };
 
+    const handleDeletePost = async (postId: string) => {
+        if (!confirm('¿Seguro que quieres eliminar esta publicación?')) return;
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`/api/feed/${postId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                setPosts(posts.filter(p => p.id !== postId));
+            }
+        } catch (error) {
+            console.error('Error deleting post:', error);
+        }
+    };
 
-    const [showComments, setShowComments] = useState<{ [key: string]: boolean }>({});
+    const handleLike = async (postId: string) => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`/api/feed/${postId}/like`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                setPosts(posts.map(p =>
+                    p.id === postId ? { ...p, likes: p.likes + 1 } : p
+                ));
+            }
+        } catch (error) {
+            console.error('Error liking post:', error);
+        }
+    };
 
     const toggleComments = (postId: string) => {
         setShowComments(prev => ({ ...prev, [postId]: !prev[postId] }));
@@ -139,7 +155,6 @@ export const FeedScreen: React.FC = () => {
 
             if (res.ok) {
                 await res.json();
-                // Optimistic update mechanism would be better, but re-fetching is reliable
                 fetchFeed();
             }
         } catch (error) {
@@ -147,35 +162,16 @@ export const FeedScreen: React.FC = () => {
         }
     };
 
-    const handleLike = async (postId: string) => { // ... existing code
-        try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`/api/feed/${postId}/like`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (res.ok) {
-                // Optimistic update
-                setPosts(posts.map(p =>
-                    p.id === postId ? { ...p, likes: p.likes + 1 } : p
-                ));
-            }
-        } catch (error) {
-            console.error('Error liking post:', error);
-        }
-    };
-
-    const formatTime = (dateString: string) => {
+    const formatTimeRelative = (dateString: string) => {
         const date = new Date(dateString);
-        return date.toLocaleDateString('es-DO', {
-            hour: '2-digit',
-            minute: '2-digit',
-            day: 'numeric',
-            month: 'short'
-        });
+        const now = new Date();
+        const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+        if (diffInSeconds < 60) return 'hace momentos';
+        if (diffInSeconds < 3600) return `hace ${Math.floor(diffInSeconds / 60)} min`;
+        if (diffInSeconds < 86400) return `hace ${Math.floor(diffInSeconds / 3600)} h`;
+        if (diffInSeconds < 604800) return `hace ${Math.floor(diffInSeconds / 86400)} d`;
+        return date.toLocaleDateString('es-DO', { day: 'numeric', month: 'short' });
     };
 
     if (loading) {
@@ -197,7 +193,6 @@ export const FeedScreen: React.FC = () => {
             </header>
 
             <main className="feed-content">
-                {/* Create Post Section */}
                 <div className="create-post-card">
                     <textarea
                         placeholder="¿Qué está pasando en la familia?"
@@ -244,40 +239,56 @@ export const FeedScreen: React.FC = () => {
                 {posts.map(post => (
                     <div key={post.id} className="post-card">
                         <div className="post-header">
-                            <div className="post-avatar">
-                                {post.user.image ? <img src={post.user.image} alt={post.user.name} /> : '👤'}
+                            <div className="post-header-left">
+                                <div className="post-avatar">
+                                    {post.user.image ? <img src={post.user.image} alt={post.user.name} /> : '👤'}
+                                </div>
+                                <div className="post-author-info">
+                                    <span className="author-name">{post.user.name || 'Miembro Familiar'}</span>
+                                    <span className="post-time">{formatTimeRelative(post.createdAt)}</span>
+                                </div>
                             </div>
-                            <div className="post-author-info">
-                                <span className="post-author">{post.user.name || 'Miembro Familiar'}</span>
-                                <span className="post-time">{formatTime(post.createdAt)}</span>
-                            </div>
-                        </div>
-                        <p className="post-content">{post.content}</p>
-                        {post.imageUrl && (
-                            <img src={post.imageUrl} alt="" className="post-image" />
-                        )}
-                        <div className="post-actions">
-                            <button className="action-btn" onClick={() => handleLike(post.id)}>
-                                ❤️ {post.likes}
-                            </button>
-                            <button className="action-btn" onClick={() => toggleComments(post.id)}>
-                                💬 {post.comments.length}
-                            </button>
-                            {/* Download Image Button */}
-                            {post.imageUrl && (
-                                <a
-                                    href={post.imageUrl}
-                                    download={`raices-post-${post.id}.jpg`}
-                                    className="action-btn"
-                                    title="Descargar Foto"
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    📥
-                                </a>
+
+                            {(currentUser?.id === post.user?.id || currentUser?.role === 'ADMIN') && (
+                                <button className="delete-post-btn" onClick={() => handleDeletePost(post.id)} title="Eliminar">
+                                    <Trash2 size={16} />
+                                </button>
                             )}
                         </div>
 
-                        {/* Comments Section */}
+                        <div className="post-content">
+                            <p>{post.content}</p>
+                            {post.imageUrl && (
+                                <div className="post-image-container">
+                                    <img src={post.imageUrl} alt="Post content" loading="lazy" />
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="post-actions">
+                            <button className="action-btn" onClick={() => handleLike(post.id)}>
+                                <Heart size={18} fill={post.likes > 0 ? "rgba(220, 38, 38, 0.5)" : "none"} color={post.likes > 0 ? "#ef4444" : "currentColor"} />
+                                <span>{post.likes}</span>
+                            </button>
+                            <button className="action-btn" onClick={() => toggleComments(post.id)}>
+                                <MessageCircle size={18} />
+                                <span>{post.comments ? post.comments.length : 0}</span>
+                            </button>
+                            {post.imageUrl && (
+                                <a
+                                    href={post.imageUrl}
+                                    download={`post-${post.id}.jpg`}
+                                    className="action-btn"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <Download size={18} />
+                                </a>
+                            )}
+                            <button className="action-btn">
+                                <Share2 size={18} />
+                            </button>
+                        </div>
+
                         {showComments[post.id] && (
                             <div className="comments-section">
                                 <div className="comments-list">

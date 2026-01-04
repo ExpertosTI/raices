@@ -80,3 +80,25 @@ export const createComment = async (req: any, res: Response) => {
         res.status(500).json({ error: 'Failed to create comment' });
     }
 };
+
+// Delete a post
+export const deletePost = async (req: any, res: Response) => {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    try {
+        const post = await prisma.post.findUnique({ where: { id } });
+        if (!post) return res.status(404).json({ error: 'Post not found' });
+
+        if (post.userId !== userId && userRole !== 'ADMIN') {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        await prisma.post.delete({ where: { id } });
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Delete post error:', error);
+        res.status(500).json({ error: 'Failed to delete post' });
+    }
+};

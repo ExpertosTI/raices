@@ -6,7 +6,7 @@ import { prisma } from './db';
 import { login, me, googleLogin } from './controllers/auth';
 import { authenticateToken } from './middleware/auth';
 import { canEditMember } from './middleware/permissions';
-import { getFeed, createPost, likePost, createComment } from './controllers/feed';
+import { getFeed, createPost, likePost, createComment, deletePost } from './controllers/feed';
 import { getUpcomingBirthdays } from './services/birthday';
 
 // Security Imports
@@ -371,6 +371,7 @@ app.post('/api/feed',
 );
 app.post('/api/feed/:id/like', authenticateToken, likePost);
 app.post('/api/feed/:id/comment', authenticateToken, createComment);
+app.delete('/api/feed/:id', authenticateToken, deletePost);
 
 // Events
 app.get('/api/events', async (req: Request, res: Response) => {
