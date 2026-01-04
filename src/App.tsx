@@ -9,6 +9,7 @@ import { FeedScreen } from './modules/home/components/FeedScreen';
 import { RegisterScreen } from './modules/home/components/RegisterScreen';
 import { LoginScreen } from './modules/home/components/LoginScreen';
 import { SportsScreen } from './modules/home/components/SportsScreen';
+import { DirectoryScreen } from './modules/home/components/DirectoryScreen';
 import { AdminScreen } from './modules/admin/AdminScreen';
 import { OnboardingScreen } from './modules/onboarding/OnboardingScreen';
 import { ProfileScreen } from './modules/profile/ProfileScreen';
@@ -32,6 +33,7 @@ function App() {
             <Route path="/feed" element={<FeedScreen />} />
             <Route path="/register" element={<RegisterScreen />} />
             <Route path="/sports" element={<SportsScreen />} />
+            <Route path="/directory" element={<DirectoryScreen />} />
             <Route path="/admin" element={<AdminScreen />} />
             <Route path="/onboarding" element={<OnboardingScreen />} />
             <Route path="/profile" element={<ProfileScreen />} />

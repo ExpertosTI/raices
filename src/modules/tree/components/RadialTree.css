@@ -1,288 +1,236 @@
-/* Radial Tree Styles */
-.radial-tree-container {
-    width: 100%;
-    height: 70vh;
+/* Radial Stats Dashboard */
+.radial-stats-container {
+    padding: 1rem;
+    min-height: 70vh;
     background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0f 100%);
     border-radius: 20px;
-    overflow: hidden;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
-/* Controls */
-.radial-controls {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    display: flex;
-    gap: 0.3rem;
-    z-index: 20;
+/* Stats Header */
+.stats-header {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
 }
 
-.radial-controls button {
-    background: rgba(10, 10, 15, 0.9);
-    border: 1px solid rgba(212, 175, 55, 0.5);
-    color: #F4E4BA;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.radial-controls button:hover {
-    background: rgba(212, 175, 55, 0.3);
-}
-
-/* Stats Panel */
-.radial-stats {
-    position: absolute;
-    top: 1rem;
-    left: 1rem;
-    display: flex;
-    gap: 1rem;
-    z-index: 20;
-}
-
-.stat-item {
-    background: rgba(10, 10, 15, 0.9);
-    border: 1px solid rgba(212, 175, 55, 0.3);
+.stat-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    padding: 0.5rem 1rem;
+    padding: 1rem 0.5rem;
     text-align: center;
-    backdrop-filter: blur(8px);
 }
 
-.stat-number {
+.stat-card.total {
+    background: rgba(212, 175, 55, 0.1);
+    border-color: rgba(212, 175, 55, 0.3);
+}
+
+.stat-value {
     display: block;
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     font-weight: bold;
     color: #D4AF37;
 }
 
 .stat-label {
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     color: rgba(255, 255, 255, 0.6);
     text-transform: uppercase;
 }
 
-/* Radial Chart */
-.radial-chart {
-    position: relative;
-    width: 400px;
-    height: 400px;
-    transition: transform 0.3s ease;
+/* Chart Section */
+.chart-section {
+    margin-bottom: 1.5rem;
 }
 
-/* Center */
-.radial-center {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    z-index: 10;
-}
-
-.radial-center span {
-    font-size: 2rem;
-}
-
-.radial-center small {
-    display: block;
-    color: #D4AF37;
-    font-size: 0.7rem;
-    font-weight: 600;
-    margin-top: 0.3rem;
-}
-
-/* Generation Rings */
-.radial-ring {
-    position: absolute;
-    border: 1px dashed rgba(212, 175, 55, 0.2);
-    border-radius: 50%;
-    top: 50%;
-    left: 50%;
-}
-
-.ring-1 {
-    width: 160px;
-    height: 160px;
-    transform: translate(-50%, -50%);
-}
-
-.ring-2 {
-    width: 260px;
-    height: 260px;
-    transform: translate(-50%, -50%);
-}
-
-.ring-3 {
-    width: 340px;
-    height: 340px;
-    transform: translate(-50%, -50%);
-}
-
-/* Sectors */
-.radial-sector {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    cursor: pointer;
-}
-
-.radial-sector.selected .sector-line {
-    opacity: 1;
-    height: 4px;
-}
-
-/* Sector line (from center to edge) */
-.sector-line {
-    position: absolute;
-    width: 170px;
-    height: 2px;
-    transform-origin: left center;
-    opacity: 0.3;
-    border-radius: 2px;
-}
-
-/* Sector label */
-.sector-label {
-    position: absolute;
-    white-space: nowrap;
-    text-align: center;
-    pointer-events: none;
-}
-
-.sector-name {
-    display: block;
+.chart-section h3 {
     color: white;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-}
-
-.sector-count {
-    display: block;
-    color: var(--sector-color, #D4AF37);
     font-size: 1rem;
-    font-weight: bold;
+    margin-bottom: 1rem;
 }
 
-/* Member dots */
-.radial-dot {
-    position: absolute;
-    border-radius: 50%;
-    transform-origin: center center;
+.branch-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.chart-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s;
+}
+
+.chart-bar-row:hover,
+.chart-bar-row.selected {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.bar-label {
+    width: 80px;
+    font-size: 0.8rem;
+    color: white;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bar-container {
+    flex: 1;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    border-radius: 12px;
+    transition: width 0.5s ease;
+}
+
+.bar-value {
+    width: 40px;
+    text-align: right;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #D4AF37;
+}
+
+/* Members Section */
+.members-section h3 {
+    color: white;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.member-count {
+    font-weight: normal;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.clear-filter {
+    margin-left: auto;
+    background: rgba(255, 0, 0, 0.2);
+    border: none;
+    color: #ff6b6b;
+    padding: 0.3rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+.members-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0.75rem;
+}
+
+.member-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid #D4AF37;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.member-chip:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.05);
+}
+
+.member-chip img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.chip-initial {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(212, 175, 55, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    font-size: 1.2rem;
     font-weight: bold;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    color: #D4AF37;
 }
 
-.radial-dot:hover {
-    transform: scale(1.3) !important;
-    z-index: 100;
-    box-shadow: 0 0 15px currentColor;
+.chip-name {
+    font-size: 0.75rem;
+    color: white;
+    text-align: center;
+    max-width: 80px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.radial-dot img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-}
-
-.dot-gen-1 {
-    width: 36px;
-    height: 36px;
-    font-size: 0.9rem;
-}
-
-.dot-gen-2 {
-    width: 20px;
-    height: 20px;
-    font-size: 0.6rem;
-}
-
-.dot-gen-3 {
-    width: 12px;
-    height: 12px;
+.more-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(212, 175, 55, 0.2);
+    border: 2px dashed rgba(212, 175, 55, 0.5);
+    border-radius: 12px;
+    color: #D4AF37;
+    font-weight: 600;
+    min-height: 100px;
 }
 
 /* Legend */
-.radial-legend {
-    position: absolute;
-    bottom: 1rem;
-    left: 50%;
-    transform: translateX(-50%);
+.stats-legend {
     display: flex;
-    gap: 1.5rem;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 0.5rem 1.5rem;
-    border-radius: 50px;
-    backdrop-filter: blur(8px);
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    color: rgba(255, 255, 255, 0.7);
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 1.5rem;
+    color: rgba(255, 255, 255, 0.5);
     font-size: 0.75rem;
-}
-
-.legend-item .dot-lg {
-    width: 14px;
-    height: 14px;
-    background: #D4AF37;
-    border-radius: 50%;
-}
-
-.legend-item .dot-md {
-    width: 10px;
-    height: 10px;
-    background: #D4AF37;
-    border-radius: 50%;
-}
-
-.legend-item .dot-sm {
-    width: 6px;
-    height: 6px;
-    background: #D4AF37;
-    border-radius: 50%;
 }
 
 /* Responsive */
 @media (max-width: 600px) {
-    .radial-chart {
-        width: 300px;
-        height: 300px;
+    .stats-header {
+        grid-template-columns: repeat(3, 1fr);
     }
 
-    .radial-stats {
-        flex-wrap: wrap;
-        max-width: 200px;
+    .stat-card.total {
+        grid-column: span 3;
     }
 
-    .stat-item {
-        padding: 0.3rem 0.6rem;
+    .stat-value {
+        font-size: 1.4rem;
     }
 
-    .stat-number {
-        font-size: 1.1rem;
+    .bar-label {
+        width: 60px;
+        font-size: 0.7rem;
     }
 
-    .sector-label {
-        transform: rotate(var(--sector-angle)) translateY(-150px) rotate(calc(-1 * var(--sector-angle))) !important;
+    .members-grid {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    }
+
+    .stats-legend {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
     }
 }

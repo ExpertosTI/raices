@@ -11,6 +11,7 @@ interface DockItem {
 const DOCK_ITEMS: DockItem[] = [
     { path: '/app', icon: '🏠', label: 'Inicio' },
     { path: '/tree', icon: '🌳', label: 'Árbol' },
+    { path: '/directory', icon: '📇', label: 'Directorio' },
     { path: '/events', icon: '📅', label: 'Eventos' },
     { path: '/feed', icon: '💬', label: 'Feed' }
 ];
