@@ -1,0 +1,221 @@
+/* CSS 3D Tree Styles */
+.tree-3d-container {
+    width: 100%;
+    height: 70vh;
+    background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0f 100%);
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    perspective: 1000px;
+    user-select: none;
+}
+
+.tree-3d-scene {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    transform-style: preserve-3d;
+}
+
+.tree-3d-scene:active {
+    cursor: grabbing;
+}
+
+.tree-3d-world {
+    position: relative;
+    width: 0;
+    height: 0;
+    transform-style: preserve-3d;
+    transition: transform 0.1s ease-out;
+}
+
+/* Center indicator */
+.tree-3d-center {
+    position: absolute;
+    transform: translate(-50%, -50%) translateZ(80px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    pointer-events: none;
+}
+
+.tree-3d-center span {
+    font-size: 2.5rem;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.tree-3d-center small {
+    color: #D4AF37;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+/* Member nodes */
+.tree-3d-node {
+    position: absolute;
+    transform-style: preserve-3d;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.tree-3d-node:hover {
+    transform: translate3d(var(--tx, 0), var(--ty, 0), var(--tz, 0)) scale(1.15) !important;
+    z-index: 100;
+}
+
+.node-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 3px solid var(--node-color, #D4AF37);
+    background: #1a1a2e;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), 0 0 20px rgba(212, 175, 55, 0.2);
+    transition: all 0.3s ease;
+}
+
+.tree-3d-node:hover .node-avatar {
+    border-color: #fff;
+    box-shadow: 0 4px 20px rgba(212, 175, 55, 0.5);
+}
+
+.node-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.node-initial {
+    color: white;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.node-name {
+    color: #F4E4BA;
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+    white-space: nowrap;
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+/* Controls */
+.tree-3d-controls {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 20;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.branch-filter {
+    background: rgba(10, 10, 15, 0.9);
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    color: #F4E4BA;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    outline: none;
+    min-width: 130px;
+}
+
+.branch-filter:focus {
+    border-color: #D4AF37;
+}
+
+.branch-filter option {
+    background: #1a1a2e;
+    color: white;
+}
+
+.reset-camera-btn {
+    background: rgba(10, 10, 15, 0.9);
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    color: #F4E4BA;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    font-size: 1.1rem;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reset-camera-btn:hover {
+    background: rgba(212, 175, 55, 0.3);
+    border-color: #D4AF37;
+    transform: scale(1.1);
+}
+
+/* Overlay */
+.tree-3d-overlay {
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.tree-3d-overlay p {
+    margin: 0;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7);
+    white-space: nowrap;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .tree-3d-container {
+        height: 60vh;
+    }
+
+    .node-avatar {
+        width: 40px;
+        height: 40px;
+    }
+
+    .node-name {
+        font-size: 0.6rem;
+    }
+
+    .branch-filter {
+        min-width: 100px;
+        font-size: 0.75rem;
+        padding: 0.4rem 0.8rem;
+    }
+
+    .tree-3d-overlay p {
+        font-size: 0.65rem;
+    }
+}
