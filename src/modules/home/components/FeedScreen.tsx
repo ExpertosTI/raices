@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trash2, Heart, MessageCircle, Share2, Download } from 'lucide-react';
 import { FloatingDock } from '../../../components/FloatingDock';
+import { useConfirm } from '../../../components/ConfirmDialog';
 import './FeedScreen.css';
 
 interface User {
@@ -29,6 +30,7 @@ interface Post {
 
 export const FeedScreen: React.FC = () => {
     const navigate = useNavigate();
+    const confirm = useConfirm();
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
     const [newPostContent, setNewPostContent] = useState('');
@@ -102,7 +104,7 @@ export const FeedScreen: React.FC = () => {
     };
 
     const handleDeletePost = async (postId: string) => {
-        if (!confirm('¿Seguro que quieres eliminar esta publicación?')) return;
+        if (!await confirm('¿Seguro que deseas eliminar esta publicación? Esta acción no se puede deshacer.', 'Eliminar Publicación')) return;
         try {
             const token = localStorage.getItem('token');
             const res = await fetch(`/api/feed/${postId}`, {

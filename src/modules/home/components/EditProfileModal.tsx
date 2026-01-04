@@ -30,7 +30,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
         bio: '',
         birthDate: '',
         phone: '',
-        whatsapp: ''
+        whatsapp: '',
+        skills: '' // Comma separated string
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -44,7 +45,11 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
                 bio: member.bio || '',
                 birthDate: member.birthDate ? new Date(member.birthDate).toISOString().split('T')[0] : '',
                 phone: member.phone || '',
-                whatsapp: member.whatsapp || ''
+                whatsapp: member.whatsapp || '',
+                // Parse skills array to string for input
+                skills: Array.isArray(member.skills)
+                    ? member.skills.join(', ')
+                    : (typeof member.skills === 'string' ? member.skills : '')
             });
             if (member.photo) {
                 setPhotoPreview(member.photo);
@@ -74,6 +79,13 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
             if (formData.birthDate) data.append('birthDate', formData.birthDate);
             if (formData.phone) data.append('phone', formData.phone);
             if (formData.whatsapp) data.append('whatsapp', formData.whatsapp);
+
+            // Handle Skills
+            if (formData.skills) {
+                const skillsArray = formData.skills.split(',').map(s => s.trim()).filter(Boolean);
+                data.append('skills', JSON.stringify(skillsArray));
+            }
+
             if (photoFile) data.append('photo', photoFile);
 
             const res = await fetch(`/api/members/${member.id}`, {
@@ -209,6 +221,19 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
                             rows={3}
                             placeholder="Cuéntanos sobre ti..."
                         />
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="skills">Profesión / Habilidades (separadas por comas)</label>
+                        <div className="input-wrapper">
+                            <input
+                                id="skills"
+                                type="text"
+                                value={formData.skills}
+                                onChange={e => setFormData({ ...formData, skills: e.target.value })}
+                                placeholder="Ej: Ingeniero, Cocina, Guitarra..."
+                            />
+                        </div>
                     </div>
 
                     <div className="modal-actions">

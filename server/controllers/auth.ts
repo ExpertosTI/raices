@@ -35,7 +35,8 @@ export const googleLogin = async (req: Request, res: Response) => {
 
         // Find or create user
         let user = await prisma.user.findUnique({
-            where: { email }
+            where: { email },
+            include: { familyMember: true }
         });
 
         if (!user) {
@@ -45,7 +46,8 @@ export const googleLogin = async (req: Request, res: Response) => {
                     name: name || email.split('@')[0],
                     image: picture,
                     role: ((email === process.env.ADMIN_EMAIL || email === 'expertostird@gmail.com') ? 'PATRIARCH' : 'MEMBER') as UserRole
-                }
+                },
+                include: { familyMember: true }
             });
         }
 
@@ -89,7 +91,8 @@ export const googleLogin = async (req: Request, res: Response) => {
                 email: user.email,
                 name: user.name,
                 image: user.image,
-                role: user.role
+                role: user.role,
+                familyMember: user.familyMember
             }
         });
 

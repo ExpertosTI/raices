@@ -314,6 +314,16 @@ app.put('/api/members/:id', authenticateToken, canEditMember, upload.single('pho
             whatsapp: data.whatsapp
         };
 
+        if (data.skills) {
+            try {
+                // Handle both JSON string (from FormData) and direct array
+                updateData.skills = typeof data.skills === 'string' ? JSON.parse(data.skills) : data.skills;
+            } catch (e) {
+                console.error('Error parsing skills:', e);
+                updateData.skills = [];
+            }
+        }
+
         if (photoUrl) {
             updateData.photo = photoUrl;
         }
