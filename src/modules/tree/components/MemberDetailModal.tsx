@@ -1,4 +1,5 @@
 import React from 'react';
+import { Phone, MessageCircle, Briefcase } from 'lucide-react';
 import type { FamilyMember } from '../../../types';
 import './MemberDetailModal.css';
 
@@ -72,6 +73,35 @@ export const MemberDetailModal: React.FC<Props> = ({ member, onClose }) => {
                         <div className="info-row">
                             <span className="label">Fallecimiento:</span>
                             <span className="value">{formatDate(member.deathDate)}</span>
+                        </div>
+                    )}
+
+                    {member.skills && member.skills.length > 0 && (
+                        <div className="info-section">
+                            <h4><Briefcase size={16} style={{ display: 'inline', marginRight: 8, verticalAlign: 'middle' }} /> Profesión / Habilidades</h4>
+                            <div className="skills-tags">
+                                {Array.isArray(member.skills) ? member.skills.map((skill: string, i: number) => (
+                                    <span key={i} className="skill-tag">{skill}</span>
+                                )) : <span className="skill-tag">{String(member.skills).replace(/[\[\]"]/g, '').split(',').join(', ')}</span>}
+                            </div>
+                        </div>
+                    )}
+
+                    {(member.phone || member.whatsapp) && (
+                        <div className="info-section">
+                            <h4>Contacto</h4>
+                            <div className="contact-links">
+                                {member.phone && (
+                                    <a href={`tel:${member.phone}`} className="contact-link">
+                                        <Phone size={16} /> {member.phone}
+                                    </a>
+                                )}
+                                {member.whatsapp && (
+                                    <a href={`https://wa.me/${member.whatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="contact-link whatsapp">
+                                        <MessageCircle size={16} /> WhatsApp
+                                    </a>
+                                )}
+                            </div>
                         </div>
                     )}
 

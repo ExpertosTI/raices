@@ -198,3 +198,70 @@
     color: #D4AF37;
     font-size: 0.9rem;
 }
+
+/* Info Sections (Skills, Contact) */
+.info-section {
+    margin-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 1rem;
+}
+
+.info-section h4 {
+    margin: 0 0 0.8rem;
+    font-size: 0.9rem;
+    color: #D4AF37;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.contact-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.contact-link {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    padding: 0.8rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+}
+
+.contact-link:hover {
+    background: rgba(212, 175, 55, 0.1);
+    border-color: rgba(212, 175, 55, 0.3);
+    transform: translateX(5px);
+}
+
+.contact-link.whatsapp {
+    border-color: rgba(37, 211, 102, 0.3);
+}
+
+.contact-link.whatsapp:hover {
+    background: rgba(37, 211, 102, 0.1);
+}
+
+.skills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.skill-badge {
+    padding: 0.4rem 1rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 50px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.8rem;
+}

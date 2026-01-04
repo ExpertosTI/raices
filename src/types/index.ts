@@ -22,6 +22,11 @@ export interface FamilyMember {
     branch?: Branch;
     isRoot?: boolean;
     children?: FamilyMember[]; // For hierarchical view
+
+    // Contact & Profile
+    phone?: string;
+    whatsapp?: string;
+    skills?: string[]; // Stored as JSON in DB, parsed in frontend? Or string? Prisma returns JSON object/array.
 }
 
 export interface Post {
