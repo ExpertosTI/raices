@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 
 import { ClaimProfileModal } from './ClaimProfileModal';
 import { PWAInstall } from './PWAInstall';
+import { FloatingDock } from '../../../components/FloatingDock';
+import { EditProfileModal } from './EditProfileModal';
 import './AppDashboard.css';
 
 interface BranchData {
@@ -25,6 +27,7 @@ export const AppDashboard: React.FC = () => {
     const [events, setEvents] = useState<BirthdayEvent[]>([]);
     const [user, setUser] = useState<any>(null);
     const [showClaimModal, setShowClaimModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
 
     useEffect(() => {
         // Load User
@@ -67,9 +70,14 @@ export const AppDashboard: React.FC = () => {
             <div className="app-content">
                 {/* Header */}
                 <div className="app-header">
-                    <div className="user-badge">
+                    <button
+                        className="user-badge"
+                        onClick={() => user?.familyMember && setShowEditModal(true)}
+                        aria-label="Editar perfil de usuario"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                    >
                         {user?.image ? (
-                            <img src={user.image} alt={user.name} className="user-avatar-img" style={{ width: 45, height: 45, borderRadius: '50%', border: '3px solid #D4AF37' }} />
+                            <img src={user.image} alt="" className="user-avatar-img" style={{ width: 45, height: 45, borderRadius: '50%', border: '3px solid #D4AF37' }} />
                         ) : (
                             <div className="user-avatar" style={{ borderColor: '#D4AF37' }}>👤</div>
                         )}
@@ -77,7 +85,7 @@ export const AppDashboard: React.FC = () => {
                             <h3>{user?.name || 'Familia Henríquez Cruz'}</h3>
                             <span>{user?.familyMember ? user.familyMember.name : 'Bienvenido a tu legado'}</span>
                         </div>
-                    </div>
+                    </button>
                     <button className="logout-btn" onClick={() => {
                         localStorage.removeItem('token');
                         localStorage.removeItem('user');
@@ -181,25 +189,7 @@ export const AppDashboard: React.FC = () => {
                 )}
             </div>
 
-            {/* Bottom Navigation */}
-            <nav className="app-nav">
-                <div className="nav-item active" onClick={() => navigate('/app')}>
-                    <span>🏠</span>
-                    <span>Inicio</span>
-                </div>
-                <div className="nav-item" onClick={() => navigate('/tree')}>
-                    <span>🌳</span>
-                    <span>Árbol</span>
-                </div>
-                <div className="nav-item" onClick={() => navigate('/sports')}>
-                    <span>🏆</span>
-                    <span>Deportes</span>
-                </div>
-                <div className="nav-item" onClick={() => navigate('/feed')}>
-                    <span>💬</span>
-                    <span>Feed</span>
-                </div>
-            </nav>
+            <FloatingDock />
 
             <ClaimProfileModal
                 isOpen={showClaimModal}
@@ -209,6 +199,16 @@ export const AppDashboard: React.FC = () => {
                     window.location.reload();
                 }}
             />
+            {user?.familyMember && (
+                <EditProfileModal
+                    isOpen={showEditModal}
+                    onClose={() => setShowEditModal(false)}
+                    member={user.familyMember}
+                    onSuccess={() => {
+                        window.location.reload(); // Refresh to show changes
+                    }}
+                />
+            )}
             <PWAInstall />
         </div>
     );

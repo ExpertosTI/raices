@@ -1,0 +1,128 @@
+/* ===========================================
+   GLOBAL NAVIGATION - iPhone Style Dock
+   =========================================== */
+
+/* Floating Dock Container */
+.floating-dock {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(20, 20, 30, 0.85);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    z-index: 1000;
+    box-shadow:
+        0 10px 40px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Dock Item */
+.dock-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: transparent;
+    position: relative;
+    border: none;
+    /* Reset button style */
+    padding: 0;
+    /* Reset button style */
+    color: inherit;
+    /* Reset button style */
+    font-family: inherit;
+    /* Reset button style */
+}
+
+.dock-item:focus-visible {
+    outline: 2px solid #D4AF37;
+    /* Accessible focus ring */
+    outline-offset: 2px;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.dock-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.dock-item.active {
+    background: rgba(212, 175, 55, 0.15);
+}
+
+/* Dock Icon */
+.dock-icon {
+    font-size: 1.4rem;
+    opacity: 0.6;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.dock-item.active .dock-icon {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.dock-item:hover .dock-icon {
+    opacity: 0.9;
+}
+
+/* Dock Label */
+.dock-label {
+    font-size: 0.55rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    transition: color 0.2s;
+}
+
+.dock-item.active .dock-label {
+    color: #D4AF37;
+}
+
+/* Active Indicator Dot */
+.dock-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    width: 4px;
+    height: 4px;
+    background: #D4AF37;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #D4AF37;
+}
+
+/* Responsive - Smaller on very small screens */
+@media (max-width: 380px) {
+    .floating-dock {
+        bottom: 12px;
+        padding: 8px 12px;
+        gap: 4px;
+    }
+
+    .dock-item {
+        width: 44px;
+        height: 44px;
+    }
+
+    .dock-icon {
+        font-size: 1.2rem;
+    }
+
+    .dock-label {
+        font-size: 0.5rem;
+    }
+}

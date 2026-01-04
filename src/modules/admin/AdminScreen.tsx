@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useConfirm } from '../../components/ConfirmDialog';
+import { FloatingDock } from '../../components/FloatingDock';
 import './AdminScreen.css';
 
 interface PendingClaim {
@@ -442,25 +443,7 @@ export const AdminScreen = () => {
                 )}
             </div>
 
-            {/* Bottom Navigation */}
-            <nav className="app-nav">
-                <div className="nav-item" onClick={() => navigate('/app')}>
-                    <span>🏠</span>
-                    <span>Inicio</span>
-                </div>
-                <div className="nav-item" onClick={() => navigate('/tree')}>
-                    <span>🌳</span>
-                    <span>Árbol</span>
-                </div>
-                <div className="nav-item active">
-                    <span>⚙️</span>
-                    <span>Admin</span>
-                </div>
-                <div className="nav-item" onClick={() => navigate('/feed')}>
-                    <span>💬</span>
-                    <span>Feed</span>
-                </div>
-            </nav>
+            <FloatingDock />
         </div>
     );
 };

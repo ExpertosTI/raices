@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FloatingDock } from '../../../components/FloatingDock';
 import './FeedScreen.css';
 
 /* Inline styles for comments (or move to CSS file if preferred) */
@@ -313,25 +314,7 @@ export const FeedScreen: React.FC = () => {
                 )}
             </main>
 
-            {/* Bottom Navigation */}
-            <nav className="app-nav">
-                <div className="nav-item" onClick={() => navigate('/app')}>
-                    <span>🏠</span>
-                    <span>Inicio</span>
-                </div>
-                <div className="nav-item" onClick={() => navigate('/tree')}>
-                    <span>🌳</span>
-                    <span>Árbol</span>
-                </div>
-                <div className="nav-item" onClick={() => navigate('/sports')}>
-                    <span>🏆</span>
-                    <span>Deportes</span>
-                </div>
-                <div className="nav-item active">
-                    <span>💬</span>
-                    <span>Feed</span>
-                </div>
-            </nav>
+            <FloatingDock />
         </div>
     );
 };

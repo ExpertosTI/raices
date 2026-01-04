@@ -1,13 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Gift, Sparkles, PartyPopper, Clock, ArrowRight } from 'lucide-react';
+import { FloatingDock } from '../../../components/FloatingDock';
 import './EventsScreen.css';
 
 interface BirthdayEvent {
-    name: string;
-    date: string;
-    daysUntil: number;
-    branch?: string;
+    id: string;
+    title: string;
+    date: string; // ISO string from backend
+    type: 'BIRTHDAY';
+    memberId: string;
+    photo?: string;
+    age: number;
+    daysUntil?: number; // Calculated in frontend or backend? Backend returns age and date. We might need daysUntil for sorting/display
+    name?: string; // Backend sends title "Cumpleaños de X", we might want raw name? Let's check backend again.
 }
 
 // Toast Component
@@ -83,24 +89,43 @@ export const EventsScreen: React.FC = () => {
     }, []);
 
     const getMonth = (dateStr: string) => {
+        if (!dateStr) return '';
         return new Date(dateStr).toLocaleDateString('es', { month: 'short' }).toUpperCase();
     };
 
     const getDay = (dateStr: string) => {
+        if (!dateStr) return '';
         return new Date(dateStr).getDate();
     };
 
-    const getAge = (dateStr: string) => {
-        const birth = new Date(dateStr);
-        const today = new Date();
-        return today.getFullYear() - birth.getFullYear();
+    // Filter logic needs to adapt to new data structure if needed, or backend handles it.
+    // Backend returns sorted list. Logic here seems to filter by 'All', 'This week', 'This month'
+    // We need to calculate daysUntil if backend doesn't provide it directly in the new interface.
+    // Looking at backend code: it returns { id, title, date, type, memberId, photo, age }.
+    // It does NOT return 'daysUntil' strictly as a number in the root, but we can calculate it easily.
+
+    const calculateDaysUntil = (dateStr: string) => {
+        const target = new Date(dateStr);
+        const now = new Date();
+        target.setHours(0, 0, 0, 0);
+        now.setHours(0, 0, 0, 0);
+
+        // Handle year rollover if needed, but backend sends next birthday date already.
+        const diff = target.getTime() - now.getTime();
+        return Math.ceil(diff / (1000 * 60 * 60 * 24));
     };
 
+    const eventsWithDays = events.map(e => ({
+        ...e,
+        daysUntil: calculateDaysUntil(e.date),
+        name: e.title.replace('Cumpleaños de ', '') // Extract name from title
+    }));
+
     const filteredEvents = activeFilter === 'Todos'
-        ? events
+        ? eventsWithDays
         : activeFilter === 'Esta semana'
-            ? events.filter(e => e.daysUntil <= 7)
-            : events.filter(e => e.daysUntil <= 30);
+            ? eventsWithDays.filter(e => e.daysUntil <= 7)
+            : eventsWithDays.filter(e => e.daysUntil <= 30);
 
     const handleSendWish = (name: string) => {
         setToastMsg(`🎉 Mensaje enviado a ${name}`);
@@ -183,14 +208,19 @@ export const EventsScreen: React.FC = () => {
                                 </div>
 
                                 <div className="event-info">
-                                    <h3>{event.name}</h3>
-                                    <p className="event-age">Cumple {getAge(event.date)} años</p>
+                                    <h3 aria-label={`Cumpleaños de ${event.name}`}>{event.name}</h3>
+                                    <p className="event-age" aria-label={`Cumplirá ${event.age} años`}>
+                                        Cumple {event.age} años
+                                    </p>
 
-                                    <div className={`status-badge-pulse ${event.daysUntil === 0 ? 'today' : event.daysUntil <= 7 ? 'soon' : ''}`}>
+                                    <div
+                                        className={`status-badge-pulse ${event.daysUntil === 0 ? 'today' : event.daysUntil <= 7 ? 'soon' : ''}`}
+                                        aria-label={event.daysUntil === 0 ? "Es hoy" : `En ${event.daysUntil} días`}
+                                    >
                                         {event.daysUntil === 0 ? (
-                                            <><PartyPopper size={14} /> ¡Hoy!</>
+                                            <><PartyPopper size={14} aria-hidden="true" /> ¡Hoy!</>
                                         ) : event.daysUntil === 1 ? (
-                                            <><Clock size={14} /> Mañana</>
+                                            <><Clock size={14} aria-hidden="true" /> Mañana</>
                                         ) : (
                                             <>En {event.daysUntil} días</>
                                         )}
@@ -199,10 +229,11 @@ export const EventsScreen: React.FC = () => {
 
                                 <button
                                     className="action-btn-glow"
-                                    onClick={() => handleSendWish(event.name)}
+                                    onClick={() => handleSendWish(event.name || '')}
+                                    aria-label={`Enviar felicitación a ${event.name}`}
                                 >
                                     <span>Felicitar</span>
-                                    <ArrowRight size={16} />
+                                    <ArrowRight size={16} aria-hidden="true" />
                                 </button>
                             </div>
                         ))}
@@ -211,22 +242,7 @@ export const EventsScreen: React.FC = () => {
 
             </main>
 
-            {/* Nav */}
-            <nav className="app-nav-glass">
-                <div className="nav-item" onClick={() => navigate('/app')}>
-                    <span>🏠</span>
-                </div>
-                <div className="nav-item" onClick={() => navigate('/tree')}>
-                    <span>🌳</span>
-                </div>
-                <div className="nav-item active">
-                    <div className="active-indicator"></div>
-                    <span>📅</span>
-                </div>
-                <div className="nav-item" onClick={() => navigate('/feed')}>
-                    <span>💬</span>
-                </div>
-            </nav>
+            <FloatingDock />
         </div>
     );
 };

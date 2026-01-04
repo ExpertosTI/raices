@@ -5,6 +5,7 @@ import { HorizontalTree } from './HorizontalTree';
 import { RadialTree } from './RadialTree';
 import { ThreeDTree } from './ThreeDTree';
 import { MemberDetailModal } from './MemberDetailModal';
+import { FloatingDock } from '../../../components/FloatingDock';
 import type { FamilyMember } from '../../../types';
 import './TreeScreen.css';
 
@@ -104,25 +105,7 @@ export const TreeScreen: React.FC = () => {
                 />
             )}
 
-            {/* Bottom Navigation */}
-            <nav className="app-nav">
-                <div className="nav-item" onClick={() => navigate('/app')}>
-                    <span>🏠</span>
-                    <span>Inicio</span>
-                </div>
-                <div className="nav-item active" onClick={() => navigate('/tree')}>
-                    <span>🌳</span>
-                    <span>Árbol</span>
-                </div>
-                <div className="nav-item" onClick={() => navigate('/events')}>
-                    <span>📅</span>
-                    <span>Eventos</span>
-                </div>
-                <div className="nav-item" onClick={() => navigate('/feed')}>
-                    <span>💬</span>
-                    <span>Feed</span>
-                </div>
-            </nav>
+            <FloatingDock />
         </div>
     );
 };

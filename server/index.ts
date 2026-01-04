@@ -374,8 +374,9 @@ app.get('/api/events', async (req: Request, res: Response) => {
     }
 });
 
-import { registerTeam } from './controllers/sports';
+import { registerTeam, getSportsParticipants } from './controllers/sports';
 app.post('/api/sports/register', authenticateToken, registerTeam);
+app.get('/api/sports/participants', authenticateToken, getSportsParticipants);
 
 import { castVote, getVotes } from './controllers/votes';
 app.post('/api/votes', authenticateToken, castVote);
