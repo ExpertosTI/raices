@@ -288,3 +288,58 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     text-shadow: 0 1px 3px black;
 }
+
+/* 3D Controls Panel */
+.tree-3d-controls {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 20;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.branch-filter {
+    background: rgba(10, 10, 15, 0.9);
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    color: #F4E4BA;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    outline: none;
+    min-width: 150px;
+}
+
+.branch-filter:focus {
+    border-color: #D4AF37;
+}
+
+.branch-filter option {
+    background: #1a1a2e;
+    color: white;
+}
+
+.reset-camera-btn {
+    background: rgba(10, 10, 15, 0.9);
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    color: #F4E4BA;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reset-camera-btn:hover {
+    background: rgba(212, 175, 55, 0.3);
+    border-color: #D4AF37;
+    transform: scale(1.1);
+}
