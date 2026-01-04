@@ -1,159 +1,187 @@
-import React, { useEffect, useRef, useState } from 'react';
-import * as d3 from 'd3';
+import React, { useMemo, useState } from 'react';
 import type { FamilyMember } from '../../../types';
-import { FAMILY_BRANCHES } from '../../family/constants';
-import { MemberDetailModal } from './MemberDetailModal';
 import './RadialTree.css';
 
 interface TreeProps {
     members: FamilyMember[];
+    onMemberClick?: (member: FamilyMember) => void;
 }
 
-// Convert flat list to hierarchical structure
-const buildHierarchy = (members: FamilyMember[]): FamilyMember => {
-    // 1. Find root (Patriarch/Matriarch) - Assuming one "Super Root" or first Patriarch
-    // For this specific family, we create a virtual root to hold the Patriarchs
-    const rootData: FamilyMember = {
-        name: "Familia Henríquez Cruz",
-        id: "root",
-        isRoot: true,
-        branchId: "root", // Mock
-        relation: "PATRIARCH", // Mock
-        isPatriarch: true,
-        children: []
-    } as any; // Cast as any then FamilyMember to avoid missing required prop noise if strict
+// Group members by branch and generation
+const organizeData = (members: FamilyMember[]) => {
+    const branches = new Map<string, {
+        branch: { id: string; name: string; color: string };
+        members: FamilyMember[];
+    }>();
 
-    const memberMap = new Map<string, FamilyMember>();
-    members.forEach(m => memberMap.set(m.id, { ...m, children: [] }));
-
-    // 2. Link children to parents
-    memberMap.forEach(node => {
-        if (node.isPatriarch) {
-            rootData.children?.push(node);
-        } else if (node.parentId && memberMap.has(node.parentId)) {
-            memberMap.get(node.parentId)!.children?.push(node);
-        } else {
-            if (node.relation === 'SIBLING') {
-                rootData.children?.push(node);
-            }
+    members.forEach(member => {
+        if (!member.branch) return;
+        if (!branches.has(member.branch.id)) {
+            branches.set(member.branch.id, {
+                branch: member.branch,
+                members: []
+            });
         }
+        branches.get(member.branch.id)!.members.push(member);
     });
 
-    // Sort siblings
-    rootData.children?.sort((a, b) => {
-        const branchA = FAMILY_BRANCHES.find(br => br.name === a.name)?.order || 99;
-        const branchB = FAMILY_BRANCHES.find(br => br.name === b.name)?.order || 99;
-        return branchA - branchB;
-    });
-
-    return rootData;
+    return Array.from(branches.values());
 };
 
-export const RadialTree: React.FC<TreeProps> = ({ members }) => {
-    const svgRef = useRef<SVGSVGElement>(null);
-    const [selectedMember, setSelectedMember] = useState<FamilyMember | null>(null);
+export const RadialTree: React.FC<TreeProps> = ({ members, onMemberClick }) => {
+    const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
+    const [zoom, setZoom] = useState(1);
 
-    useEffect(() => {
-        if (!members.length || !svgRef.current) return;
+    const branchData = useMemo(() => organizeData(members), [members]);
+    const totalMembers = members.length;
+    const anglePerBranch = 360 / branchData.length;
 
-        const width = window.innerWidth;
-        const height = window.innerHeight;
-        const cx = width / 2;
-        const cy = height / 2;
-        const radius = Math.min(width, height) / 2 - 50;
-
-        // Clear previous SVG
-        d3.select(svgRef.current).selectAll('*').remove();
-
-        const svg = d3.select(svgRef.current)
-            .attr("viewBox", [0, 0, width, height])
-            .call(d3.zoom<SVGSVGElement, unknown>().on("zoom", (event) => {
-                g.attr("transform", event.transform);
-            }));
-
-        const g = svg.append("g")
-            .attr("transform", `translate(${cx},${cy})`);
-
-        // Data
-        const hierarchyData = buildHierarchy(members);
-        const root = d3.hierarchy<FamilyMember>(hierarchyData);
-
-        // Layout
-        // Layout
-        const tree = d3.tree<any>()
-            .size([2 * Math.PI, radius])
-            .separation((a, b) => (a.parent == b.parent ? 1 : 2) / a.depth);
-
-        tree(root);
-
-        // Links
-        g.append("g")
-            .attr("fill", "none")
-            .attr("stroke", "#D4AF37")
-            .attr("stroke-opacity", 0.4)
-            .attr("stroke-width", 1.5)
-            .selectAll("path")
-            .data(root.links())
-            .join("path")
-            .attr("d", d3.linkRadial<any, any>() // Using any to bypass complex D3 generic mismatch
-                .angle(d => d.x)
-                .radius(d => d.y)
-            );
-
-        // Nodes
-        const node = g.append("g")
-            .selectAll("g")
-            .data(root.descendants())
-            .join("g")
-            .attr("transform", (d: any) => `
-                rotate(${d.x * 180 / Math.PI - 90})
-                translate(${d.y},0)
-            `);
-
-        // Circles (Nodes)
-        node.append("circle")
-            .attr("fill", (d: any) => {
-                const m = d.data as FamilyMember;
-                // Priority: Member Preferred -> Branch DB Color -> Constant -> Default
-                const branch = m.branch;
-                const constantBranch = FAMILY_BRANCHES.find(b => b.name === m.name);
-
-                if (m.preferredColor) return m.preferredColor;
-                if (branch?.color) return branch.color;
-                if (constantBranch?.color) return constantBranch.color;
-
-                return d.depth === 0 ? "#fff" : "#555";
-            })
-            .attr("stroke", "#D4AF37")
-            .attr("r", (d: any) => d.depth === 0 ? 0 : (6 - d.depth)) // Root invisible
-            .attr("cursor", "pointer")
-            .on("click", (_, d) => {
-                const member = d.data as FamilyMember;
-                if (!member.isRoot) setSelectedMember(member);
-            });
-
-        // Labels
-        node.append("text")
-            .attr("transform", (d: any) => `rotate(${d.x >= Math.PI ? 180 : 0})`)
-            .attr("dy", "0.31em")
-            .attr("x", (d: any) => d.x < Math.PI === !d.children ? 6 : -6)
-            .attr("text-anchor", (d: any) => d.x < Math.PI === !d.children ? "start" : "end")
-            .text((d: any) => (d.data as any).isRoot ? "" : (d.data as any).name)
-            .attr("fill", "white")
-            .attr("font-size", "10px") // Changed from fontSize to font-size for attribute
-            .clone(true).lower()
-            .attr("stroke", "black")
-            .attr("stroke-width", 3);
-
+    // Stats
+    const stats = useMemo(() => {
+        const gens = { SIBLING: 0, CHILD: 0, GRANDCHILD: 0, GREAT_GRANDCHILD: 0, OTHER: 0 };
+        members.forEach(m => {
+            if (m.relation && gens[m.relation as keyof typeof gens] !== undefined) {
+                gens[m.relation as keyof typeof gens]++;
+            } else {
+                gens.OTHER++;
+            }
+        });
+        return gens;
     }, [members]);
 
     return (
         <div className="radial-tree-container">
-            <svg ref={svgRef} className="radial-svg" />
-            <MemberDetailModal
-                member={selectedMember}
-                onClose={() => setSelectedMember(null)}
-            />
+            {/* Controls */}
+            <div className="radial-controls">
+                <button onClick={() => setZoom(z => Math.min(2, z + 0.2))}>+</button>
+                <button onClick={() => setZoom(z => Math.max(0.5, z - 0.2))}>−</button>
+                <button onClick={() => { setZoom(1); setSelectedBranch(null); }}>🎯</button>
+            </div>
+
+            {/* Stats Panel */}
+            <div className="radial-stats">
+                <div className="stat-item">
+                    <span className="stat-number">{totalMembers}</span>
+                    <span className="stat-label">Total</span>
+                </div>
+                <div className="stat-item">
+                    <span className="stat-number">{stats.SIBLING}</span>
+                    <span className="stat-label">Fundadores</span>
+                </div>
+                <div className="stat-item">
+                    <span className="stat-number">{stats.CHILD}</span>
+                    <span className="stat-label">Hijos</span>
+                </div>
+                <div className="stat-item">
+                    <span className="stat-number">{stats.GRANDCHILD}</span>
+                    <span className="stat-label">Nietos</span>
+                </div>
+            </div>
+
+            {/* Radial Chart */}
+            <div className="radial-chart" style={{ transform: `scale(${zoom})` }}>
+                {/* Center */}
+                <div className="radial-center">
+                    <span>👴👵</span>
+                    <small>Los Patriarcas</small>
+                </div>
+
+                {/* Generation rings (visual guides) */}
+                <div className="radial-ring ring-1"></div>
+                <div className="radial-ring ring-2"></div>
+                <div className="radial-ring ring-3"></div>
+
+                {/* Branches as sectors */}
+                {branchData.map((data, index) => {
+                    const angle = index * anglePerBranch;
+                    const isSelected = selectedBranch === data.branch.id;
+
+                    // Count by generation
+                    const siblings = data.members.filter(m => m.relation === 'SIBLING');
+                    const children = data.members.filter(m => m.relation === 'CHILD');
+                    const grandchildren = data.members.filter(m => m.relation === 'GRANDCHILD' || m.relation === 'GREAT_GRANDCHILD');
+
+                    return (
+                        <div
+                            key={data.branch.id}
+                            className={`radial-sector ${isSelected ? 'selected' : ''}`}
+                            style={{
+                                '--sector-angle': `${angle}deg`,
+                                '--sector-color': data.branch.color,
+                            } as React.CSSProperties}
+                            onClick={() => setSelectedBranch(isSelected ? null : data.branch.id)}
+                        >
+                            {/* Branch label */}
+                            <div className="sector-label" style={{ transform: `rotate(${angle}deg) translateY(-200px) rotate(-${angle}deg)` }}>
+                                <span className="sector-name">{data.branch.name.split(' ')[0]}</span>
+                                <span className="sector-count">{data.members.length}</span>
+                            </div>
+
+                            {/* Member dots by generation */}
+                            {siblings.map((member, i) => (
+                                <div
+                                    key={member.id}
+                                    className="radial-dot dot-gen-1"
+                                    style={{
+                                        transform: `rotate(${angle + (i - siblings.length / 2) * 5}deg) translateY(-80px)`,
+                                        backgroundColor: data.branch.color
+                                    }}
+                                    onClick={(e) => { e.stopPropagation(); onMemberClick?.(member); }}
+                                    title={member.name}
+                                >
+                                    {member.photo ? (
+                                        <img src={member.photo} alt="" />
+                                    ) : (
+                                        <span>{member.name.charAt(0)}</span>
+                                    )}
+                                </div>
+                            ))}
+
+                            {children.map((member, i) => (
+                                <div
+                                    key={member.id}
+                                    className="radial-dot dot-gen-2"
+                                    style={{
+                                        transform: `rotate(${angle + (i - children.length / 2) * 4}deg) translateY(-130px)`,
+                                        backgroundColor: data.branch.color
+                                    }}
+                                    onClick={(e) => { e.stopPropagation(); onMemberClick?.(member); }}
+                                    title={member.name}
+                                />
+                            ))}
+
+                            {grandchildren.slice(0, 10).map((member, i) => (
+                                <div
+                                    key={member.id}
+                                    className="radial-dot dot-gen-3"
+                                    style={{
+                                        transform: `rotate(${angle + (i - grandchildren.length / 2) * 3}deg) translateY(-170px)`,
+                                        backgroundColor: data.branch.color
+                                    }}
+                                    onClick={(e) => { e.stopPropagation(); onMemberClick?.(member); }}
+                                    title={member.name}
+                                />
+                            ))}
+
+                            {/* Connection line from center to branch */}
+                            <div
+                                className="sector-line"
+                                style={{
+                                    transform: `rotate(${angle}deg)`,
+                                    backgroundColor: data.branch.color
+                                }}
+                            />
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* Legend */}
+            <div className="radial-legend">
+                <div className="legend-item"><span className="dot-lg"></span> Fundadores</div>
+                <div className="legend-item"><span className="dot-md"></span> Hijos</div>
+                <div className="legend-item"><span className="dot-sm"></span> Nietos+</div>
+            </div>
         </div>
     );
 };

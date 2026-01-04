@@ -24,14 +24,12 @@ const calculatePositions = (members: FamilyMember[], filterBranchId: string | nu
     const positions: NodePosition[] = [];
     const branchAngles = new Map<string, number>();
 
-    // Get unique branches and assign angles
     const branches = Array.from(new Set(filtered.map(m => m.branchId).filter(Boolean)));
     branches.forEach((branchId, index) => {
         const angle = (index / branches.length) * 360;
         branchAngles.set(branchId!, angle);
     });
 
-    // Track members per generation per branch for better spacing
     const branchGenCounts = new Map<string, Map<string, number>>();
 
     filtered.forEach((member) => {
@@ -49,7 +47,7 @@ const calculatePositions = (members: FamilyMember[], filterBranchId: string | nu
         let radius = 100;
         let zOffset = 0;
         let scale = 1;
-        let spreadFactor = 25; // Angular spread within generation
+        let spreadFactor = 25;
 
         switch (member.relation) {
             case 'SIBLING':
@@ -82,13 +80,10 @@ const calculatePositions = (members: FamilyMember[], filterBranchId: string | nu
                 scale = 0.85;
         }
 
-        // Better distribution using hash and count
         const hash = Math.abs(member.id.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0));
         const genIndex = currentCount;
         const angleOffset = (genIndex - 2) * spreadFactor + ((hash % 20) - 10);
         const angleRad = ((baseAngle + angleOffset) * Math.PI) / 180;
-
-        // Add depth variation
         const depthVariation = (hash % 60) - 30;
 
         positions.push({
@@ -103,7 +98,6 @@ const calculatePositions = (members: FamilyMember[], filterBranchId: string | nu
     return positions;
 };
 
-// Get unique branches for filter
 const getBranches = (members: FamilyMember[]) => {
     const branchMap = new Map<string, { id: string, name: string, color: string }>();
     members.forEach(m => {
@@ -114,19 +108,21 @@ const getBranches = (members: FamilyMember[]) => {
     return Array.from(branchMap.values());
 };
 
-// Calculate connection lines between parent and child
+// Get connections (parent -> child)
 const getConnections = (positions: NodePosition[]) => {
     const posMap = new Map<string, NodePosition>();
     positions.forEach(p => posMap.set(p.member.id, p));
 
-    const connections: { from: NodePosition; to: NodePosition; color: string }[] = [];
+    const connections: { fromX: number; fromY: number; toX: number; toY: number; color: string }[] = [];
 
     positions.forEach(pos => {
         if (pos.member.parentId && posMap.has(pos.member.parentId)) {
-            const parentPos = posMap.get(pos.member.parentId)!;
+            const parent = posMap.get(pos.member.parentId)!;
             connections.push({
-                from: parentPos,
-                to: pos,
+                fromX: parent.x,
+                fromY: parent.y,
+                toX: pos.x,
+                toY: pos.y,
                 color: pos.member.branch?.color || '#D4AF37'
             });
         }
@@ -142,7 +138,6 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
     const [zoom, setZoom] = useState(1);
     const [isDragging, setIsDragging] = useState(false);
     const lastPos = useRef({ x: 0, y: 0 });
-    const containerRef = useRef<HTMLDivElement>(null);
 
     const positions = useMemo(() => calculatePositions(members, filterBranchId), [members, filterBranchId]);
     const connections = useMemo(() => getConnections(positions), [positions]);
@@ -152,12 +147,11 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
     useEffect(() => {
         if (isDragging) return;
         const interval = setInterval(() => {
-            setRotationY(prev => prev + 0.25);
+            setRotationY(prev => prev + 0.2);
         }, 50);
         return () => clearInterval(interval);
     }, [isDragging]);
 
-    // Mouse/Touch handlers
     const handleStart = (clientX: number, clientY: number) => {
         setIsDragging(true);
         lastPos.current = { x: clientX, y: clientY };
@@ -185,9 +179,6 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
         setZoom(1);
     };
 
-    const handleZoomIn = () => setZoom(prev => Math.min(2, prev + 0.2));
-    const handleZoomOut = () => setZoom(prev => Math.max(0.5, prev - 0.2));
-
     return (
         <div className="tree-3d-container">
             {/* Controls */}
@@ -203,17 +194,14 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
                     ))}
                 </select>
                 <div className="zoom-controls">
-                    <button onClick={handleZoomOut} title="Alejar">−</button>
-                    <button onClick={handleZoomIn} title="Acercar">+</button>
+                    <button onClick={() => setZoom(z => Math.max(0.5, z - 0.2))}>−</button>
+                    <button onClick={() => setZoom(z => Math.min(2, z + 0.2))}>+</button>
                 </div>
-                <button className="reset-camera-btn" onClick={handleReset} title="Reiniciar vista">
-                    🎯
-                </button>
+                <button className="reset-camera-btn" onClick={handleReset} title="Reiniciar">🎯</button>
             </div>
 
             {/* 3D Scene */}
             <div
-                ref={containerRef}
                 className="tree-3d-scene"
                 onMouseDown={(e) => handleStart(e.clientX, e.clientY)}
                 onMouseMove={(e) => handleMove(e.clientX, e.clientY)}
@@ -226,37 +214,30 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
             >
                 <div
                     className="tree-3d-world"
-                    style={{
-                        transform: `scale(${zoom}) rotateX(${rotationX}deg) rotateY(${rotationY}deg)`
-                    }}
+                    style={{ transform: `scale(${zoom}) rotateX(${rotationX}deg) rotateY(${rotationY}deg)` }}
                 >
-                    {/* Connection lines (SVG) */}
-                    <svg className="tree-3d-connections" viewBox="-400 -400 800 800">
-                        <defs>
-                            <filter id="glow">
-                                <feGaussianBlur stdDeviation="2" result="coloredBlur" />
-                                <feMerge>
-                                    <feMergeNode in="coloredBlur" />
-                                    <feMergeNode in="SourceGraphic" />
-                                </feMerge>
-                            </filter>
-                        </defs>
-                        {connections.map((conn, i) => (
-                            <line
-                                key={i}
-                                x1={conn.from.x}
-                                y1={conn.from.y}
-                                x2={conn.to.x}
-                                y2={conn.to.y}
-                                stroke={conn.color}
-                                strokeWidth="2"
-                                strokeOpacity="0.5"
-                                filter="url(#glow)"
+                    {/* CONNECTION LINES - Using divs for CSS 3D compatibility */}
+                    {connections.map((conn, i) => {
+                        const dx = conn.toX - conn.fromX;
+                        const dy = conn.toY - conn.fromY;
+                        const length = Math.sqrt(dx * dx + dy * dy);
+                        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+                        return (
+                            <div
+                                key={`line-${i}`}
+                                className="tree-3d-line"
+                                style={{
+                                    width: `${length}px`,
+                                    left: `${conn.fromX}px`,
+                                    top: `${conn.fromY}px`,
+                                    transform: `rotate(${angle}deg)`,
+                                    backgroundColor: conn.color,
+                                }}
                             />
-                        ))}
-                    </svg>
+                        );
+                    })}
 
-                    {/* Center indicator */}
+                    {/* Center */}
                     <div className="tree-3d-center">
                         <div className="center-orb"></div>
                         <span>👴👵</span>
@@ -276,7 +257,6 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
                                 } as React.CSSProperties}
                                 onClick={() => onMemberClick?.(member)}
                             >
-                                <div className="node-connector"></div>
                                 <div className="node-avatar" style={{ borderColor: color }}>
                                     {member.photo ? (
                                         <img src={member.photo} alt={member.name} />
@@ -291,10 +271,10 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
                 </div>
             </div>
 
-            {/* Instructions & Stats */}
+            {/* Overlay */}
             <div className="tree-3d-overlay">
                 <span className="tree-stats">{positions.length} miembros</span>
-                <p>👆 Arrastra para girar • Rueda para zoom • Toca un avatar para ver detalles</p>
+                <p>👆 Arrastra para girar • Rueda = Zoom • Toca avatar = Detalles</p>
             </div>
         </div>
     );
