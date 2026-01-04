@@ -88,6 +88,9 @@ const calculatePositions = (members: FamilyMember[]) => {
     return positions;
 };
 
+// Shared geometry to reduce GPU memory usage
+const sphereGeo = new THREE.SphereGeometry(0.5, 32, 32);
+
 const MemberNode = ({ position, member, color }: { position: THREE.Vector3, member: FamilyMember, color: string }) => {
     const [hovered, setHovered] = useState(false);
     const meshRef = useRef<THREE.Mesh>(null);
@@ -99,17 +102,20 @@ const MemberNode = ({ position, member, color }: { position: THREE.Vector3, memb
         }
     });
 
+    const materialColor = hovered ? '#ffffff' : (member.preferredColor || color);
+    const materialEmissive = hovered ? '#D4AF37' : '#000000';
+
     return (
         <group position={position}>
             <mesh
                 ref={meshRef}
                 onPointerOver={() => setHovered(true)}
                 onPointerOut={() => setHovered(false)}
+                geometry={sphereGeo}
             >
-                <sphereGeometry args={[0.5, 32, 32]} />
                 <meshStandardMaterial
-                    color={hovered ? '#ffffff' : (member.preferredColor || color)}
-                    emissive={hovered ? '#D4AF37' : '#000000'}
+                    color={materialColor}
+                    emissive={materialEmissive}
                     roughness={0.3}
                     metalness={0.8}
                 />
@@ -127,13 +133,15 @@ const MemberNode = ({ position, member, color }: { position: THREE.Vector3, memb
 };
 
 const Connections = ({ members, positions }: { members: FamilyMember[], positions: Map<string, THREE.Vector3> }) => {
-    const points: THREE.Vector3[][] = [];
-
-    members.forEach(member => {
-        if (member.parentId && positions.has(member.id) && positions.has(member.parentId)) {
-            points.push([positions.get(member.parentId)!, positions.get(member.id)!]);
-        }
-    });
+    const points = useMemo(() => {
+        const pts: THREE.Vector3[][] = [];
+        members.forEach(member => {
+            if (member.parentId && positions.has(member.id) && positions.has(member.parentId)) {
+                pts.push([positions.get(member.parentId)!, positions.get(member.id)!]);
+            }
+        });
+        return pts;
+    }, [members, positions])
 
     return (
         <group>
@@ -155,17 +163,43 @@ const Connections = ({ members, positions }: { members: FamilyMember[], position
 export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members }) => {
     const positions = useMemo(() => calculatePositions(members), [members]);
 
+    // Handle context loss gracefully
+    const [contextLost, setContextLost] = useState(false);
+
     return (
-        <div style={{ width: '100%', height: '70vh', background: '#050510', borderRadius: '20px', overflow: 'hidden' }}>
-            <Canvas camera={{ position: [0, 10, 25], fov: 60 }}>
+        <div style={{ width: '100%', height: '70vh', background: '#050510', borderRadius: '20px', overflow: 'hidden', position: 'relative' }}>
+            {contextLost && (
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#D4AF37', background: 'rgba(0,0,0,0.8)', zIndex: 10 }}>
+                    <p>⚠️ El contexto 3D se perdió. Recarga la página.</p>
+                </div>
+            )}
+            <Canvas
+                camera={{ position: [0, 10, 25], fov: 60 }}
+                gl={{
+                    powerPreference: 'high-performance',
+                    antialias: true,
+                    preserveDrawingBuffer: true
+                }}
+                onCreated={({ gl }) => {
+                    gl.domElement.addEventListener('webglcontextlost', (e) => {
+                        e.preventDefault();
+                        setContextLost(true);
+                        console.warn('WebGL Context Lost');
+                    }, false);
+                    gl.domElement.addEventListener('webglcontextrestored', () => {
+                        setContextLost(false);
+                        console.log('WebGL Context Restored');
+                    }, false);
+                }}
+            >
                 <color attach="background" args={['#050510']} />
-                <fog attach="fog" args={['#050510', 10, 50]} />
+                <fog attach="fog" args={['#050510', 10, 60]} />
 
                 <ambientLight intensity={0.5} />
                 <pointLight position={[10, 10, 10]} intensity={1} color="#D4AF37" />
                 <pointLight position={[-10, -10, -10]} intensity={0.5} color="#4c1d95" />
 
-                <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
+                <Stars radius={100} depth={50} count={2000} factor={4} saturation={0} fade speed={1} />
 
                 <group position={[0, 2, 0]}>
                     {members.map(member => {
@@ -189,6 +223,8 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members }) => {
                     enableRotate={true}
                     autoRotate={true}
                     autoRotateSpeed={0.5}
+                    maxDistance={40}
+                    minDistance={5}
                 />
             </Canvas>
             <div className="tree-3d-overlay">

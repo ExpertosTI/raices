@@ -399,6 +399,23 @@ if (isProduction) {
     });
 }
 
+// Admin: Unclaim Profile
+app.post('/api/admin/members/:id/unclaim', authenticateToken, async (req: any, res: Response) => {
+    if (req.user?.role !== 'ADMIN') return res.status(403).json({ error: 'Unauthorized' });
+
+    const { id } = req.params;
+    try {
+        await prisma.familyMember.update({
+            where: { id },
+            data: { userId: null }
+        });
+        res.json({ success: true });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Failed to unclaim' });
+    }
+});
+
 // ==================== START SERVER ====================
 app.listen(PORT, () => {
     console.log(`🚀 Raíces API running on http://localhost:${PORT}`);

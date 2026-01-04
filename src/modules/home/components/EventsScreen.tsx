@@ -207,6 +207,22 @@ export const EventsScreen: React.FC = () => {
                                     <span className="month">{getMonth(event.date)}</span>
                                 </div>
 
+                                <div className="event-avatar-container">
+                                    {event.photo ? (
+                                        <img
+                                            src={event.photo}
+                                            alt={`Foto de ${event.name}`}
+                                            className="event-avatar-img"
+                                            loading="lazy"
+                                            decoding="async"
+                                        />
+                                    ) : (
+                                        <div className="event-avatar-placeholder">
+                                            {event.name.charAt(0)}
+                                        </div>
+                                    )}
+                                </div>
+
                                 <div className="event-info">
                                     <h3 aria-label={`Cumpleaños de ${event.name}`}>{event.name}</h3>
                                     <p className="event-age" aria-label={`Cumplirá ${event.age} años`}>
