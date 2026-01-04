@@ -15,7 +15,7 @@ interface NodePosition {
     scale: number;
 }
 
-// Calculate positions with better distribution
+// Calculate positions
 const calculatePositions = (members: FamilyMember[], filterBranchId: string | null): NodePosition[] => {
     const filtered = filterBranchId
         ? members.filter(m => m.branchId === filterBranchId)
@@ -47,44 +47,44 @@ const calculatePositions = (members: FamilyMember[], filterBranchId: string | nu
         let radius = 100;
         let zOffset = 0;
         let scale = 1;
-        let spreadFactor = 25;
+        let spreadFactor = 20;
 
         switch (member.relation) {
             case 'SIBLING':
-                radius = 100;
-                zOffset = 60;
-                scale = 1.15;
-                spreadFactor = 15;
+                radius = 90;
+                zOffset = 40;
+                scale = 1.1;
+                spreadFactor = 12;
                 break;
             case 'CHILD':
-                radius = 180;
-                zOffset = 20;
-                scale = 0.95;
-                spreadFactor = 20;
+                radius = 160;
+                zOffset = 10;
+                scale = 0.9;
+                spreadFactor = 18;
                 break;
             case 'GRANDCHILD':
-                radius = 260;
-                zOffset = -30;
-                scale = 0.8;
-                spreadFactor = 25;
+                radius = 230;
+                zOffset = -20;
+                scale = 0.75;
+                spreadFactor = 22;
                 break;
             case 'GREAT_GRANDCHILD':
-                radius = 340;
-                zOffset = -80;
-                scale = 0.65;
-                spreadFactor = 30;
+                radius = 300;
+                zOffset = -50;
+                scale = 0.6;
+                spreadFactor = 25;
                 break;
             default:
-                radius = 200;
+                radius = 180;
                 zOffset = 0;
-                scale = 0.85;
+                scale = 0.8;
         }
 
         const hash = Math.abs(member.id.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0));
         const genIndex = currentCount;
-        const angleOffset = (genIndex - 2) * spreadFactor + ((hash % 20) - 10);
+        const angleOffset = (genIndex - 2) * spreadFactor + ((hash % 15) - 7);
         const angleRad = ((baseAngle + angleOffset) * Math.PI) / 180;
-        const depthVariation = (hash % 60) - 30;
+        const depthVariation = (hash % 40) - 20;
 
         positions.push({
             member,
@@ -113,16 +113,14 @@ const getConnections = (positions: NodePosition[]) => {
     const posMap = new Map<string, NodePosition>();
     positions.forEach(p => posMap.set(p.member.id, p));
 
-    const connections: { fromX: number; fromY: number; toX: number; toY: number; color: string }[] = [];
+    const connections: { from: NodePosition; to: NodePosition; color: string }[] = [];
 
     positions.forEach(pos => {
         if (pos.member.parentId && posMap.has(pos.member.parentId)) {
             const parent = posMap.get(pos.member.parentId)!;
             connections.push({
-                fromX: parent.x,
-                fromY: parent.y,
-                toX: pos.x,
-                toY: pos.y,
+                from: parent,
+                to: pos,
                 color: pos.member.branch?.color || '#D4AF37'
             });
         }
@@ -138,16 +136,26 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
     const [zoom, setZoom] = useState(1);
     const [isDragging, setIsDragging] = useState(false);
     const lastPos = useRef({ x: 0, y: 0 });
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [containerSize, setContainerSize] = useState({ w: 600, h: 400 });
 
     const positions = useMemo(() => calculatePositions(members, filterBranchId), [members, filterBranchId]);
     const connections = useMemo(() => getConnections(positions), [positions]);
     const branches = useMemo(() => getBranches(members), [members]);
 
+    // Get container size for SVG
+    useEffect(() => {
+        if (containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            setContainerSize({ w: rect.width, h: rect.height });
+        }
+    }, []);
+
     // Auto rotation
     useEffect(() => {
         if (isDragging) return;
         const interval = setInterval(() => {
-            setRotationY(prev => prev + 0.2);
+            setRotationY(prev => prev + 0.15);
         }, 50);
         return () => clearInterval(interval);
     }, [isDragging]);
@@ -179,8 +187,26 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
         setZoom(1);
     };
 
+    // Transform 2D position based on rotation (simplified projection)
+    const project = (x: number, y: number, z: number) => {
+        const radY = (rotationY * Math.PI) / 180;
+        const radX = (rotationX * Math.PI) / 180;
+
+        // Rotate around Y
+        const x1 = x * Math.cos(radY) - z * Math.sin(radY);
+        const z1 = x * Math.sin(radY) + z * Math.cos(radY);
+
+        // Rotate around X
+        const y1 = y * Math.cos(radX) - z1 * Math.sin(radX);
+
+        return {
+            x: (containerSize.w / 2) + x1 * zoom,
+            y: (containerSize.h / 2) + y1 * zoom
+        };
+    };
+
     return (
-        <div className="tree-3d-container">
+        <div className="tree-3d-container" ref={containerRef}>
             {/* Controls */}
             <div className="tree-3d-controls">
                 <select
@@ -200,6 +226,26 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
                 <button className="reset-camera-btn" onClick={handleReset} title="Reiniciar">🎯</button>
             </div>
 
+            {/* SVG Layer for connection lines (OUTSIDE 3D world, uses projection) */}
+            <svg className="tree-3d-svg-layer">
+                {connections.map((conn, i) => {
+                    const from = project(conn.from.x, conn.from.y, conn.from.z);
+                    const to = project(conn.to.x, conn.to.y, conn.to.z);
+                    return (
+                        <line
+                            key={`line-${i}`}
+                            x1={from.x}
+                            y1={from.y}
+                            x2={to.x}
+                            y2={to.y}
+                            stroke={conn.color}
+                            strokeWidth="2"
+                            strokeOpacity="0.5"
+                        />
+                    );
+                })}
+            </svg>
+
             {/* 3D Scene */}
             <div
                 className="tree-3d-scene"
@@ -216,30 +262,8 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
                     className="tree-3d-world"
                     style={{ transform: `scale(${zoom}) rotateX(${rotationX}deg) rotateY(${rotationY}deg)` }}
                 >
-                    {/* CONNECTION LINES - Using divs for CSS 3D compatibility */}
-                    {connections.map((conn, i) => {
-                        const dx = conn.toX - conn.fromX;
-                        const dy = conn.toY - conn.fromY;
-                        const length = Math.sqrt(dx * dx + dy * dy);
-                        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-                        return (
-                            <div
-                                key={`line-${i}`}
-                                className="tree-3d-line"
-                                style={{
-                                    width: `${length}px`,
-                                    left: `${conn.fromX}px`,
-                                    top: `${conn.fromY}px`,
-                                    transform: `rotate(${angle}deg)`,
-                                    backgroundColor: conn.color,
-                                }}
-                            />
-                        );
-                    })}
-
                     {/* Center */}
                     <div className="tree-3d-center">
-                        <div className="center-orb"></div>
                         <span>👴👵</span>
                         <small>Los Patriarcas</small>
                     </div>

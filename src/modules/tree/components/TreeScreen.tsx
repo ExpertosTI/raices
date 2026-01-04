@@ -91,7 +91,7 @@ export const TreeScreen: React.FC = () => {
                     <>
                         {view === 'vertical' && <VerticalTree members={members} onMemberClick={handleMemberClick} />}
                         {view === 'horizontal' && <HorizontalTree members={members} />}
-                        {view === 'radial' && <RadialTree members={members} />}
+                        {view === 'radial' && <RadialTree members={members} onMemberClick={handleMemberClick} />}
                         {view === '3d' && <ThreeDTree members={members} onMemberClick={handleMemberClick} />}
                     </>
                 )}
