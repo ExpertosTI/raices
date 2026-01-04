@@ -43,16 +43,17 @@
     transition: transform 0.08s ease-out;
 }
 
-/* Connection Lines using CSS */
+/* Connection Lines using CSS 3D */
 .tree-3d-line {
     position: absolute;
-    height: 2px;
-    transform-origin: left center;
-    opacity: 0.6;
-    border-radius: 1px;
-    box-shadow: 0 0 8px currentColor;
+    height: 3px;
+    transform-origin: 0 50%;
+    opacity: 0.8;
+    border-radius: 2px;
+    box-shadow: 0 0 12px currentColor, 0 0 4px currentColor;
     pointer-events: none;
     z-index: 1;
+    transform-style: preserve-3d;
 }
 
 /* SVG Connections Layer */

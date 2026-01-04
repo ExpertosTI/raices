@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useEffect } from 'react';
+import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react';
 import type { FamilyMember } from '../../../types';
 import './ThreeDTree.css';
 
@@ -129,6 +129,23 @@ const getConnections = (positions: NodePosition[]) => {
     return connections;
 };
 
+// Calculate line properties
+const getLineStyle = (from: NodePosition, to: NodePosition) => {
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+    const midZ = (from.z + to.z) / 2;
+
+    return {
+        width: length,
+        angle,
+        x: from.x,
+        y: from.y,
+        z: midZ
+    };
+};
+
 export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }) => {
     const [filterBranchId, setFilterBranchId] = useState<string | null>(null);
     const [rotationX, setRotationX] = useState(-20);
@@ -136,20 +153,11 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
     const [zoom, setZoom] = useState(1);
     const [isDragging, setIsDragging] = useState(false);
     const lastPos = useRef({ x: 0, y: 0 });
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [containerSize, setContainerSize] = useState({ w: 600, h: 400 });
+    const sceneRef = useRef<HTMLDivElement>(null);
 
     const positions = useMemo(() => calculatePositions(members, filterBranchId), [members, filterBranchId]);
     const connections = useMemo(() => getConnections(positions), [positions]);
     const branches = useMemo(() => getBranches(members), [members]);
-
-    // Get container size for SVG
-    useEffect(() => {
-        if (containerRef.current) {
-            const rect = containerRef.current.getBoundingClientRect();
-            setContainerSize({ w: rect.width, h: rect.height });
-        }
-    }, []);
 
     // Auto rotation
     useEffect(() => {
@@ -160,53 +168,29 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
         return () => clearInterval(interval);
     }, [isDragging]);
 
-    const handleStart = (clientX: number, clientY: number) => {
+    const handleStart = useCallback((clientX: number, clientY: number) => {
         setIsDragging(true);
         lastPos.current = { x: clientX, y: clientY };
-    };
+    }, []);
 
-    const handleMove = (clientX: number, clientY: number) => {
+    const handleMove = useCallback((clientX: number, clientY: number) => {
         if (!isDragging) return;
         const deltaX = clientX - lastPos.current.x;
         const deltaY = clientY - lastPos.current.y;
         setRotationY(prev => prev + deltaX * 0.4);
         setRotationX(prev => Math.max(-70, Math.min(70, prev - deltaY * 0.4)));
         lastPos.current = { x: clientX, y: clientY };
-    };
+    }, [isDragging]);
 
-    const handleEnd = () => setIsDragging(false);
+    const handleEnd = useCallback(() => setIsDragging(false), []);
 
-    const handleWheel = (e: React.WheelEvent) => {
-        e.preventDefault();
-        setZoom(prev => Math.max(0.5, Math.min(2, prev - e.deltaY * 0.001)));
-    };
-
-    const handleReset = () => {
-        setRotationX(-20);
-        setRotationY(0);
-        setZoom(1);
-    };
-
-    // Transform 2D position based on rotation (simplified projection)
-    const project = (x: number, y: number, z: number) => {
-        const radY = (rotationY * Math.PI) / 180;
-        const radX = (rotationX * Math.PI) / 180;
-
-        // Rotate around Y
-        const x1 = x * Math.cos(radY) - z * Math.sin(radY);
-        const z1 = x * Math.sin(radY) + z * Math.cos(radY);
-
-        // Rotate around X
-        const y1 = y * Math.cos(radX) - z1 * Math.sin(radX);
-
-        return {
-            x: (containerSize.w / 2) + x1 * zoom,
-            y: (containerSize.h / 2) + y1 * zoom
-        };
-    };
+    // Zoom with wheel - using CSS to avoid passive listener issue
+    const handleZoomIn = () => setZoom(z => Math.min(2, z + 0.2));
+    const handleZoomOut = () => setZoom(z => Math.max(0.5, z - 0.2));
+    const handleReset = () => { setRotationX(-20); setRotationY(0); setZoom(1); };
 
     return (
-        <div className="tree-3d-container" ref={containerRef}>
+        <div className="tree-3d-container">
             {/* Controls */}
             <div className="tree-3d-controls">
                 <select
@@ -220,34 +204,15 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
                     ))}
                 </select>
                 <div className="zoom-controls">
-                    <button onClick={() => setZoom(z => Math.max(0.5, z - 0.2))}>−</button>
-                    <button onClick={() => setZoom(z => Math.min(2, z + 0.2))}>+</button>
+                    <button onClick={handleZoomOut}>−</button>
+                    <button onClick={handleZoomIn}>+</button>
                 </div>
                 <button className="reset-camera-btn" onClick={handleReset} title="Reiniciar">🎯</button>
             </div>
 
-            {/* SVG Layer for connection lines (OUTSIDE 3D world, uses projection) */}
-            <svg className="tree-3d-svg-layer">
-                {connections.map((conn, i) => {
-                    const from = project(conn.from.x, conn.from.y, conn.from.z);
-                    const to = project(conn.to.x, conn.to.y, conn.to.z);
-                    return (
-                        <line
-                            key={`line-${i}`}
-                            x1={from.x}
-                            y1={from.y}
-                            x2={to.x}
-                            y2={to.y}
-                            stroke={conn.color}
-                            strokeWidth="2"
-                            strokeOpacity="0.5"
-                        />
-                    );
-                })}
-            </svg>
-
             {/* 3D Scene */}
             <div
+                ref={sceneRef}
                 className="tree-3d-scene"
                 onMouseDown={(e) => handleStart(e.clientX, e.clientY)}
                 onMouseMove={(e) => handleMove(e.clientX, e.clientY)}
@@ -256,12 +221,27 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
                 onTouchStart={(e) => handleStart(e.touches[0].clientX, e.touches[0].clientY)}
                 onTouchMove={(e) => handleMove(e.touches[0].clientX, e.touches[0].clientY)}
                 onTouchEnd={handleEnd}
-                onWheel={handleWheel}
             >
                 <div
                     className="tree-3d-world"
                     style={{ transform: `scale(${zoom}) rotateX(${rotationX}deg) rotateY(${rotationY}deg)` }}
                 >
+                    {/* CONNECTION LINES - Using 3D positioned divs */}
+                    {connections.map((conn, i) => {
+                        const lineStyle = getLineStyle(conn.from, conn.to);
+                        return (
+                            <div
+                                key={`line-${i}`}
+                                className="tree-3d-line"
+                                style={{
+                                    width: `${lineStyle.width}px`,
+                                    transform: `translate3d(${lineStyle.x}px, ${lineStyle.y}px, ${lineStyle.z}px) rotateZ(${lineStyle.angle}deg)`,
+                                    backgroundColor: conn.color,
+                                }}
+                            />
+                        );
+                    })}
+
                     {/* Center */}
                     <div className="tree-3d-center">
                         <span>👴👵</span>
