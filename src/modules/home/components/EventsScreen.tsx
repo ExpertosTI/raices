@@ -155,7 +155,7 @@ export const EventsScreen: React.FC = () => {
                     ←
                 </button>
                 <div className="header-content">
-                    <h1>Cumpleaños</h1>
+                    <h1>🎂 Cumpleaños</h1>
                     <p className="subtitle-glow">Celebra con la familia</p>
                     <NextBirthdayCountdown event={events[0] || null} />
                 </div>

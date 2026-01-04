@@ -48,7 +48,7 @@ export const TreeScreen: React.FC = () => {
                 <button className="back-btn" onClick={() => navigate('/app')}>
                     ← Volver
                 </button>
-                <h1 className="tree-title">Árbol Genealógico</h1>
+                <h1 className="tree-title">🌳 Árbol Genealógico</h1>
                 <div className="view-toggles">
                     <button
                         className={`toggle-btn ${view === 'vertical' ? 'active' : ''}`}
