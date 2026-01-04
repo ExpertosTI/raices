@@ -198,3 +198,57 @@
         opacity: 1;
     }
 }
+
+/* Photo Upload Styles */
+.photo-upload-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.profile-photo-preview {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid #D4AF37;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.profile-photo-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.photo-placeholder-icon {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.photo-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    font-size: 0.7rem;
+    text-align: center;
+    padding: 2px 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.profile-photo-preview:hover .photo-overlay {
+    opacity: 1;
+}
+
+.profile-photo-preview:hover {
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+}

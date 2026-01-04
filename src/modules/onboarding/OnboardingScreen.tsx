@@ -30,6 +30,18 @@ export const OnboardingScreen = () => {
         skills: [] as string[]
     });
 
+    // New state for photo upload
+    const [photoFile, setPhotoFile] = useState<File | null>(null);
+    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setPhotoFile(file);
+            setPhotoPreview(URL.createObjectURL(file));
+        }
+    };
+
     const SKILLS_LIST = [
         "Ordenado/a", "Puntual", "Deportista", "Cocinero/a", "Estudioso/a",
         "Amable", "Solidario/a", "Creativo/a", "Valiente", "Líder",
@@ -75,26 +87,34 @@ export const OnboardingScreen = () => {
         setMessage('');
 
         try {
+            const formDataPayload = new FormData();
+
+            // Append all string/blob fields
+            formDataPayload.append('name', user?.name || 'Usuario');
+            formDataPayload.append('branchId', formData.grandparentId);
+            formDataPayload.append('grandparentId', formData.grandparentId);
+            if (formData.parentName) formDataPayload.append('parentName', formData.parentName);
+            if (formData.parentType) formDataPayload.append('parentType', formData.parentType);
+            formDataPayload.append('relation', formData.relation);
+            if (formData.nickname) formDataPayload.append('nickname', formData.nickname);
+            if (formData.birthDate) formDataPayload.append('birthDate', formData.birthDate);
+            if (formData.phone) formDataPayload.append('phone', formData.phone);
+            if (formData.whatsapp) formDataPayload.append('whatsapp', formData.whatsapp);
+            if (formData.bio) formDataPayload.append('bio', formData.bio);
+            if (formData.skills && formData.skills.length > 0) {
+                formDataPayload.append('skills', JSON.stringify(formData.skills));
+            }
+            if (photoFile) {
+                formDataPayload.append('photo', photoFile); // 'photo' matches backend
+            }
+
             const res = await fetch('/api/registration-request', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
+                    'Authorization': `Bearer ${token}`
+                    // Do NOT set Content-Type header when using FormData; browser sets it automatically with boundary
                 },
-                body: JSON.stringify({
-                    name: user?.name || 'Usuario',
-                    nickname: formData.nickname,
-                    branchId: formData.grandparentId,
-                    grandparentId: formData.grandparentId,
-                    parentName: formData.parentName,
-                    parentType: formData.parentType,
-                    relation: formData.relation,
-                    birthDate: formData.birthDate || null,
-                    phone: formData.phone,
-                    whatsapp: formData.whatsapp,
-                    bio: formData.bio,
-                    skills: formData.skills
-                })
+                body: formDataPayload
             });
 
             if (res.ok) {
@@ -242,7 +262,32 @@ export const OnboardingScreen = () => {
                         <button className="back-link" onClick={() => setStep(2)}>← Atrás</button>
 
                         <h2 className="question">Más sobre ti</h2>
-                        <p className="step-hint">Cuéntanos quién eres</p>
+                        <p className="step-hint">Cuéntanos quién eres y sube tu mejor foto</p>
+
+                        <div className="form-group photo-upload-section">
+                            <div className="photo-preview-wrapper" onClick={() => document.getElementById('photo-upload')?.click()}>
+                                {photoPreview ? (
+                                    <img src={photoPreview} alt="Tu foto" className="photo-preview-img" />
+                                ) : (
+                                    <div className="photo-placeholder">
+                                        <span>📷</span>
+                                        <small>Subir Foto</small>
+                                    </div>
+                                )}
+                            </div>
+                            <input
+                                id="photo-upload"
+                                type="file"
+                                accept="image/*"
+                                onChange={handlePhotoChange}
+                                style={{ display: 'none' }}
+                                aria-label="Subir foto de perfil"
+                            />
+                            {photoFile && <button className="remove-photo-btn" onClick={() => {
+                                setPhotoFile(null);
+                                setPhotoPreview(null);
+                            }}>Quitar foto</button>}
+                        </div>
 
                         <div className="form-group">
                             <label>Apodo (¿Cómo te dicen?)</label>

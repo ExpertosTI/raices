@@ -194,10 +194,12 @@ app.post('/api/admin/members/:id/unclaim', authenticateToken, requireAdmin, asyn
 });
 
 // Registration Request from Onboarding (creates pending request for admin approval)
-app.post('/api/registration-request', authenticateToken, async (req: any, res: Response) => {
+app.post('/api/registration-request', authenticateToken, upload.single('photo'), processImage, async (req: any, res: Response) => {
     try {
         const userId = req.user?.id;
         const { name, nickname, branchId, grandparentId, parentName, parentType, relation, birthDate, phone, whatsapp, bio, skills } = req.body;
+        // processImage middleware adds imageUrl to body if file exists
+        const photoUrl = req.body.imageUrl;
 
         if (!branchId || !name) {
             return res.status(400).json({ error: 'Missing required fields' });
@@ -217,8 +219,8 @@ app.post('/api/registration-request', authenticateToken, async (req: any, res: R
                 birthDate: birthDate ? new Date(birthDate) : null,
                 phone: phone || null,
                 whatsapp: whatsapp || null,
-                bio: bio || null,
-                skills: skills || [],
+                bio: photoUrl ? `${bio || ''}\n\n[PHOTO_URL]: ${photoUrl}` : (bio || null),
+                skills: skills ? JSON.parse(skills) : [],
                 status: 'PENDING'
             }
         });
@@ -298,19 +300,27 @@ app.post('/api/members', authenticateToken, validateMemberInput, async (req: any
     }
 });
 
-app.put('/api/members/:id', authenticateToken, canEditMember, async (req: Request, res: Response) => {
+app.put('/api/members/:id', authenticateToken, canEditMember, upload.single('photo'), processImage, async (req: any, res: Response) => {
     const { id } = req.params;
     const data = req.body;
+    const photoUrl = req.body.imageUrl;
+
     try {
+        const updateData: any = {
+            name: data.name,
+            birthDate: data.birthDate ? new Date(data.birthDate) : undefined,
+            bio: data.bio,
+            phone: data.phone,
+            whatsapp: data.whatsapp
+        };
+
+        if (photoUrl) {
+            updateData.photo = photoUrl;
+        }
+
         const updated = await prisma.familyMember.update({
             where: { id },
-            data: {
-                name: data.name,
-                birthDate: data.birthDate ? new Date(data.birthDate) : undefined,
-                bio: data.bio,
-                phone: data.phone,
-                whatsapp: data.whatsapp
-            }
+            data: updateData
         });
         res.json(updated);
     } catch (error) {

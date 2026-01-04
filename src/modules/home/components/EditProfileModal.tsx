@@ -8,6 +8,7 @@ interface FamilyMember {
     branchId: string;
     name: string;
     birthDate?: string;
+    photo?: string;
     bio?: string;
     phone?: string;
     whatsapp?: string;
@@ -33,6 +34,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [photoFile, setPhotoFile] = useState<File | null>(null);
+    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
     useEffect(() => {
         if (member) {
@@ -43,8 +46,19 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
                 phone: member.phone || '',
                 whatsapp: member.whatsapp || ''
             });
+            if (member.photo) {
+                setPhotoPreview(member.photo);
+            }
         }
     }, [member]);
+
+    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setPhotoFile(file);
+            setPhotoPreview(URL.createObjectURL(file));
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -53,13 +67,21 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
 
         try {
             const token = localStorage.getItem('token');
+            const data = new FormData();
+
+            data.append('name', formData.name);
+            data.append('bio', formData.bio);
+            if (formData.birthDate) data.append('birthDate', formData.birthDate);
+            if (formData.phone) data.append('phone', formData.phone);
+            if (formData.whatsapp) data.append('whatsapp', formData.whatsapp);
+            if (photoFile) data.append('photo', photoFile);
+
             const res = await fetch(`/api/members/${member.id}`, {
                 method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(formData)
+                body: data
             });
 
             if (!res.ok) throw new Error('Error al actualizar perfil');
@@ -93,9 +115,34 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
 
                 <h2 id="edit-profile-title">Editar Perfil</h2>
 
+
                 {error && <div className="error-message" role="alert">{error}</div>}
 
                 <form onSubmit={handleSubmit} className="edit-form">
+
+                    {/* Photo Upload */}
+                    <div className="photo-upload-container">
+                        <div className="profile-photo-preview" onClick={() => document.getElementById('edit-photo-input')?.click()}>
+                            {photoPreview ? (
+                                <img src={photoPreview} alt="Foto de perfil" />
+                            ) : (
+                                <div className="photo-placeholder-icon">
+                                    <User size={40} />
+                                </div>
+                            )}
+                            <div className="photo-overlay">
+                                <span>Cambiar</span>
+                            </div>
+                        </div>
+                        <input
+                            id="edit-photo-input"
+                            type="file"
+                            accept="image/*"
+                            onChange={handlePhotoChange}
+                            style={{ display: 'none' }}
+                        />
+                    </div>
+
                     <div className="form-group">
                         <label htmlFor="name">Nombre Completo</label>
                         <div className="input-wrapper">
