@@ -57,8 +57,16 @@ export const OnboardingScreen = () => {
             navigate('/login');
             return;
         }
+
+        // If user is already linked to a family member, redirect to app
+        // Check both stored user and fetch latest to be sure
+        if (user?.familyMember && user.familyMember.id) {
+            navigate('/app');
+            return;
+        }
+
         fetchBranches();
-    }, []);
+    }, [navigate, user?.familyMember]);
 
     const fetchBranches = async () => {
         try {
