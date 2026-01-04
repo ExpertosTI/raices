@@ -28,6 +28,7 @@ model User {
   comments      Comment[]
   pendingClaims PendingClaim[]
   registrationRequests RegistrationRequest[]
+  auditLogs     AuditLog[]
   
   // OAuth
   accounts      Account[]
@@ -37,6 +38,24 @@ model User {
 enum UserRole {
   MEMBER      // Can register and edit own data
   PATRIARCH   // Can edit anyone's data (admin)
+}
+
+// ============= AUDIT LOG =============
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String
+  action      String   // e.g., "DELETE_MEMBER", "APPROVE_CLAIM"
+  targetType  String   // e.g., "FamilyMember", "User"
+  targetId    String   // ID of affected entity
+  details     String?  @db.Text // JSON with extra info
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
 }
 
 model Account {
