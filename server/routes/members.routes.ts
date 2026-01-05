@@ -74,6 +74,11 @@ router.put('/:id', authenticateToken, canEditMember, upload.single('photo'), pro
             updateData.parentId = data.parentId === '' ? null : data.parentId;
         }
 
+        // Update expected child count if provided
+        if (data.expectedChildCount !== undefined) {
+            updateData.expectedChildCount = parseInt(data.expectedChildCount) || 0;
+        }
+
         if (data.skills) {
             try {
                 updateData.skills = typeof data.skills === 'string' ? JSON.parse(data.skills) : data.skills;

@@ -18,6 +18,7 @@ interface FamilyMember {
     parentId?: string;
     relation?: string;
     branch?: { color: string };
+    expectedChildCount?: number;
 }
 
 interface EditProfileModalProps {
@@ -26,6 +27,22 @@ interface EditProfileModalProps {
     member: FamilyMember;
     onSuccess: () => void;
 }
+
+// Translation function for relation types
+const getRelationLabel = (relation?: string) => {
+    if (!relation) return '';
+    const labels: Record<string, string> = {
+        'PATRIARCH': 'Patriarca',
+        'SIBLING': 'Hermano/a',
+        'CHILD': 'Hijo/a',
+        'GRANDCHILD': 'Nieto/a',
+        'GREAT_GRANDCHILD': 'Bisnieto/a',
+        'SPOUSE': 'Cónyuge',
+        'NEPHEW': 'Sobrino/a',
+        'OTHER': 'Otro'
+    };
+    return labels[relation] || relation;
+};
 
 export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose, member, onSuccess }) => {
     const [formData, setFormData] = useState({
@@ -36,7 +53,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
         whatsapp: '',
         skills: '', // Comma separated string
         preferredColor: '#D4AF37',
-        parentId: ''
+        parentId: '',
+        expectedChildCount: 0
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -77,7 +95,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
                     ? member.skills.join(', ')
                     : (typeof member.skills === 'string' ? member.skills : ''),
                 preferredColor: member.preferredColor || member.branch?.color || '#D4AF37',
-                parentId: member.parentId || ''
+                parentId: member.parentId || '',
+                expectedChildCount: member.expectedChildCount || 0
             });
             if (member.photo) {
                 setPhotoPreview(member.photo);
@@ -118,6 +137,9 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
             if (formData.parentId) {
                 data.append('parentId', formData.parentId);
             }
+
+            // Add expected child count
+            data.append('expectedChildCount', String(formData.expectedChildCount || 0));
 
             if (photoFile) data.append('photo', photoFile);
 
@@ -222,11 +244,30 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
                                 <option value="" style={{ color: 'black' }}>-- Sin Padre Asignado --</option>
                                 {availableParents.map(p => (
                                     <option key={p.id} value={p.id} style={{ color: 'black' }}>
-                                        {p.name} ({p.relation})
+                                        {p.name} ({getRelationLabel(p.relation)})
                                     </option>
                                 ))}
                             </select>
                         </div>
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="expectedChildCount">¿Cuántos hijos tienes?</label>
+                        <div className="input-wrapper">
+                            <User size={18} aria-hidden="true" />
+                            <input
+                                id="expectedChildCount"
+                                type="number"
+                                min="0"
+                                max="20"
+                                value={formData.expectedChildCount}
+                                onChange={e => setFormData({ ...formData, expectedChildCount: parseInt(e.target.value) || 0 })}
+                                placeholder="0"
+                            />
+                        </div>
+                        <small style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem' }}>
+                            Esto ayuda a que tus hijos puedan reclamar su perfil cuando se registren
+                        </small>
                     </div>
 
                     <div className="form-group">
