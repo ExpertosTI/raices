@@ -7,6 +7,21 @@ interface TreeProps {
     members: FamilyMember[];
 }
 
+// Translation function for relation types
+const getRelationLabel = (relation: string) => {
+    const labels: Record<string, string> = {
+        'PATRIARCH': 'Patriarca',
+        'SIBLING': 'Hermano/a',
+        'CHILD': 'Hijo/a',
+        'GRANDCHILD': 'Nieto/a',
+        'GREAT_GRANDCHILD': 'Bisnieto/a',
+        'SPOUSE': 'Cónyuge',
+        'NEPHEW': 'Sobrino/a',
+        'OTHER': 'Otro'
+    };
+    return labels[relation] || relation;
+};
+
 export const HorizontalTree: React.FC<TreeProps> = ({ members }) => {
     const siblings = members.filter(m => m.relation === 'SIBLING' || m.isPatriarch).sort((a, b) => {
         const branchA = FAMILY_BRANCHES.find(br => br.name === a.name);
@@ -101,7 +116,7 @@ export const HorizontalTree: React.FC<TreeProps> = ({ members }) => {
                                 </div>
                                 <div className="node-info">
                                     <span className="node-name">{member.name}</span>
-                                    <span className="node-relation">{member.relation}</span>
+                                    <span className="node-relation">{getRelationLabel(member.relation)}</span>
                                 </div>
                             </div>
                         ))

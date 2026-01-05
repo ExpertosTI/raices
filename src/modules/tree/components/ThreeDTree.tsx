@@ -16,6 +16,22 @@ interface NodePosition {
     scale: number;
 }
 
+// Translation function for relation types
+const getRelationLabel = (relation: string | undefined) => {
+    if (!relation) return '';
+    const labels: Record<string, string> = {
+        'PATRIARCH': 'Patriarca',
+        'SIBLING': 'Hermano/a',
+        'CHILD': 'Hijo/a',
+        'GRANDCHILD': 'Nieto/a',
+        'GREAT_GRANDCHILD': 'Bisnieto/a',
+        'SPOUSE': 'Cónyuge',
+        'NEPHEW': 'Sobrino/a',
+        'OTHER': 'Otro'
+    };
+    return labels[relation] || relation;
+};
+
 // Calculate positions
 const calculatePositions = (members: FamilyMember[], filterBranchId: string | null): NodePosition[] => {
     const filtered = filterBranchId
@@ -558,7 +574,7 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
                                 onDoubleClick={(e) => handleNodeDoubleClick(e, x, y)}
                                 onMouseEnter={() => { playSound('hover'); setHoveredId(member.id); }}
                                 onMouseLeave={() => setHoveredId(null)}
-                                title={`${member.name}\n${member.birthDate ? new Date(member.birthDate).getFullYear() : ''} - ${member.relation || ''}`}
+                                title={`${member.name}\n${member.birthDate ? new Date(member.birthDate).getFullYear() : ''} - ${getRelationLabel(member.relation)}`}
                             >
                                 <div className="node-shadow"></div> {/* #11 Anchoring Shadow */}
                                 <div className="node-avatar" style={{ borderColor: color }}>
