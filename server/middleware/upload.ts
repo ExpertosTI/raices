@@ -38,7 +38,9 @@ export const processImage = async (req: Request, res: Response, next: NextFuncti
         const outputPath = path.join(uploadDir, filename);
 
         // Security: Sharp sanitizes basic metadata by default when creating new images
+        // .rotate() auto-corrects EXIF orientation (fixes sideways photos)
         await sharp(req.file.buffer)
+            .rotate() // Auto-rotate based on EXIF orientation
             .resize(1200, 1200, { // Max 1200x1200px
                 fit: 'inside',
                 withoutEnlargement: true
