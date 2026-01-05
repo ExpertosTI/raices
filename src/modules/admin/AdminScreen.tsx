@@ -35,7 +35,8 @@ interface User {
 export const AdminScreen = () => {
     const navigate = useNavigate();
     const confirm = useConfirm();
-    const [activeTab, setActiveTab] = useState<'claims' | 'registrations' | 'users' | 'members' | 'stats'>('stats');
+    const [activeTab, setActiveTab] = useState<'claims' | 'registrations' | 'users' | 'members' | 'stats' | 'settings'>('stats');
+    const [founders, setFounders] = useState<any[]>([]);
     const [claims, setClaims] = useState<PendingClaim[]>([]);
     const [registrations, setRegistrations] = useState<RegistrationRequest[]>([]);
     const [users, setUsers] = useState<User[]>([]);
@@ -73,6 +74,9 @@ export const AdminScreen = () => {
             } else if (activeTab === 'members') {
                 const res = await fetch('/api/admin/members', { headers });
                 if (res.ok) setMembers(await res.json());
+            } else if (activeTab === 'settings') {
+                const res = await fetch('/api/members?relation=SIBLING', { headers });
+                if (res.ok) setFounders(await res.json());
             }
         } catch (err) {
             console.error('Failed to fetch data', err);
@@ -250,6 +254,12 @@ export const AdminScreen = () => {
                     onClick={() => setActiveTab('members')}
                 >
                     Miembros ({members.length})
+                </button>
+                <button
+                    className={`tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('settings')}
+                >
+                    ⚙️ Configuración
                 </button>
             </div>
 
@@ -437,6 +447,92 @@ export const AdminScreen = () => {
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+                        )}
+
+                        {/* Settings Tab - Fundadores */}
+                        {activeTab === 'settings' && (
+                            <div className="settings-section">
+                                <h2>⚙️ Configuración de la Familia</h2>
+
+                                <div className="settings-group">
+                                    <h3>👴👵 Los 12 Fundadores (Hijos de los Patriarcas)</h3>
+                                    <p className="settings-desc">Edita los nombres y fotos de los fundadores de cada rama.</p>
+
+                                    <div className="founders-grid">
+                                        {founders.map(founder => (
+                                            <div key={founder.id} className="founder-card">
+                                                <div className="founder-avatar" style={{ borderColor: founder.branch?.color || '#D4AF37' }}>
+                                                    {founder.photo ? (
+                                                        <img src={founder.photo} alt={founder.name} />
+                                                    ) : (
+                                                        <span>{founder.name.charAt(0)}</span>
+                                                    )}
+                                                    <label className="photo-upload-btn" title="Cambiar foto">
+                                                        📷
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            style={{ display: 'none' }}
+                                                            onChange={async (e) => {
+                                                                const file = e.target.files?.[0];
+                                                                if (!file) return;
+                                                                const formData = new FormData();
+                                                                formData.append('photo', file);
+                                                                try {
+                                                                    const res = await fetch(`/api/members/${founder.id}/photo`, {
+                                                                        method: 'POST',
+                                                                        headers: { 'Authorization': `Bearer ${token}` },
+                                                                        body: formData
+                                                                    });
+                                                                    if (res.ok) {
+                                                                        setMessage('✅ Foto actualizada');
+                                                                        fetchData();
+                                                                    } else {
+                                                                        setMessage('❌ Error al subir foto');
+                                                                    }
+                                                                } catch {
+                                                                    setMessage('❌ Error de conexión');
+                                                                }
+                                                            }}
+                                                        />
+                                                    </label>
+                                                </div>
+                                                <div className="founder-info">
+                                                    <input
+                                                        type="text"
+                                                        defaultValue={founder.name}
+                                                        className="founder-name-input"
+                                                        onBlur={async (e) => {
+                                                            const newName = e.target.value.trim();
+                                                            if (newName && newName !== founder.name) {
+                                                                try {
+                                                                    const res = await fetch(`/api/members/${founder.id}`, {
+                                                                        method: 'PUT',
+                                                                        headers: {
+                                                                            'Authorization': `Bearer ${token}`,
+                                                                            'Content-Type': 'application/json'
+                                                                        },
+                                                                        body: JSON.stringify({ name: newName })
+                                                                    });
+                                                                    if (res.ok) {
+                                                                        setMessage(`✅ Nombre actualizado a "${newName}"`);
+                                                                        fetchData();
+                                                                    }
+                                                                } catch {
+                                                                    setMessage('❌ Error al actualizar nombre');
+                                                                }
+                                                            }
+                                                        }}
+                                                    />
+                                                    <span className="founder-branch" style={{ color: founder.branch?.color }}>
+                                                        {founder.branch?.name || 'Sin rama'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </>
