@@ -40,7 +40,47 @@
     width: 0;
     height: 0;
     transform-style: preserve-3d;
-    transition: transform 0.08s ease-out;
+    transition: none;
+    will-change: transform;
+}
+
+.tree-3d-world.smooth-reset {
+    transition: transform 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Background Stars Effect */
+.tree-3d-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200%;
+    height: 200%;
+    background-image:
+        radial-gradient(1px 1px at 10% 10%, rgba(255, 255, 255, 0.3) 1px, transparent 0),
+        radial-gradient(1px 1px at 20% 20%, rgba(255, 255, 255, 0.3) 1px, transparent 0),
+        radial-gradient(2px 2px at 30% 30%, rgba(255, 255, 255, 0.2) 1px, transparent 0),
+        radial-gradient(1px 1px at 40% 40%, rgba(255, 255, 255, 0.3) 1px, transparent 0),
+        radial-gradient(1px 1px at 50% 50%, rgba(255, 255, 255, 0.3) 1px, transparent 0),
+        radial-gradient(2px 2px at 60% 60%, rgba(255, 255, 255, 0.2) 1px, transparent 0),
+        radial-gradient(1px 1px at 70% 70%, rgba(255, 255, 255, 0.3) 1px, transparent 0),
+        radial-gradient(1px 1px at 80% 80%, rgba(255, 255, 255, 0.3) 1px, transparent 0),
+        radial-gradient(1px 1px at 90% 90%, rgba(255, 255, 255, 0.3) 1px, transparent 0);
+    background-size: 550px 550px;
+    opacity: 0.5;
+    animation: stars-move 100s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes stars-move {
+    from {
+        transform: translate(0, 0);
+    }
+
+    to {
+        transform: translate(-10%, -10%);
+    }
 }
 
 /* Connection Lines using CSS 3D */
@@ -54,6 +94,50 @@
     pointer-events: none;
     z-index: 1;
     transform-style: preserve-3d;
+    overflow: hidden;
+    /* For pulse effect */
+}
+
+.tree-3d-line::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.6) 50%,
+            transparent 100%);
+    transform: translateX(-100%);
+    animation: flowPulse 4s infinite cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+@keyframes flowPulse {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    20% {
+        transform: translateX(100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* Generation Rings */
+.generation-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px dashed rgba(255, 255, 255, 0.05);
+    /* Muy sutil */
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
 }
 
 /* SVG Connections Layer */
@@ -130,15 +214,39 @@
     align-items: center;
     gap: 6px;
     cursor: pointer;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease, filter 0.3s ease;
     z-index: 10;
 }
 
-.tree-3d-node:hover {
-    z-index: 100;
+.tree-3d-node.dimmed {
+    opacity: 0.15;
+    filter: grayscale(80%);
+    z-index: 5;
 }
 
-.tree-3d-node:hover .node-avatar {
+/* Node styles */
+.tree-3d-node.highlighted {
+    opacity: 1;
+    z-index: 200;
+}
+
+/* Lines highlight */
+.tree-3d-line {
+    transition: opacity 0.3s ease;
+}
+
+.tree-3d-line.dimmed {
+    opacity: 0.1;
+}
+
+.tree-3d-line.highlighted {
+    opacity: 1;
+    z-index: 50;
+    box-shadow: 0 0 15px currentColor;
+}
+
+.tree-3d-node:hover .node-avatar,
+.tree-3d-node.highlighted .node-avatar {
     transform: scale(1.2);
     border-color: #fff !important;
     box-shadow: 0 0 25px var(--node-color, #D4AF37);
@@ -196,6 +304,31 @@
     background: rgba(0, 0, 0, 0.6);
     padding: 2px 8px;
     border-radius: 10px;
+}
+
+/* Search Input */
+.tree-search-input {
+    background: rgba(10, 10, 15, 0.9);
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    color: #F4E4BA;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    width: 140px;
+    backdrop-filter: blur(8px);
+    outline: none;
+    transition: width 0.3s ease, border-color 0.3s ease;
+}
+
+.tree-search-input:focus {
+    width: 180px;
+    border-color: #D4AF37;
+    background: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+}
+
+.tree-search-input::placeholder {
+    color: rgba(244, 228, 186, 0.5);
 }
 
 /* Controls */
@@ -347,4 +480,146 @@
     .zoom-controls {
         display: none;
     }
+}
+
+/* Patriarch Popup Menu */
+.patriarch-popup {
+    position: absolute;
+    top: -160px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    padding: 1rem;
+    background: rgba(10, 10, 15, 0.95);
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    border-radius: 16px;
+    z-index: 1000;
+    pointer-events: auto;
+    animation: fadeUp 0.3s ease;
+}
+
+.patriarch-popup h4 {
+    margin: 0 0 0.8rem 0;
+    font-size: 0.9rem;
+    color: #F4E4BA;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 0.5rem;
+}
+
+.patriarch-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.patriarch-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.patriarch-item span {
+    font-size: 0.9rem !important;
+    text-shadow: none !important;
+    color: white;
+}
+
+.p-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #2a2a3e;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #D4AF37;
+}
+
+.p-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.p-avatar .text-sm {
+    font-size: 0.8rem;
+    color: white;
+}
+
+/* Branch Floating Labels (#18) */
+.tree-branch-label {
+    position: absolute;
+    transform-style: preserve-3d;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    white-space: nowrap;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+    z-index: 5;
+    backface-visibility: hidden;
+    /* Only visible from front? Maybe better visible always */
+    transition: opacity 0.3s;
+}
+
+/* Glass panel utility (reused) */
+.glass-panel {
+    background: rgba(10, 10, 15, 0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.divider {
+    width: 1px;
+    height: 60%;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.tool-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tool-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.tool-btn.active {
+    background: rgba(212, 175, 55, 0.2);
+    color: #D4AF37;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+/* Node Shadow (#11) */
+.node-shadow {
+    position: absolute;
+    bottom: -60px;
+    /* Below the node */
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.5) 0%, transparent 70%);
+    transform: rotateX(90deg);
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.6;
 }

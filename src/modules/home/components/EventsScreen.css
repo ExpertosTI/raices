@@ -527,3 +527,201 @@
         text-align: center;
     }
 }
+
+/* --- Calendar View Styles --- */
+.view-switcher-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.view-switcher {
+    display: inline-flex;
+    padding: 0.4rem;
+    gap: 0.5rem;
+}
+
+.view-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 12px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.view-btn:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.view-btn.active {
+    background: rgba(212, 175, 55, 0.2);
+    color: #D4AF37;
+    font-weight: 600;
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 0 0.5rem;
+}
+
+.month-title {
+    font-size: 1.5rem;
+    color: #F4E4BA;
+    text-transform: capitalize;
+    margin: 0;
+}
+
+.cal-nav-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.cal-nav-btn:hover {
+    background: rgba(212, 175, 55, 0.2);
+    border-color: #D4AF37;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.cal-header-cell {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+.cal-cell {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+    position: relative;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.cal-cell:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.cal-cell.today {
+    background: rgba(212, 175, 55, 0.15);
+    color: #D4AF37;
+    border-color: rgba(212, 175, 55, 0.3);
+}
+
+.cal-cell.selected {
+    background: #D4AF37;
+    color: #000;
+    font-weight: 800;
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+    transform: scale(1.05);
+    z-index: 2;
+}
+
+.cal-cell.empty {
+    background: transparent;
+    pointer-events: none;
+}
+
+.day-dots {
+    display: flex;
+    gap: 3px;
+    position: absolute;
+    bottom: 6px;
+}
+
+.dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+}
+
+.dot.birthday {
+    background: #ff4081;
+    box-shadow: 0 0 5px rgba(255, 64, 129, 0.6);
+}
+
+.dot.manual {
+    background: #00e5ff;
+    box-shadow: 0 0 5px rgba(0, 229, 255, 0.6);
+}
+
+/* Invert dots on selected for visibility */
+.cal-cell.selected .dot.birthday {
+    background: #b0003a;
+}
+
+.cal-cell.selected .dot.manual {
+    background: #007bb0;
+}
+
+.selected-date-events {
+    margin-top: 2rem;
+    animation: fadeUp 0.5s ease;
+}
+
+.selected-date-events h3 {
+    margin-bottom: 1.5rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.2rem;
+    padding-left: 0.5rem;
+    border-left: 3px solid #D4AF37;
+}
+
+.no-events-text {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.3);
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+}
+
+.fade-in {
+    animation: fadein 0.5s ease;
+}
+
+@keyframes fadein {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

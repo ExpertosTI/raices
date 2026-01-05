@@ -505,3 +505,201 @@
     font-size: 0.75rem;
     font-weight: 600;
 }
+
+/* Events Admin Section */
+.events-admin-section {
+    padding: 1rem 0;
+}
+
+.events-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.events-header-row h2 {
+    color: #D4AF37;
+    font-size: 1.3rem;
+    margin: 0;
+}
+
+.add-event-btn {
+    background: linear-gradient(135deg, #D4AF37, #B8962E);
+    color: #1a1a2e;
+    border: none;
+    padding: 0.7rem 1.2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.add-event-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+}
+
+.events-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.event-admin-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    transition: all 0.2s;
+}
+
+.event-admin-card:hover {
+    border-color: rgba(212, 175, 55, 0.3);
+}
+
+.event-date-box {
+    width: 55px;
+    height: 55px;
+    background: linear-gradient(135deg, #D4AF37, #B8962E);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.event-day {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #1a1a2e;
+    line-height: 1;
+}
+
+.event-month {
+    font-size: 0.7rem;
+    color: #1a1a2e;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.event-info {
+    flex: 1;
+}
+
+.event-info h4 {
+    margin: 0 0 0.3rem;
+    color: white;
+}
+
+.event-info p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.event-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.edit-btn {
+    background: rgba(212, 175, 55, 0.2);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    color: #F4E4BA;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.edit-btn:hover {
+    background: rgba(212, 175, 55, 0.4);
+}
+
+/* Event Modal */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.modal-content {
+    background: #1a1a2e;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 20px;
+    padding: 1.5rem;
+    max-width: 400px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.event-modal h3 {
+    color: #D4AF37;
+    margin: 0 0 1.5rem;
+    text-align: center;
+}
+
+.event-modal form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.event-modal input,
+.event-modal textarea,
+.event-modal select {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
+    color: white;
+    font-size: 0.95rem;
+}
+
+.event-modal input:focus,
+.event-modal textarea:focus,
+.event-modal select:focus {
+    border-color: #D4AF37;
+    outline: none;
+}
+
+.event-modal textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.event-modal select option {
+    background: #1a1a2e;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.cancel-btn {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 0.8rem;
+    border-radius: 50px;
+    cursor: pointer;
+}
+
+.cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+}

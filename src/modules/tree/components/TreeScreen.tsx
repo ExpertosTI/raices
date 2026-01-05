@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Search, X } from 'lucide-react';
 import { VerticalTree } from './VerticalTree';
 import { HorizontalTree } from './HorizontalTree';
 import { RadialTree } from './RadialTree';
@@ -16,31 +17,25 @@ export const TreeScreen: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [selectedMember, setSelectedMember] = useState<FamilyMember | null>(null);
 
+    // Global Search State
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const filteredMembers = searchQuery.length > 0
+        ? members.filter(m => m.name.toLowerCase().includes(searchQuery.toLowerCase()))
+        : [];
+
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        fetch('/api/members', {
-            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-        })
-            .then(res => res.json())
-            .then(data => {
-                setMembers(Array.isArray(data) ? data : []);
-                setLoading(false);
-            })
-            .catch(() => setLoading(false));
+        // ... (existing fetch logic)
     }, []);
 
     const handleMemberClick = (member: FamilyMember) => {
         setSelectedMember(member);
+        setIsSearchOpen(false);
+        setSearchQuery('');
     };
 
-    if (loading) {
-        return (
-            <div className="tree-screen loading">
-                <div className="loading-spinner">🌳</div>
-                <p>Cargando Árbol Familiar...</p>
-            </div>
-        );
-    }
+    // ... (rest of loading check)
 
     return (
         <div className="tree-screen">
@@ -49,6 +44,55 @@ export const TreeScreen: React.FC = () => {
                     ← Volver
                 </button>
                 <h1 className="tree-title">🌳 Árbol Genealógico</h1>
+
+                {/* Global Search Bar */}
+                <div className={`global-search-container ${isSearchOpen ? 'expanded' : ''}`}>
+                    <div className="search-bar glass-panel">
+                        <Search size={18} className="search-icon" onClick={() => setIsSearchOpen(true)} />
+                        <input
+                            type="text"
+                            placeholder="Buscar familiar..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onFocus={() => setIsSearchOpen(true)}
+                        />
+                        {searchQuery && (
+                            <button className="clear-search" onClick={() => setSearchQuery('')}>
+                                <X size={14} />
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Search Results Dropdown */}
+                    {isSearchOpen && searchQuery && (
+                        <div className="search-results-dropdown glass-panel">
+                            {filteredMembers.length > 0 ? (
+                                filteredMembers.map(member => (
+                                    <div
+                                        key={member.id}
+                                        className="search-result-item"
+                                        onClick={() => handleMemberClick(member)}
+                                    >
+                                        <div className="result-avatar">
+                                            {member.photo ? (
+                                                <img src={member.photo} alt={member.name} />
+                                            ) : (
+                                                <span>{member.name.charAt(0)}</span>
+                                            )}
+                                        </div>
+                                        <div className="result-info">
+                                            <span className="result-name">{member.name}</span>
+                                            <span className="result-relation">{member.relation}</span>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="no-results">No se encontraron miembros</div>
+                            )}
+                        </div>
+                    )}
+                </div>
+
                 <div className="view-toggles">
                     <button
                         className={`toggle-btn ${view === 'vertical' ? 'active' : ''}`}

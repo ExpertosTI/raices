@@ -85,7 +85,7 @@ const MemberNode: React.FC<MemberNodeProps> = ({
             >
                 <div className="node-avatar" style={{ borderColor: color }}>
                     {member.photo ? (
-                        <img src={member.photo} alt={member.name} />
+                        <img src={member.photo} alt={member.name} className="node-photo" />
                     ) : (
                         getEmoji(member.name)
                     )}

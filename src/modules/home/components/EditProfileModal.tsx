@@ -15,6 +15,9 @@ interface FamilyMember {
     nickname?: string;
     skills?: string[];
     preferredColor?: string;
+    parentId?: string;
+    relation?: string;
+    branch?: { color: string };
 }
 
 interface EditProfileModalProps {
@@ -31,12 +34,36 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
         birthDate: '',
         phone: '',
         whatsapp: '',
-        skills: '' // Comma separated string
+        skills: '', // Comma separated string
+        preferredColor: '#D4AF37',
+        parentId: ''
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [photoFile, setPhotoFile] = useState<File | null>(null);
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+    const [availableParents, setAvailableParents] = useState<FamilyMember[]>([]);
+
+    useEffect(() => {
+        const fetchMembers = async () => {
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch('/api/members', {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    // Filter out self to avoid cycles
+                    setAvailableParents(data.filter((m: FamilyMember) => m.id !== member.id));
+                }
+            } catch (e) {
+                console.error("Failed to load members for parent selector");
+            }
+        };
+        if (isOpen) {
+            fetchMembers();
+        }
+    }, [isOpen, member.id]);
 
     useEffect(() => {
         if (member) {
@@ -46,10 +73,11 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
                 birthDate: member.birthDate ? new Date(member.birthDate).toISOString().split('T')[0] : '',
                 phone: member.phone || '',
                 whatsapp: member.whatsapp || '',
-                // Parse skills array to string for input
                 skills: Array.isArray(member.skills)
                     ? member.skills.join(', ')
-                    : (typeof member.skills === 'string' ? member.skills : '')
+                    : (typeof member.skills === 'string' ? member.skills : ''),
+                preferredColor: member.preferredColor || member.branch?.color || '#D4AF37',
+                parentId: member.parentId || ''
             });
             if (member.photo) {
                 setPhotoPreview(member.photo);
@@ -80,10 +108,15 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
             if (formData.phone) data.append('phone', formData.phone);
             if (formData.whatsapp) data.append('whatsapp', formData.whatsapp);
 
-            // Handle Skills
             if (formData.skills) {
                 const skillsArray = formData.skills.split(',').map(s => s.trim()).filter(Boolean);
                 data.append('skills', JSON.stringify(skillsArray));
+            }
+
+            if (formData.preferredColor) data.append('preferredColor', formData.preferredColor);
+
+            if (formData.parentId) {
+                data.append('parentId', formData.parentId);
             }
 
             if (photoFile) data.append('photo', photoFile);
@@ -170,6 +203,33 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
                     </div>
 
                     <div className="form-group">
+                        <label htmlFor="parentId">Padre / Madre (Ancestro Directo)</label>
+                        <div className="input-wrapper">
+                            <select
+                                id="parentId"
+                                value={formData.parentId}
+                                onChange={e => setFormData({ ...formData, parentId: e.target.value })}
+                                style={{
+                                    width: '100%',
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: 'white',
+                                    padding: '0.5rem',
+                                    outline: 'none',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                <option value="" style={{ color: 'black' }}>-- Sin Padre Asignado --</option>
+                                {availableParents.map(p => (
+                                    <option key={p.id} value={p.id} style={{ color: 'black' }}>
+                                        {p.name} ({p.relation})
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="form-group">
                         <label htmlFor="birthDate">Fecha de Nacimiento</label>
                         <div className="input-wrapper">
                             <Calendar size={18} aria-hidden="true" />
@@ -233,6 +293,22 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
                                 onChange={e => setFormData({ ...formData, skills: e.target.value })}
                                 placeholder="Ej: Ingeniero, Cocina, Guitarra..."
                             />
+                        </div>
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="preferredColor">Color de Perfil (Tema)</label>
+                        <div className="input-wrapper color-input-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <input
+                                id="preferredColor"
+                                type="color"
+                                value={formData.preferredColor}
+                                onChange={e => setFormData({ ...formData, preferredColor: e.target.value })}
+                                style={{ width: '50px', height: '40px', padding: 0, border: 'none', background: 'none', cursor: 'pointer' }}
+                            />
+                            <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>
+                                {formData.preferredColor || 'Default'}
+                            </span>
                         </div>
                     </div>
 

@@ -155,6 +155,36 @@ enum MemberRelation {
   OTHER
 }
 
+// ============= EVENTS MODEL =============
+
+model Event {
+  id          String    @id @default(cuid())
+  title       String
+  description String?   @db.Text
+  date        DateTime
+  endDate     DateTime? // For multi-day events
+  type        EventType @default(OTHER)
+  location    String?
+  imageUrl    String?
+  isRecurring Boolean   @default(false) // For annual events like anniversaries
+  createdBy   String?   // Admin who created it
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([date])
+  @@index([type])
+}
+
+enum EventType {
+  REUNION      // Reunión familiar
+  ANNIVERSARY  // Aniversario
+  BIRTHDAY     // Cumpleaños especial (manual)
+  MEMORIAL     // En memoria de
+  CELEBRATION  // Celebración general
+  OTHER
+}
+
 // ============= SOCIAL MODELS =============
 
 model Post {
@@ -183,37 +213,16 @@ model Comment {
   createdAt DateTime @default(now())
 }
 
-// ============= EVENTS MODELS =============
-
-model Event {
-  id          String    @id @default(cuid())
-  title       String
-  description String?   @db.Text
-  date        DateTime
-  type        EventType
-  recurring   Boolean   @default(false) // For birthdays
-  
-  createdAt   DateTime  @default(now())
-}
-
 model Vote {
   id        String   @id @default(cuid())
   userId    String
-  sportName String   // The sport they are voting for
+  sportName String   
   
   user      User     @relation(fields: [userId], references: [id])
   
   createdAt DateTime @default(now())
 
-  @@unique([userId, sportName]) // Prevent duplicate votes for same sport by same user
-}
-
-enum EventType {
-  BIRTHDAY
-  ANNIVERSARY
-  REUNION
-  MEMORIAL
-  OTHER
+  @@unique([userId, sportName])
 }
 
 // ============= APPROVAL WORKFLOW MODELS =============

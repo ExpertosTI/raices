@@ -99,6 +99,18 @@
     font-size: 1.5rem;
     margin-bottom: 0.5rem;
     border: 3px solid #D4AF37;
+    overflow: hidden;
+    /* Importante para que la imagen no se salga del círculo */
+    position: relative;
+}
+
+.node-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    /* Asegura que la imagen ocupe el espacio */
 }
 
 .node-avatar.large {

@@ -1,6 +1,7 @@
-import React from 'react';
-import { Phone, MessageCircle, Briefcase } from 'lucide-react';
+import React, { useState } from 'react';
+import { Phone, MessageCircle, Briefcase, Edit2 } from 'lucide-react';
 import type { FamilyMember } from '../../../types';
+import { EditProfileModal } from '../../home/components/EditProfileModal';
 import './MemberDetailModal.css';
 
 interface Props {
@@ -9,6 +10,8 @@ interface Props {
 }
 
 export const MemberDetailModal: React.FC<Props> = ({ member, onClose }) => {
+    const [isEditOpen, setIsEditOpen] = useState(false);
+
     if (!member) return null;
 
     const formatDate = (date?: string) => {
@@ -48,10 +51,19 @@ export const MemberDetailModal: React.FC<Props> = ({ member, onClose }) => {
                             <span>{member.isPatriarch ? '👴' : '👤'}</span>
                         )}
                     </div>
-                    <h2>{member.name}</h2>
-                    <span className="member-relation-badge">
-                        {translateRelation(member.relation)}
-                    </span>
+                    <div className="header-info">
+                        <h2>{member.name}</h2>
+                        <span className="member-relation-badge">
+                            {translateRelation(member.relation)}
+                        </span>
+                    </div>
+                    <button
+                        className="edit-member-btn"
+                        onClick={() => setIsEditOpen(true)}
+                        title="Editar perfil"
+                    >
+                        <Edit2 size={16} />
+                    </button>
                 </div>
 
                 <div className="modal-body">
@@ -113,6 +125,16 @@ export const MemberDetailModal: React.FC<Props> = ({ member, onClose }) => {
                     )}
                 </div>
             </div>
+
+            <EditProfileModal
+                isOpen={isEditOpen}
+                onClose={() => setIsEditOpen(false)}
+                member={member}
+                onSuccess={() => {
+                    setIsEditOpen(false);
+                    // Opcional: Trigger refresh if needed
+                }}
+            />
         </div>
     );
 };

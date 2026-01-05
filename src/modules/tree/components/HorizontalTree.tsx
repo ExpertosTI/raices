@@ -65,7 +65,11 @@ export const HorizontalTree: React.FC<TreeProps> = ({ members }) => {
                                     className="node-avatar"
                                     style={{ borderColor: getColor(sibling) }}
                                 >
-                                    {getEmoji(sibling.name)}
+                                    {sibling.photo ? (
+                                        <img src={sibling.photo} alt={sibling.name} className="node-photo" />
+                                    ) : (
+                                        getEmoji(sibling.name)
+                                    )}
                                 </div>
                                 <span className="node-name">{sibling.name.split(' ')[0]}</span>
                             </div>
@@ -88,7 +92,13 @@ export const HorizontalTree: React.FC<TreeProps> = ({ members }) => {
                     ) : (
                         descendants.map(member => (
                             <div key={member.id} className="tree-node descendant">
-                                <div className="node-avatar small">👶</div>
+                                <div className="node-avatar small">
+                                    {member.photo ? (
+                                        <img src={member.photo} alt={member.name} className="node-photo" />
+                                    ) : (
+                                        '👶'
+                                    )}
+                                </div>
                                 <div className="node-info">
                                     <span className="node-name">{member.name}</span>
                                     <span className="node-relation">{member.relation}</span>

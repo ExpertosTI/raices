@@ -1,23 +1,13 @@
-import { Router, Request, Response } from 'express';
-import { prisma } from '../db';
+import { Router } from 'express';
 import { authenticateToken } from '../middleware/auth';
-import { getUpcomingBirthdays } from '../services/birthday';
 import { registerTeam, getSportsParticipants } from '../controllers/sports';
 import { castVote, getVotes } from '../controllers/votes';
+import eventsRoutes from './events.routes';
 
 const router = Router();
 
-// ==================== EVENTS/BIRTHDAYS ====================
-router.get('/events', async (req: Request, res: Response) => {
-    try {
-        const members = await prisma.familyMember.findMany();
-        const birthdays = getUpcomingBirthdays(members);
-        res.json(birthdays);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Failed to fetch events' });
-    }
-});
+// ==================== EVENTS (includes birthdays + manual events) ====================
+router.use('/events', eventsRoutes);
 
 // ==================== SPORTS ====================
 router.post('/sports/register', authenticateToken, registerTeam);

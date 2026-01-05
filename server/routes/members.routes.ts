@@ -66,8 +66,13 @@ router.put('/:id', authenticateToken, canEditMember, upload.single('photo'), pro
             birthDate: data.birthDate ? new Date(data.birthDate) : undefined,
             bio: data.bio,
             phone: data.phone,
-            whatsapp: data.whatsapp
+            whatsapp: data.whatsapp,
+            preferredColor: data.preferredColor
         };
+
+        if (data.parentId !== undefined) {
+            updateData.parentId = data.parentId === '' ? null : data.parentId;
+        }
 
         if (data.skills) {
             try {
