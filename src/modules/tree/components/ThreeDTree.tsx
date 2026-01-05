@@ -279,14 +279,21 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
     const lastPos = useRef({ x: 0, y: 0 });
     const sceneRef = useRef<HTMLDivElement>(null);
 
-    const handleStart = useCallback((clientX: number, clientY: number, touches?: React.TouchList) => {
-        // Pinch Zoom Start
+    const handleStart = useCallback((clientX: number, clientY: number, touches?: React.TouchList, e?: React.TouchEvent) => {
+        // Prevent page scrolling when interacting with tree
+        if (e) e.preventDefault();
+
+        // Pinch Zoom Start (2 fingers)
         if (touches && touches.length === 2) {
             const dist = Math.hypot(
                 touches[0].clientX - touches[1].clientX,
                 touches[0].clientY - touches[1].clientY
             );
+            // Calculate center point for two-finger pan
+            const centerX = (touches[0].clientX + touches[1].clientX) / 2;
+            const centerY = (touches[0].clientY + touches[1].clientY) / 2;
             lastPinchDist.current = dist;
+            lastPos.current = { x: centerX, y: centerY };
             isDraggingRef.current = false;
             return;
         }
@@ -297,47 +304,57 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
         velocity.current = { x: 0, y: 0 }; // Stop inertia on grab
     }, []);
 
-    const handleMove = useCallback((clientX: number, clientY: number, touches?: React.TouchList) => {
-        // Pinch Zoom Move
+    const handleMove = useCallback((clientX: number, clientY: number, touches?: React.TouchList, e?: React.TouchEvent) => {
+        // Prevent page scrolling
+        if (e) e.preventDefault();
+
+        // Pinch Zoom + Two-finger Pan
         if (touches && touches.length === 2) {
             const dist = Math.hypot(
                 touches[0].clientX - touches[1].clientX,
                 touches[0].clientY - touches[1].clientY
             );
+            const centerX = (touches[0].clientX + touches[1].clientX) / 2;
+            const centerY = (touches[0].clientY + touches[1].clientY) / 2;
 
+            // Pinch zoom with higher sensitivity for mobile
             if (lastPinchDist.current) {
                 const delta = dist - lastPinchDist.current;
-                setZoom(z => Math.max(0.5, Math.min(2.5, z + delta * 0.005)));
+                setZoom(z => Math.max(0.3, Math.min(3, z + delta * 0.008)));
             }
 
+            // Two-finger pan
+            const panDeltaX = centerX - lastPos.current.x;
+            const panDeltaY = centerY - lastPos.current.y;
+            setPan(p => ({ x: p.x + panDeltaX, y: p.y + panDeltaY }));
+
             lastPinchDist.current = dist;
+            lastPos.current = { x: centerX, y: centerY };
             return;
         }
 
         if (!isDraggingRef.current) return;
 
         const now = Date.now();
-
+        const deltaTime = now - lastTime.current;
         const deltaX = clientX - lastPos.current.x;
         const deltaY = clientY - lastPos.current.y;
 
-        if (tool === 'move') {
-            setPan(p => ({ x: p.x + deltaX, y: p.y + deltaY }));
-        } else {
-            // Immediate update
-            setRotationY(prev => prev + deltaX * 0.4);
-            setRotationX(prev => Math.max(-70, Math.min(70, prev - deltaY * 0.4)));
+        // More responsive rotation for mobile
+        const sensitivity = 0.5;
+        setRotationY(prev => prev + deltaX * sensitivity);
+        setRotationX(prev => Math.max(-70, Math.min(70, prev - deltaY * sensitivity)));
 
-            // Calculate velocity for release (pixels per frame approx)
-            velocity.current = {
-                x: deltaX * 0.4,
-                y: deltaY * 0.4
-            };
-        }
+        // Better velocity calculation for momentum (smooth release)
+        const velocityFactor = deltaTime > 0 ? Math.min(1, 16 / deltaTime) : 1;
+        velocity.current = {
+            x: deltaX * sensitivity * velocityFactor,
+            y: deltaY * sensitivity * velocityFactor
+        };
 
         lastPos.current = { x: clientX, y: clientY };
         lastTime.current = now;
-    }, [tool]);
+    }, []);
 
     const handleEnd = useCallback(() => {
         isDraggingRef.current = false;
@@ -449,11 +466,11 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
                 onMouseMove={(e) => handleMove(e.clientX, e.clientY)}
                 onMouseUp={handleEnd}
                 onMouseLeave={handleEnd}
-                onTouchStart={(e) => handleStart(e.touches[0].clientX, e.touches[0].clientY, e.touches)}
-                onTouchMove={(e) => handleMove(e.touches[0].clientX, e.touches[0].clientY, e.touches)}
+                onTouchStart={(e) => handleStart(e.touches[0].clientX, e.touches[0].clientY, e.touches, e)}
+                onTouchMove={(e) => handleMove(e.touches[0].clientX, e.touches[0].clientY, e.touches, e)}
                 onTouchEnd={handleEnd}
-                tabIndex={0} // Make focusable
-                style={{ outline: 'none' }}
+                tabIndex={0}
+                style={{ outline: 'none', touchAction: 'none' }} /* touchAction prevents browser gestures */
             >
                 <div
                     className={`tree-3d-world ${isResetting ? 'smooth-reset' : ''}`}
