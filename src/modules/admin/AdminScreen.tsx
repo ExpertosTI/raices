@@ -550,8 +550,57 @@ export const AdminScreen = () => {
                                                         {patriarch.branch?.name || 'Patriarca'}
                                                     </span>
                                                 </div>
+                                                <button
+                                                    className="delete-founder-btn"
+                                                    title="Eliminar"
+                                                    onClick={async () => {
+                                                        const confirmed = await confirm(
+                                                            `¿Estás seguro de eliminar a ${patriarch.name}?`,
+                                                            'Eliminar Patriarca'
+                                                        );
+                                                        if (confirmed) {
+                                                            handleDeleteMember(patriarch.id);
+                                                        }
+                                                    }}
+                                                >
+                                                    🗑️
+                                                </button>
                                             </div>
                                         ))}
+
+                                        {/* Add New Patriarch Button */}
+                                        <div
+                                            className="founder-card add-new-card"
+                                            onClick={async () => {
+                                                const name = prompt('Nombre del nuevo patriarca:');
+                                                if (!name || !name.trim()) return;
+                                                try {
+                                                    const res = await fetch('/api/members', {
+                                                        method: 'POST',
+                                                        headers: {
+                                                            'Authorization': `Bearer ${token}`,
+                                                            'Content-Type': 'application/json'
+                                                        },
+                                                        body: JSON.stringify({
+                                                            name: name.trim(),
+                                                            relation: 'PATRIARCH',
+                                                            isPatriarch: true
+                                                        })
+                                                    });
+                                                    if (res.ok) {
+                                                        setMessage(`✅ Patriarca "${name}" agregado`);
+                                                        fetchData();
+                                                    } else {
+                                                        setMessage('❌ Error al agregar');
+                                                    }
+                                                } catch {
+                                                    setMessage('❌ Error de conexión');
+                                                }
+                                            }}
+                                        >
+                                            <div className="add-icon">➕</div>
+                                            <span>Agregar Patriarca</span>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -629,8 +678,56 @@ export const AdminScreen = () => {
                                                         {founder.branch?.name || 'Sin rama'}
                                                     </span>
                                                 </div>
+                                                <button
+                                                    className="delete-founder-btn"
+                                                    title="Eliminar"
+                                                    onClick={async () => {
+                                                        const confirmed = await confirm(
+                                                            `¿Estás seguro de eliminar a ${founder.name}?`,
+                                                            'Eliminar Fundador'
+                                                        );
+                                                        if (confirmed) {
+                                                            handleDeleteMember(founder.id);
+                                                        }
+                                                    }}
+                                                >
+                                                    🗑️
+                                                </button>
                                             </div>
                                         ))}
+
+                                        {/* Add New Founder Button */}
+                                        <div
+                                            className="founder-card add-new-card"
+                                            onClick={async () => {
+                                                const name = prompt('Nombre del nuevo fundador (rama):');
+                                                if (!name || !name.trim()) return;
+                                                try {
+                                                    const res = await fetch('/api/members', {
+                                                        method: 'POST',
+                                                        headers: {
+                                                            'Authorization': `Bearer ${token}`,
+                                                            'Content-Type': 'application/json'
+                                                        },
+                                                        body: JSON.stringify({
+                                                            name: name.trim(),
+                                                            relation: 'SIBLING'
+                                                        })
+                                                    });
+                                                    if (res.ok) {
+                                                        setMessage(`✅ Fundador "${name}" agregado`);
+                                                        fetchData();
+                                                    } else {
+                                                        setMessage('❌ Error al agregar');
+                                                    }
+                                                } catch {
+                                                    setMessage('❌ Error de conexión');
+                                                }
+                                            }}
+                                        >
+                                            <div className="add-icon">➕</div>
+                                            <span>Agregar Fundador</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
