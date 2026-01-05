@@ -8,6 +8,10 @@ import { EventsScreen } from './modules/home/components/EventsScreen';
 import { FeedScreen } from './modules/home/components/FeedScreen';
 import { RegisterScreen } from './modules/home/components/RegisterScreen';
 import { LoginScreen } from './modules/home/components/LoginScreen';
+import { EmailRegisterScreen } from './modules/home/components/EmailRegisterScreen';
+import { EmailLoginScreen } from './modules/home/components/EmailLoginScreen';
+import { VerifyEmailScreen } from './modules/home/components/VerifyEmailScreen';
+import { ForgotPasswordScreen } from './modules/home/components/ForgotPasswordScreen';
 import { SportsScreen } from './modules/home/components/SportsScreen';
 import { DirectoryScreen } from './modules/home/components/DirectoryScreen';
 import { AdminScreen } from './modules/admin/AdminScreen';
@@ -24,6 +28,12 @@ function App() {
           <Route path="/" element={<SplashScreen />} />
           <Route path="/select" element={<SelectionScreen />} />
           <Route path="/login" element={<LoginScreen />} />
+
+          {/* Email Authentication Routes */}
+          <Route path="/register-email" element={<EmailRegisterScreen />} />
+          <Route path="/login-email" element={<EmailLoginScreen />} />
+          <Route path="/verify-email" element={<VerifyEmailScreen />} />
+          <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
 
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>

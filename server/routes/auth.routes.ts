@@ -1,6 +1,15 @@
 import { Router, Request, Response } from 'express';
-import { googleLogin, me, login } from '../controllers/auth';
-import { facebookLogin } from '../controllers/auth.facebook';
+import {
+    googleLogin,
+    me,
+    login,
+    registerWithEmail,
+    loginWithEmail,
+    verifyEmail,
+    resendVerification,
+    forgotPassword,
+    resetPassword
+} from '../controllers/auth';
 import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
@@ -9,8 +18,13 @@ const isProduction = process.env.NODE_ENV === 'production';
 // Google OAuth
 router.post('/google', googleLogin);
 
-// Facebook OAuth
-router.post('/facebook', facebookLogin);
+// Email Authentication
+router.post('/register', registerWithEmail);
+router.post('/login-email', loginWithEmail);
+router.post('/verify-email', verifyEmail);
+router.post('/resend-verification', resendVerification);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 
 // Get current user
 router.get('/me', authenticateToken, me);

@@ -115,3 +115,37 @@ export const getNotificationTemplate = (title: string, message: string, actionLi
         ${buttonHtml}
     `);
 };
+
+// Email Verification Template
+export const getVerificationCodeTemplate = (name: string, code: string) => {
+    const body = `
+        <h2 style="color: #1a1a2e;">Verifica tu cuenta</h2>
+        <p>Hola ${name},</p>
+        <p>Gracias por registrarte en <strong>Raíces</strong>. Para completar tu registro, usa el siguiente código de verificación:</p>
+        <div style="text-align: center; margin: 30px 0;">
+            <div style="display: inline-block; padding: 20px 40px; background: linear-gradient(135deg, #1a1a2e 0%, #0A0A0F 100%); border-radius: 10px;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #D4AF37;">${code}</span>
+            </div>
+        </div>
+        <p style="color: #666; font-size: 14px;">Este código expira en <strong>15 minutos</strong>.</p>
+        <p style="color: #666; font-size: 14px;">Si no solicitaste esta verificación, puedes ignorar este mensaje.</p>
+    `;
+    return wrapEmail('Verificación de Cuenta', body);
+};
+
+// Password Reset Template
+export const getPasswordResetTemplate = (name: string, code: string) => {
+    const body = `
+        <h2 style="color: #1a1a2e;">Recupera tu contraseña</h2>
+        <p>Hola ${name},</p>
+        <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta de <strong>Raíces</strong>.</p>
+        <div style="text-align: center; margin: 30px 0;">
+            <div style="display: inline-block; padding: 20px 40px; background: linear-gradient(135deg, #1a1a2e 0%, #0A0A0F 100%); border-radius: 10px;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #D4AF37;">${code}</span>
+            </div>
+        </div>
+        <p style="color: #666; font-size: 14px;">Este código expira en <strong>15 minutos</strong>.</p>
+        <p style="color: #666; font-size: 14px;">Si no solicitaste este cambio, te recomendamos cambiar tu contraseña inmediatamente.</p>
+    `;
+    return wrapEmail('Recuperación de Contraseña', body);
+};
