@@ -210,7 +210,6 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
     const [isFullscreen, setIsFullscreen] = useState(false); // Fullscreen state
     const [showPatriarchMenu, setShowPatriarchMenu] = useState(false); // Menu for patriarchs
     const [soundEnabled] = useState(true); // Sound state
-    const [tool] = useState<'rotate' | 'move'>('rotate');
 
     const filteredMembers = useMemo(() => {
         return searchQuery
@@ -295,17 +294,13 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
     const lastPos = useRef({ x: 0, y: 0 });
     const sceneRef = useRef<HTMLDivElement>(null);
 
-    const handleStart = useCallback((clientX: number, clientY: number, touches?: React.TouchList, e?: React.TouchEvent) => {
-        // Prevent page scrolling when interacting with tree
-        if (e) e.preventDefault();
-
+    const handleStart = useCallback((clientX: number, clientY: number, touches?: React.TouchList) => {
         // Pinch Zoom Start (2 fingers)
         if (touches && touches.length === 2) {
             const dist = Math.hypot(
                 touches[0].clientX - touches[1].clientX,
                 touches[0].clientY - touches[1].clientY
             );
-            // Calculate center point for two-finger pan
             const centerX = (touches[0].clientX + touches[1].clientX) / 2;
             const centerY = (touches[0].clientY + touches[1].clientY) / 2;
             lastPinchDist.current = dist;
@@ -317,13 +312,10 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
         isDraggingRef.current = true;
         lastPos.current = { x: clientX, y: clientY };
         lastTime.current = Date.now();
-        velocity.current = { x: 0, y: 0 }; // Stop inertia on grab
+        velocity.current = { x: 0, y: 0 };
     }, []);
 
-    const handleMove = useCallback((clientX: number, clientY: number, touches?: React.TouchList, e?: React.TouchEvent) => {
-        // Prevent page scrolling
-        if (e) e.preventDefault();
-
+    const handleMove = useCallback((clientX: number, clientY: number, touches?: React.TouchList) => {
         // Pinch Zoom + Two-finger Pan
         if (touches && touches.length === 2) {
             const dist = Math.hypot(
@@ -333,13 +325,11 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
             const centerX = (touches[0].clientX + touches[1].clientX) / 2;
             const centerY = (touches[0].clientY + touches[1].clientY) / 2;
 
-            // Pinch zoom with higher sensitivity for mobile
             if (lastPinchDist.current) {
                 const delta = dist - lastPinchDist.current;
                 setZoom(z => Math.max(0.3, Math.min(3, z + delta * 0.008)));
             }
 
-            // Two-finger pan
             const panDeltaX = centerX - lastPos.current.x;
             const panDeltaY = centerY - lastPos.current.y;
             setPan(p => ({ x: p.x + panDeltaX, y: p.y + panDeltaY }));
@@ -432,39 +422,7 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
 
     return (
         <div className="tree-3d-container">
-            {/* Controls - Simplified */}
-            <div className="tree-3d-controls">
-                <select
-                    className="branch-select glass-panel"
-                    value={filterBranchId || ''}
-                    onChange={(e) => setFilterBranchId(e.target.value || null)}
-                >
-                    <option value="">Todas las ramas</option>
-                    {branches.map(b => (
-                        <option key={b.id} value={b.id}>{b.name}</option>
-                    ))}
-                </select>
-
-                <div className="toolbar-glass glass-panel">
-                    <button onClick={handleReset} title="Reiniciar">🎯</button>
-                    <button onClick={handleZoomOut} title="Alejar">➖</button>
-                    <button onClick={handleZoomIn} title="Acercar">➕</button>
-                    <button
-                        onClick={() => {
-                            if (!document.fullscreenElement) {
-                                sceneRef.current?.requestFullscreen();
-                                setIsFullscreen(true);
-                            } else {
-                                document.exitFullscreen();
-                                setIsFullscreen(false);
-                            }
-                        }}
-                        title="Pantalla Completa"
-                    >
-                        {isFullscreen ? '🔲' : '⛶'}
-                    </button>
-                </div>
-            </div>
+            {/* Old controls removed - now using floating bottom toolbar */}
 
 
 
@@ -482,11 +440,11 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
                 onMouseMove={(e) => handleMove(e.clientX, e.clientY)}
                 onMouseUp={handleEnd}
                 onMouseLeave={handleEnd}
-                onTouchStart={(e) => handleStart(e.touches[0].clientX, e.touches[0].clientY, e.touches, e)}
-                onTouchMove={(e) => handleMove(e.touches[0].clientX, e.touches[0].clientY, e.touches, e)}
+                onTouchStart={(e) => handleStart(e.touches[0].clientX, e.touches[0].clientY, e.touches)}
+                onTouchMove={(e) => handleMove(e.touches[0].clientX, e.touches[0].clientY, e.touches)}
                 onTouchEnd={handleEnd}
                 tabIndex={0}
-                style={{ outline: 'none', touchAction: 'none' }} /* touchAction prevents browser gestures */
+                style={{ outline: 'none', touchAction: 'none' }}
             >
                 <div
                     className={`tree-3d-world ${isResetting ? 'smooth-reset' : ''}`}
@@ -591,15 +549,94 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
                 </div>
             </div>
 
-            {/* Overlay */}
-            <div className="tree-3d-overlay">
-                <span className="tree-stats">{positions.length} miembros</span>
-                <p>
-                    {tool === 'rotate' ? '👆 Arrastra para girar' : '✋ Arrastra para mover'}
-                    {' • '}
-                    Rueda/Pinch = Zoom • 2x Clic = Centrar
-                </p>
+            {/* Modern Floating Bottom Toolbar */}
+            <div className="floating-bottom-toolbar">
+                {/* Branch Chips */}
+                <div className="branch-chips">
+                    <button
+                        className={`branch-chip ${!filterBranchId ? 'active' : ''}`}
+                        onClick={() => setFilterBranchId(null)}
+                    >
+                        Todos
+                    </button>
+                    {branches.slice(0, 4).map(b => (
+                        <button
+                            key={b.id}
+                            className={`branch-chip ${filterBranchId === b.id ? 'active' : ''}`}
+                            style={{ '--chip-color': b.color } as React.CSSProperties}
+                            onClick={() => setFilterBranchId(filterBranchId === b.id ? null : b.id)}
+                        >
+                            {b.name.split(' ')[0]}
+                        </button>
+                    ))}
+                    {branches.length > 4 && (
+                        <button
+                            className="branch-chip more"
+                            onClick={() => setShowPatriarchMenu(!showPatriarchMenu)}
+                        >
+                            +{branches.length - 4}
+                        </button>
+                    )}
+                </div>
+
+                {/* Main Controls */}
+                <div className="main-controls">
+                    <button onClick={handleReset} title="Centrar vista" className="control-btn">
+                        🎯
+                    </button>
+                    <button onClick={handleZoomOut} title="Alejar" className="control-btn">
+                        ➖
+                    </button>
+                    <div className="zoom-indicator">
+                        {Math.round(zoom * 100)}%
+                    </div>
+                    <button onClick={handleZoomIn} title="Acercar" className="control-btn">
+                        ➕
+                    </button>
+                    <button
+                        onClick={() => {
+                            if (!document.fullscreenElement) {
+                                sceneRef.current?.requestFullscreen();
+                                setIsFullscreen(true);
+                            } else {
+                                document.exitFullscreen();
+                                setIsFullscreen(false);
+                            }
+                        }}
+                        title="Pantalla Completa"
+                        className="control-btn"
+                    >
+                        {isFullscreen ? '🔲' : '⛶'}
+                    </button>
+                </div>
+
+                {/* Stats */}
+                <div className="toolbar-stats">
+                    👥 {positions.length}
+                </div>
             </div>
+
+            {/* Extended Branch Menu */}
+            {showPatriarchMenu && branches.length > 4 && (
+                <div className="branch-menu-overlay" onClick={() => setShowPatriarchMenu(false)}>
+                    <div className="branch-menu" onClick={e => e.stopPropagation()}>
+                        <h4>Seleccionar Rama</h4>
+                        <div className="branch-menu-grid">
+                            {branches.map(b => (
+                                <button
+                                    key={b.id}
+                                    className={`branch-menu-item ${filterBranchId === b.id ? 'active' : ''}`}
+                                    style={{ borderColor: b.color }}
+                                    onClick={() => { setFilterBranchId(b.id); setShowPatriarchMenu(false); }}
+                                >
+                                    <span className="branch-color-dot" style={{ background: b.color }}></span>
+                                    {b.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div >
     );
 };

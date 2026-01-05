@@ -623,3 +623,228 @@
     z-index: -1;
     opacity: 0.6;
 }
+
+/* ========================================
+   MODERN FLOATING BOTTOM TOOLBAR
+   ======================================== */
+
+.floating-bottom-toolbar {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    z-index: 100;
+    pointer-events: auto;
+}
+
+/* Branch Chips */
+.branch-chips {
+    display: flex;
+    gap: 6px;
+    padding: 6px 10px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow-x: auto;
+    max-width: 90vw;
+    scrollbar-width: none;
+}
+
+.branch-chips::-webkit-scrollbar {
+    display: none;
+}
+
+.branch-chip {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.branch-chip:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+.branch-chip.active {
+    background: var(--chip-color, #D4AF37);
+    border-color: var(--chip-color, #D4AF37);
+    color: #000;
+    font-weight: 600;
+}
+
+.branch-chip.more {
+    background: rgba(212, 175, 55, 0.2);
+    border-color: rgba(212, 175, 55, 0.4);
+    color: #D4AF37;
+}
+
+/* Main Controls */
+.main-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.control-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.control-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    transform: scale(1.1);
+}
+
+.control-btn:active {
+    transform: scale(0.95);
+}
+
+.zoom-indicator {
+    padding: 0 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #D4AF37;
+    min-width: 50px;
+    text-align: center;
+}
+
+.toolbar-stats {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+    background: rgba(0, 0, 0, 0.5);
+    padding: 4px 12px;
+    border-radius: 12px;
+}
+
+/* Extended Branch Menu Overlay */
+.branch-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.branch-menu {
+    background: rgba(26, 26, 46, 0.95);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 20px;
+    padding: 20px;
+    max-width: 90vw;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.branch-menu h4 {
+    margin: 0 0 15px;
+    color: #D4AF37;
+    font-size: 1rem;
+    text-align: center;
+}
+
+.branch-menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+}
+
+.branch-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: white;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.branch-menu-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.branch-menu-item.active {
+    background: rgba(212, 175, 55, 0.2);
+    border-color: #D4AF37;
+}
+
+.branch-color-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+    .floating-bottom-toolbar {
+        bottom: 10px;
+        width: 95%;
+    }
+
+    .branch-chips {
+        padding: 4px 8px;
+    }
+
+    .branch-chip {
+        padding: 5px 10px;
+        font-size: 0.7rem;
+    }
+
+    .main-controls {
+        padding: 6px 10px;
+    }
+
+    .control-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+
+    .zoom-indicator {
+        font-size: 0.7rem;
+        min-width: 40px;
+        padding: 0 8px;
+    }
+}
