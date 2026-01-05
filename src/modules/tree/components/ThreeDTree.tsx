@@ -249,7 +249,8 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
             if (branchMembers.length === 0) return;
 
             // Find centroid (average x, y, z) - emphasizing the outer edge for visibility
-            let sumX = 0, sumY = 0;
+            // Find centroid (average x, y, z) - emphasizing the outer edge for visibility
+
             // Use the furthest members to place label outside
             const maxRadiusMember = branchMembers.reduce((prev, current) =>
                 (Math.hypot(current.x, current.y) > Math.hypot(prev.x, prev.y)) ? current : prev
