@@ -198,26 +198,23 @@ const getRelatedIds = (targetId: string, members: FamilyMember[]) => {
     return ids;
 };
 
-export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }) => {
+export const ThreeDTree: React.FC<ThreeDTreeProps & { loading?: boolean }> = ({ members, onMemberClick, loading }) => {
     const [filterBranchId, setFilterBranchId] = useState<string | null>(null);
     const [rotationX, setRotationX] = useState(-20);
     const [rotationY, setRotationY] = useState(0);
     const [zoom, setZoom] = useState(1);
     const [isResetting, setIsResetting] = useState(false);
     const [hoveredId, setHoveredId] = useState<string | null>(null); // Highlight state
-    const [searchQuery] = useState(''); // Search state
+    const [searchQuery, setSearchQuery] = useState(''); // Search state
     const [pan, setPan] = useState({ x: 0, y: 0 }); // Pan state
     const [isFullscreen, setIsFullscreen] = useState(false); // Fullscreen state
     const [showPatriarchMenu, setShowPatriarchMenu] = useState(false); // Menu for patriarchs
     const [soundEnabled] = useState(true); // Sound state
 
-    const filteredMembers = useMemo(() => {
-        return searchQuery
-            ? members.filter(m => m.name.toLowerCase().includes(searchQuery.toLowerCase()))
-            : members;
-    }, [members, searchQuery]);
+    // Layout targets ALL members (filtered by branch if active)
+    // We don't filter by search here to keep the tree structure stable and allow dimming effect
+    const positions = useMemo(() => calculatePositions(members, filterBranchId), [members, filterBranchId]);
 
-    const positions = useMemo(() => calculatePositions(filteredMembers, filterBranchId), [filteredMembers, filterBranchId]);
     const branches = useMemo(() => getBranches(members), [members]);
     const connections = useMemo(() => getConnections(positions), [positions]);
     const patriarchs = useMemo(() => members.filter(m => !m.branchId || m.relation === 'PATRIARCH'), [members]);
@@ -225,9 +222,13 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
     // Highlighted IDs logic
     const highlightedIds = useMemo(() => {
         if (hoveredId) return getRelatedIds(hoveredId, members);
-        if (searchQuery) return new Set(filteredMembers.map(m => m.id));
+        if (searchQuery) {
+            // Find members matching search
+            const matches = members.filter(m => m.name.toLowerCase().includes(searchQuery.toLowerCase()));
+            return new Set(matches.map(m => m.id));
+        }
         return null;
-    }, [hoveredId, searchQuery, members, filteredMembers]);
+    }, [hoveredId, searchQuery, members]);
 
     // Sound effect helper
     const playSound = useCallback((type: 'hover' | 'click') => {
@@ -547,6 +548,28 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
                         );
                     })}
                 </div>
+                {/* Search / Filter Overlay */}
+                <div className="search-overlay">
+                    <div className="search-bar">
+                        <span className="search-icon">🔍</span>
+                        <input
+                            type="text"
+                            placeholder="Buscar familiar..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        {searchQuery && (
+                            <button className="clear-search" onClick={() => setSearchQuery('')}>×</button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Loading Indicator */}
+                {loading && (
+                    <div className="tree-loading-overlay">
+                        <div className="tree-spinner"></div>
+                    </div>
+                )}
             </div>
 
             {/* Modern Floating Bottom Toolbar */}

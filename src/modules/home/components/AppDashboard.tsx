@@ -5,6 +5,8 @@ import { ClaimProfileModal } from './ClaimProfileModal';
 import { PWAInstall } from './PWAInstall';
 import { FloatingDock } from '../../../components/FloatingDock';
 import { EditProfileModal } from './EditProfileModal';
+import { NotificationBell } from '../../verification/NotificationBell';
+import { VerificationList } from '../../verification/VerificationList';
 import './AppDashboard.css';
 
 interface BranchData {
@@ -28,6 +30,48 @@ export const AppDashboard: React.FC = () => {
     const [user, setUser] = useState<any>(null);
     const [showClaimModal, setShowClaimModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [verifications, setVerifications] = useState({ incoming: [], outgoing: [] });
+
+    const fetchVerifications = async () => {
+        try {
+            const res = await fetch('/api/verification/pending', {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setVerifications(data);
+            }
+        } catch (e) { console.error(e); }
+    };
+
+    const handleApproveVerification = async (id: string, note?: string) => {
+        try {
+            const res = await fetch(`/api/verification/${id}/approve`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ reviewNote: note })
+            });
+            if (res.ok) {
+                fetchVerifications();
+                // Refresh branch data to show new member
+                fetch('/api/branches').then(r => r.json()).then(d => Array.isArray(d) && setBranches(d));
+            }
+        } catch (e) { console.error(e); }
+    };
+
+    const handleRejectVerification = async (id: string) => {
+        try {
+            const res = await fetch(`/api/verification/${id}/reject`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            if (res.ok) fetchVerifications();
+        } catch (e) { console.error(e); }
+    };
 
     useEffect(() => {
         // Load User
@@ -42,14 +86,18 @@ export const AppDashboard: React.FC = () => {
             // Refresh user data (me) to get latest link status
             fetch('/api/auth/me', {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-            }).then(r => r.ok ? r.json() : null)
-        ]).then(([branchData, eventData, userData]) => {
+            }).then(r => r.ok ? r.json() : null),
+            fetch('/api/verification/pending', {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            }).then(r => r.ok ? r.json() : { incoming: [], outgoing: [] })
+        ]).then(([branchData, eventData, userData, verificationData]) => {
             setBranches(Array.isArray(branchData) ? branchData : []);
             setEvents(Array.isArray(eventData) ? eventData.slice(0, 3) : []);
             if (userData) {
                 setUser(userData);
                 localStorage.setItem('user', JSON.stringify(userData));
             }
+            if (verificationData) setVerifications(verificationData);
         }).catch(() => { });
     }, []);
 
@@ -86,13 +134,20 @@ export const AppDashboard: React.FC = () => {
                             <span>{user?.familyMember ? user.familyMember.name : 'Bienvenido a tu legado'}</span>
                         </div>
                     </button>
-                    <button className="logout-btn" onClick={() => {
-                        localStorage.removeItem('token');
-                        localStorage.removeItem('user');
-                        navigate('/login');
-                    }}>
-                        🚪 Salir
-                    </button>
+
+                    <div className="header-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <NotificationBell
+                            count={verifications.incoming.length}
+                            onClick={() => setShowNotifications(true)}
+                        />
+                        <button className="logout-btn" onClick={() => {
+                            localStorage.removeItem('token');
+                            localStorage.removeItem('user');
+                            navigate('/login');
+                        }}>
+                            🚪 Salir
+                        </button>
+                    </div>
                 </div>
 
                 {/* Family Banner */}
@@ -210,6 +265,39 @@ export const AppDashboard: React.FC = () => {
                 />
             )}
             <PWAInstall />
+            {showNotifications && (
+                <div className="modal-overlay" onClick={() => setShowNotifications(false)}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', maxHeight: '80vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                        <div className="modal-header">
+                            <h3>Notificaciones</h3>
+                            <button className="close-btn" onClick={() => setShowNotifications(false)}>×</button>
+                        </div>
+                        <div className="modal-body" style={{ overflowY: 'auto', padding: '0 20px 20px' }}>
+                            {verifications.incoming.length > 0 && (
+                                <div className="verification-section">
+                                    <h4 style={{ color: '#D4AF37', margin: '15px 0 10px', fontSize: '0.9rem', textTransform: 'uppercase' }}>Solicitudes Recibidas</h4>
+                                    <VerificationList
+                                        requests={verifications.incoming}
+                                        type="incoming"
+                                        onApprove={handleApproveVerification}
+                                        onReject={handleRejectVerification}
+                                    />
+                                </div>
+                            )}
+
+                            <div className="verification-section">
+                                <h4 style={{ color: 'rgba(255,255,255,0.5)', margin: '20px 0 10px', fontSize: '0.9rem', textTransform: 'uppercase' }}>Mis Solicitudes Enviadas</h4>
+                                <VerificationList
+                                    requests={verifications.outgoing}
+                                    type="outgoing"
+                                    onApprove={async () => { }}
+                                    onReject={async () => { }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

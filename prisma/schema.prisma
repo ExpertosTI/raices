@@ -29,6 +29,7 @@ model User {
   pendingClaims PendingClaim[]
   registrationRequests RegistrationRequest[]
   auditLogs     AuditLog[]
+  familyVerifications FamilyVerification[]
   
   // OAuth
   accounts      Account[]
@@ -142,6 +143,7 @@ model FamilyMember {
   user         User?         @relation(fields: [userId], references: [id])
   branch       Branch        @relation(fields: [branchId], references: [id])
   pendingClaims PendingClaim[]
+  childVerifications FamilyVerification[] @relation("VerificationParent")
   
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
@@ -156,6 +158,37 @@ enum MemberRelation {
   SPOUSE      // Cónyuge
   NEPHEW      // Sobrino/a
   OTHER
+}
+
+// ============= FAMILY VERIFICATION =============
+// Parent-child verification system for community-driven tree growth
+
+model FamilyVerification {
+  id            String             @id @default(cuid())
+  requesterId   String             // User requesting to be linked as child
+  parentMemberId String            // Parent family member to verify against
+  childName     String             // Name to appear in tree if approved
+  message       String?            @db.Text // Optional message from requester
+  status        VerificationStatus @default(PENDING)
+  reviewedAt    DateTime?
+  reviewNote    String?            // Note from parent or admin
+  
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  
+  requester     User               @relation(fields: [requesterId], references: [id], onDelete: Cascade)
+  parentMember  FamilyMember       @relation("VerificationParent", fields: [parentMemberId], references: [id])
+  
+  @@index([requesterId])
+  @@index([parentMemberId])
+  @@index([status])
+}
+
+enum VerificationStatus {
+  PENDING      // Waiting for parent to respond
+  APPROVED     // Parent confirmed the relationship
+  REJECTED     // Parent denied the relationship
+  ADMIN_REVIEW // Sent to admin for manual review
 }
 
 // ============= EVENTS MODEL =============

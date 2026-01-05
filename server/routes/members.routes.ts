@@ -12,9 +12,17 @@ const router = Router();
 router.post('/claim', authenticateToken, claimProfile);
 
 // Get all members
+// Get all members
 router.get('/', authenticateToken, async (req: Request, res: Response) => {
     try {
+        const { branchId, relation } = req.query;
+        const where: any = {};
+
+        if (branchId) where.branchId = String(branchId);
+        if (relation) where.relation = String(relation);
+
         const members = await prisma.familyMember.findMany({
+            where,
             include: { branch: true },
             orderBy: { birthDate: 'asc' }
         });
@@ -25,28 +33,98 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
 });
 
 // Create new member
+// Create new member (or register self)
 router.post('/', authenticateToken, validateMemberInput, async (req: any, res: Response) => {
     try {
-        const { name, branchId, relation, birthDate, parentId, preferredColor } = req.body;
+        const { name, branchId, relation, birthDate, parentId, preferredColor, expectedChildCount } = req.body;
+        const userId = req.user?.id;
+
+        // Check if user already has a member profile
+        const existingMember = await prisma.familyMember.findUnique({
+            where: { userId }
+        });
+
+        // 1. If parentId is provided, we need to verify instead of linking directly
+        if (parentId) {
+            // Check Parent
+            const parentMember = await prisma.familyMember.findUnique({
+                where: { id: parentId },
+                include: { user: true }
+            });
+
+            if (!parentMember) {
+                return res.status(404).json({ error: 'Padre no encontrado' });
+            }
+
+            // Create Member (Unlinked from tree initially)
+            // We link it to the User so they have a profile
+            const member = await prisma.familyMember.create({
+                data: {
+                    name,
+                    branchId,
+                    relation,
+                    birthDate: birthDate ? new Date(birthDate) : null,
+                    parentId: null, // PENDING VERIFICATION
+                    preferredColor: preferredColor || null,
+                    expectedChildCount: expectedChildCount || 0,
+                    userId: existingMember ? undefined : userId // Link to user if they don't have one
+                }
+            });
+
+            // Create Verification Request
+            const { createVerificationRequest } = await import('../controllers/verification');
+            // We simulate a request body for the controller or call prisma directly
+            // Calling prisma directly here is cleaner
+            const verification = await prisma.familyVerification.create({
+                data: {
+                    requesterId: userId,
+                    parentMemberId: parentId,
+                    childName: name,
+                    message: 'Solicitud de registro inicial'
+                },
+                include: { requester: true }
+            });
+
+            // Send Email to Parent
+            if (parentMember.user?.email) {
+                const { sendEmail } = await import('../services/email');
+                try {
+                    await sendEmail(
+                        parentMember.user.email,
+                        `🔔 Solicitud de confirmación de hijo/a`,
+                        `<h2>¡Hola ${parentMember.name}!</h2>
+                        <p><strong>${name}</strong> se ha registrado como tu hijo/a.</p>
+                        <p>Por favor ingresa a la aplicación para confirmar esta relación.</p>
+                        <p><a href="https://raices.renace.tech">Ir a Raíces</a></p>`
+                    );
+                } catch (e) { console.error(e); }
+            }
+
+            return res.json({
+                message: '✅ Perfil creado. Se ha enviado una solicitud de verificación a tu padre/madre.',
+                member,
+                verificationPending: true
+            });
+        }
+
+        // 2. If no parentId (e.g. Patriarch or special case), create normally
         const member = await prisma.familyMember.create({
             data: {
                 name,
                 branchId,
                 relation,
                 birthDate: birthDate ? new Date(birthDate) : null,
-                parentId: parentId || null,
-                preferredColor: preferredColor || null
+                parentId: null,
+                preferredColor: preferredColor || null,
+                expectedChildCount: expectedChildCount || 0,
+                userId: existingMember ? undefined : userId
             }
         });
+
         res.json(member);
+
     } catch (error: any) {
         console.error('Error creating member:', error);
-        if (error.code === 'P2003') {
-            return res.status(400).json({
-                error: 'Invalid parent ID',
-                details: 'El padre seleccionado no existe o no es válido.'
-            });
-        }
         res.status(500).json({
             error: 'Failed to create member',
             details: error instanceof Error ? error.message : String(error)

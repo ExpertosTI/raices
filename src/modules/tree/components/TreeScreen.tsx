@@ -40,20 +40,14 @@ export const TreeScreen: React.FC = () => {
         setSelectedMember(member);
     };
 
-    if (loading) {
-        return (
-            <div className="tree-screen loading-state">
-                <div className="loading-spinner">Cargando árbol...</div>
-            </div>
-        );
-    }
-
     return (
         <div className={`tree-screen ${view === '3d' ? 'mode-3d' : ''}`}>
             <header className="tree-header">
                 <button className="back-btn" onClick={() => navigate('/app')}>
                     ← Volver
                 </button>
+
+                {loading && <span className="subtle-loader">↻ Cargando...</span>}
 
                 {/* View Toggles - Always visible */}
                 <div className="view-toggles">

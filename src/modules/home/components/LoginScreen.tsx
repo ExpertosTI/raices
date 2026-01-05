@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import { GrowingRoots } from './GrowingRoots';
+import { FacebookLoginButton } from './FacebookLoginButton';
 import './LoginScreen.css';
 
 export const LoginScreen = () => {
@@ -10,13 +11,23 @@ export const LoginScreen = () => {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        // Auto-redirect if already logged in
         if (localStorage.getItem('token')) {
             navigate('/app');
         }
     }, [navigate]);
 
-    const handleSuccess = async (credentialResponse: any) => {
+    const completeLogin = (data: any) => {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+
+        if (!data.user.familyMember) {
+            navigate('/onboarding');
+        } else {
+            navigate('/app');
+        }
+    };
+
+    const handleGoogleSuccess = async (credentialResponse: any) => {
         setIsLoading(true);
         setError('');
 
@@ -29,15 +40,7 @@ export const LoginScreen = () => {
 
             if (res.ok) {
                 const data = await res.json();
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
-
-                // Check if user needs to complete onboarding
-                if (!data.user.familyMember) {
-                    navigate('/onboarding');
-                } else {
-                    navigate('/app');
-                }
+                completeLogin(data);
             } else {
                 const errData = await res.json();
                 setError(errData.error || 'No pudimos verificar tu cuenta. Intenta de nuevo.');
@@ -84,14 +87,21 @@ export const LoginScreen = () => {
                     {isLoading ? (
                         <div className="login-loader">Verificando credenciales...</div>
                     ) : (
-                        <div className="google-btn-wrapper">
-                            <GoogleLogin
-                                onSuccess={handleSuccess}
-                                onError={() => setError('Falló la conexión con Google.')}
-                                theme="filled_black"
-                                shape="pill"
-                                text="continue_with"
-                                width="250"
+                        <div className="auth-buttons-column" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
+                            <div className="google-btn-wrapper">
+                                <GoogleLogin
+                                    onSuccess={handleGoogleSuccess}
+                                    onError={() => setError('Falló la conexión con Google.')}
+                                    theme="filled_black"
+                                    shape="pill"
+                                    text="continue_with"
+                                    width="250"
+                                />
+                            </div>
+
+                            <FacebookLoginButton
+                                onSuccess={(data) => completeLogin(data)}
+                                onError={(msg) => setError(msg)}
                             />
                         </div>
                     )}
