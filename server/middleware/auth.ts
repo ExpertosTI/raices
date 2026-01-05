@@ -19,3 +19,11 @@ export function authenticateToken(req: AuthRequest, res: Response, next: NextFun
         next();
     });
 }
+
+export function requireAdmin(req: AuthRequest, res: Response, next: NextFunction) {
+    if (!req.user || req.user.role !== 'ADMIN') {
+        return res.status(403).json({ error: 'Acceso denegado. Se requiere rol de administrador.' });
+    }
+    next();
+}
+
