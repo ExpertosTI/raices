@@ -6,28 +6,51 @@ import { UserRole } from '@prisma/client';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
 
-// Google OAuth Login
+// Google OAuth Login - supports both ID token (credential) and Access Token flows
 export const googleLogin = async (req: Request, res: Response) => {
-    const { credential } = req.body;
+    const { credential, accessToken } = req.body;
 
-    if (!credential) {
-        return res.status(400).json({ error: 'Google credential is required' });
+    if (!credential && !accessToken) {
+        return res.status(400).json({ error: 'Google credential or accessToken is required' });
     }
 
     try {
-        // Verify Google Token
-        const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-        const ticket = await client.verifyIdToken({
-            idToken: credential,
-            audience: process.env.GOOGLE_CLIENT_ID,
-        });
-        const payload = ticket.getPayload();
+        let email: string | undefined;
+        let name: string | undefined;
+        let picture: string | undefined;
+        let googleId: string;
 
-        if (!payload) {
-            return res.status(400).json({ error: 'Invalid Google Token' });
+        if (credential) {
+            // ID Token flow (web browser with popup)
+            const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+            const ticket = await client.verifyIdToken({
+                idToken: credential,
+                audience: process.env.GOOGLE_CLIENT_ID,
+            });
+            const payload = ticket.getPayload();
+
+            if (!payload) {
+                return res.status(400).json({ error: 'Invalid Google Token' });
+            }
+
+            email = payload.email;
+            name = payload.name;
+            picture = payload.picture;
+            googleId = payload.sub;
+        } else {
+            // Access Token flow (Capacitor / mobile WebView)
+            const userInfoRes = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${accessToken}`);
+
+            if (!userInfoRes.ok) {
+                return res.status(400).json({ error: 'Invalid access token' });
+            }
+
+            const userInfo = await userInfoRes.json();
+            email = userInfo.email;
+            name = userInfo.name;
+            picture = userInfo.picture;
+            googleId = userInfo.sub;
         }
-
-        const { email, name, picture, sub: googleId } = payload;
 
         if (!email) {
             return res.status(400).json({ error: 'Email not found in Google Token' });
@@ -68,7 +91,8 @@ export const googleLogin = async (req: Request, res: Response) => {
                     type: 'oauth',
                     provider: 'google',
                     providerAccountId: googleId,
-                    id_token: credential
+                    id_token: credential || undefined,
+                    access_token: accessToken || undefined
                 }
             });
         }
