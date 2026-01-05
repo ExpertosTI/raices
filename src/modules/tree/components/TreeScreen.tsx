@@ -13,8 +13,8 @@ import './TreeScreen.css';
 export const TreeScreen: React.FC = () => {
     const navigate = useNavigate();
     const [view, setView] = useState<'vertical' | 'horizontal' | 'radial' | '3d'>('vertical');
-    const [members, _setMembers] = useState<FamilyMember[]>([]);
-    const [_loading, _setLoading] = useState(true);
+    const [members, setMembers] = useState<FamilyMember[]>([]);
+    const [loading, setLoading] = useState(true);
     const [selectedMember, setSelectedMember] = useState<FamilyMember | null>(null);
 
     // Global Search State
@@ -26,7 +26,23 @@ export const TreeScreen: React.FC = () => {
         : [];
 
     useEffect(() => {
-        // ... (existing fetch logic)
+        const fetchMembers = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch('/api/members', {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setMembers(data);
+                }
+            } catch (err) {
+                console.error('Error fetching members:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchMembers();
     }, []);
 
     const handleMemberClick = (member: FamilyMember) => {
@@ -35,7 +51,13 @@ export const TreeScreen: React.FC = () => {
         setSearchQuery('');
     };
 
-    // ... (rest of loading check)
+    if (loading) {
+        return (
+            <div className="tree-screen loading-state">
+                <div className="loading-spinner">Cargando árbol...</div>
+            </div>
+        );
+    }
 
     return (
         <div className="tree-screen">
