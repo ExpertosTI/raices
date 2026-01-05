@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react';
 import type { FamilyMember } from '../../../types';
 import './ThreeDTree.css';
-import { Maximize, Minimize, RotateCw, Move, Search } from 'lucide-react';
+// No lucide icons needed - using emojis for simplicity
 
 interface ThreeDTreeProps {
     members: FamilyMember[];
@@ -189,12 +189,12 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
     const [zoom, setZoom] = useState(1);
     const [isResetting, setIsResetting] = useState(false);
     const [hoveredId, setHoveredId] = useState<string | null>(null); // Highlight state
-    const [searchQuery, setSearchQuery] = useState(''); // Search state
+    const [searchQuery] = useState(''); // Search state
     const [pan, setPan] = useState({ x: 0, y: 0 }); // Pan state
     const [isFullscreen, setIsFullscreen] = useState(false); // Fullscreen state
     const [showPatriarchMenu, setShowPatriarchMenu] = useState(false); // Menu for patriarchs
     const [soundEnabled] = useState(true); // Sound state
-    const [tool, setTool] = useState<'rotate' | 'move'>('rotate');
+    const [tool] = useState<'rotate' | 'move'>('rotate');
 
     const filteredMembers = useMemo(() => {
         return searchQuery
@@ -240,36 +240,7 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
         }
     }, [soundEnabled]);
 
-    // Branch Labels Calculation
-    const branchLabels = useMemo(() => {
-        const labels: { id: string, name: string, x: number, y: number, z: number, color: string }[] = [];
-        // Calculate average position for each branch
-        branches.forEach(branch => {
-            const branchMembers = positions.filter(p => p.member.branchId === branch.id);
-            if (branchMembers.length === 0) return;
-
-            // Find centroid (average x, y, z) - emphasizing the outer edge for visibility
-            // Find centroid (average x, y, z) - emphasizing the outer edge for visibility
-
-            // Use the furthest members to place label outside
-            const maxRadiusMember = branchMembers.reduce((prev, current) =>
-                (Math.hypot(current.x, current.y) > Math.hypot(prev.x, prev.y)) ? current : prev
-            );
-
-            const angle = Math.atan2(maxRadiusMember.y, maxRadiusMember.x);
-            const radius = Math.hypot(maxRadiusMember.x, maxRadiusMember.y) + 120; // 120px out from furthest member
-
-            labels.push({
-                id: branch.id,
-                name: branch.name,
-                x: Math.cos(angle) * radius,
-                y: Math.sin(angle) * radius,
-                z: 50, // Floating above
-                color: branch.color || '#FFF'
-            });
-        });
-        return labels;
-    }, [branches, positions]);
+    // Branch Labels removed for cleaner UI
 
     const velocity = useRef({ x: 0.15, y: 0 });
     const isDraggingRef = useRef(false);
@@ -428,18 +399,8 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
 
     return (
         <div className="tree-3d-container">
-            {/* Controls */}
+            {/* Controls - Simplified */}
             <div className="tree-3d-controls">
-                <div className="search-box glass-panel">
-                    <Search size={16} />
-                    <input
-                        type="text"
-                        placeholder="Buscar miembro..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                </div>
-
                 <select
                     className="branch-select glass-panel"
                     value={filterBranchId || ''}
@@ -452,29 +413,9 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
                 </select>
 
                 <div className="toolbar-glass glass-panel">
-                    <button
-                        className={`tool-btn ${tool === 'rotate' ? 'active' : ''}`}
-                        onClick={() => setTool('rotate')}
-                        title="Rotar"
-                    >
-                        <RotateCw size={18} />
-                    </button>
-                    <button
-                        className={`tool-btn ${tool === 'move' ? 'active' : ''}`}
-                        onClick={() => setTool('move')}
-                        title="Mover (Pan)"
-                    >
-                        <Move size={18} />
-                    </button>
-
-                    <div className="divider" />
-
-                    <button onClick={handleZoomOut} title="Zoom Out"><Minimize size={14} /></button>
-                    <button onClick={handleZoomIn} title="Zoom In"><Maximize size={14} /></button>
-
-                    <div className="divider" />
-
-                    <button onClick={handleReset} title="Reiniciar Cámara">🎯</button>
+                    <button onClick={handleReset} title="Reiniciar">🎯</button>
+                    <button onClick={handleZoomOut} title="Alejar">➖</button>
+                    <button onClick={handleZoomIn} title="Acercar">➕</button>
                     <button
                         onClick={() => {
                             if (!document.fullscreenElement) {
@@ -487,7 +428,7 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
                         }}
                         title="Pantalla Completa"
                     >
-                        {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+                        {isFullscreen ? '🔲' : '⛶'}
                     </button>
                 </div>
             </div>
@@ -580,20 +521,7 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
                         )}
                     </div>
 
-                    {/* Branch Labels (#18) */}
-                    {branchLabels.map(label => (
-                        <div
-                            key={label.id}
-                            className="tree-branch-label"
-                            style={{
-                                transform: `translate3d(${label.x}px, ${label.y}px, ${label.z}px) rotateX(var(--inv-rot-x)) rotateY(var(--inv-rot-y))`,
-                                color: label.color,
-                                borderColor: label.color
-                            } as React.CSSProperties}
-                        >
-                            {label.name}
-                        </div>
-                    ))}
+                    {/* Branch Labels - Hidden for cleaner view */}
 
                     {/* Member nodes */}
                     {positions.map(({ member, x, y, z, scale }) => {
