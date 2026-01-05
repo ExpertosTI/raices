@@ -476,18 +476,28 @@ export const AdminScreen = () => {
                             <div className="settings-section">
                                 <h2>⚙️ Configuración de la Familia</h2>
 
-                                <div className="settings-group">
-                                    <h3>👑 Patriarcas (Raíz)</h3>
-                                    <p className="settings-desc">Edita los nombres y fotos de los patriarcas fundadores.</p>
+                                {/* Section 1: Los Patriarcas (Papá y Mamá) */}
+                                <div className="settings-group patriarch-section">
+                                    <div className="section-header">
+                                        <span className="section-icon">👴👵</span>
+                                        <div>
+                                            <h3>Los Patriarcas</h3>
+                                            <p className="settings-desc">
+                                                <strong>Papá y Mamá</strong> - Los padres de los 12 hermanos.
+                                                La raíz del árbol genealógico.
+                                            </p>
+                                        </div>
+                                    </div>
 
-                                    <div className="founders-grid">
+                                    <div className="founders-grid patriarch-grid">
                                         {patriarchs.map(patriarch => (
-                                            <div key={patriarch.id} className="founder-card">
+                                            <div key={patriarch.id} className="founder-card patriarch-card">
+                                                <div className="patriarch-badge">👑</div>
                                                 <div className="founder-avatar" style={{ borderColor: '#D4AF37' }}>
                                                     {patriarch.photo ? (
                                                         <img src={patriarch.photo} alt={patriarch.name} />
                                                     ) : (
-                                                        <span>{patriarch.name.charAt(0)}</span>
+                                                        <span>{patriarch.name.includes('Mamá') || patriarch.name.includes('Mama') ? '👵' : '👴'}</span>
                                                     )}
                                                     <label className="photo-upload-btn" title="Cambiar foto">
                                                         📷
@@ -524,6 +534,7 @@ export const AdminScreen = () => {
                                                         type="text"
                                                         defaultValue={patriarch.name}
                                                         className="founder-name-input"
+                                                        placeholder="Nombre del patriarca"
                                                         onBlur={async (e) => {
                                                             const newName = e.target.value.trim();
                                                             if (newName && newName !== patriarch.name) {
@@ -546,9 +557,7 @@ export const AdminScreen = () => {
                                                             }
                                                         }}
                                                     />
-                                                    <span className="founder-branch" style={{ color: '#D4AF37' }}>
-                                                        {patriarch.branch?.name || 'Patriarca'}
-                                                    </span>
+                                                    <span className="founder-role">Patriarca</span>
                                                 </div>
                                                 <button
                                                     className="delete-founder-btn"
@@ -572,7 +581,7 @@ export const AdminScreen = () => {
                                         <div
                                             className="founder-card add-new-card"
                                             onClick={async () => {
-                                                const name = prompt('Nombre del nuevo patriarca:');
+                                                const name = prompt('Nombre del patriarca (ej: Papá Juan, Mamá María):');
                                                 if (!name || !name.trim()) return;
                                                 try {
                                                     const res = await fetch('/api/members', {
@@ -604,11 +613,20 @@ export const AdminScreen = () => {
                                     </div>
                                 </div>
 
-                                <div className="settings-group">
-                                    <h3>👴👵 Los 12 Fundadores (Hijos de los Patriarcas)</h3>
-                                    <p className="settings-desc">Edita los nombres y fotos de los fundadores de cada rama.</p>
+                                {/* Section 2: Los 12 Hermanos/Fundadores */}
+                                <div className="settings-group founders-section">
+                                    <div className="section-header">
+                                        <span className="section-icon">👨‍👩‍👧‍👦</span>
+                                        <div>
+                                            <h3>Los 12 Hermanos</h3>
+                                            <p className="settings-desc">
+                                                <strong>Los hijos de los patriarcas</strong> - Cada uno representa una rama
+                                                del árbol familiar con su propio color distintivo.
+                                            </p>
+                                        </div>
+                                    </div>
 
-                                    <div className="founders-grid">
+                                    <div className="founders-grid siblings-grid">
                                         {founders.map(founder => (
                                             <div key={founder.id} className="founder-card">
                                                 <div className="founder-avatar" style={{ borderColor: founder.branch?.color || '#D4AF37' }}>

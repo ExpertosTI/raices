@@ -841,3 +841,76 @@
     font-size: 0.8rem;
     opacity: 0.7;
 }
+
+/* Section Headers */
+.section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.section-icon {
+    font-size: 2.5rem;
+    line-height: 1;
+}
+
+.section-header h3 {
+    margin: 0 0 0.3rem;
+    font-size: 1.2rem;
+    color: #F4E4BA;
+}
+
+.section-header .settings-desc {
+    margin: 0;
+    opacity: 0.8;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.section-header .settings-desc strong {
+    color: #D4AF37;
+}
+
+/* Patriarch Section */
+.patriarch-section {
+    background: rgba(212, 175, 55, 0.05);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.patriarch-card {
+    border-color: rgba(212, 175, 55, 0.4) !important;
+}
+
+.patriarch-badge {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.2rem;
+    background: #1a1a2e;
+    padding: 0 0.3rem;
+    border-radius: 4px;
+}
+
+.founder-role {
+    font-size: 0.7rem;
+    color: #D4AF37;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Founders Section */
+.founders-section {
+    background: rgba(100, 200, 255, 0.03);
+    border: 1px solid rgba(100, 200, 255, 0.1);
+    border-radius: 16px;
+    padding: 1.5rem;
+}
+
+.siblings-grid .founder-card {
+    transition: border-color 0.3s, transform 0.3s;
+}
