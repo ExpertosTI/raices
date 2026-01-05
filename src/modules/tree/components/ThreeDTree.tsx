@@ -1,8 +1,7 @@
 import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react';
 import type { FamilyMember } from '../../../types';
 import './ThreeDTree.css';
-import { Maximize, Minimize, RotateCw, Move, Search, Camera, Volume2, VolumeX } from 'lucide-react';
-// import html2canvas from 'html2canvas'; // Import removed to avoid build error, using fallback logic
+import { Maximize, Minimize, RotateCw, Move, Search } from 'lucide-react';
 
 interface ThreeDTreeProps {
     members: FamilyMember[];
@@ -194,8 +193,8 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
     const [pan, setPan] = useState({ x: 0, y: 0 }); // Pan state
     const [isFullscreen, setIsFullscreen] = useState(false); // Fullscreen state
     const [showPatriarchMenu, setShowPatriarchMenu] = useState(false); // Menu for patriarchs
-    const [soundEnabled, setSoundEnabled] = useState(true); // Sound state
-    const [tool, setTool] = useState<'rotate' | 'move'>('rotate'); // Fixed tool state missing
+    const [soundEnabled] = useState(true); // Sound state
+    const [tool, setTool] = useState<'rotate' | 'move'>('rotate');
 
     const filteredMembers = useMemo(() => {
         return searchQuery
@@ -240,22 +239,6 @@ export const ThreeDTree: React.FC<ThreeDTreeProps> = ({ members, onMemberClick }
             osc.stop(ctx.currentTime + 0.1);
         }
     }, [soundEnabled]);
-
-    const handleScreenshot = async () => {
-        if (sceneRef.current) {
-            try {
-                // Simple screenshot logic using html2canvas logic (needs external lib, fallback to simple alert if not present)
-                // For this environment we'll assume standard canvas capture if standard canvas is used, 
-                // but since we are using div 3d, we need html2canvas.
-                // As we can't easily install npm packages, we'll try to import or just log.
-                // If html2canvas is not available, we can't do it easily without adding a script tag.
-                // We will add a script tag dynamically if needed or just use a placeholder alert for now telling user to use OS Screenshot.
-                alert("Para tomar una captura de alta calidad, usa 'Win + Shift + S' (Windows) o 'Cmd + Shift + 4' (Mac). La captura por navegador requiere librerías adicionales.");
-            } catch (e) {
-                console.error("Screenshot failed", e);
-            }
-        }
-    };
 
     // Branch Labels Calculation
     const branchLabels = useMemo(() => {

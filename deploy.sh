@@ -10,7 +10,9 @@ git pull origin master
 docker build --no-cache -t raices-app:latest -f Dockerfile.prod .
 
 # 3. Actualizar Servicio (Swarm)
-docker service update --image raices-app:latest --force raices-app_app
+docker service update --image raices-app:latest --force \
+    --mount-add type=volume,source=raices_uploads_prod,target=/app/uploads \
+    raices-app_app
 
 # 4. Asegurar esquema DB (Prisma)
 # Esperamos unos segundos para que e servicio levante

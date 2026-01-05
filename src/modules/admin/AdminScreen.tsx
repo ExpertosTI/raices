@@ -37,6 +37,7 @@ export const AdminScreen = () => {
     const confirm = useConfirm();
     const [activeTab, setActiveTab] = useState<'claims' | 'registrations' | 'users' | 'members' | 'stats' | 'settings' | 'events'>('stats');
     const [founders, setFounders] = useState<any[]>([]);
+    const [patriarchs, setPatriarchs] = useState<any[]>([]);
     const [events, setEvents] = useState<any[]>([]);
     const [showEventModal, setShowEventModal] = useState(false);
     const [editingEvent, setEditingEvent] = useState<any>(null);
@@ -78,13 +79,17 @@ export const AdminScreen = () => {
                 const res = await fetch('/api/admin/members', { headers });
                 if (res.ok) setMembers(await res.json());
             } else if (activeTab === 'settings') {
-                const res = await fetch('/api/members?relation=SIBLING', { headers });
-                if (res.ok) setFounders(await res.json());
+                const [foundersRes, patriarchsRes] = await Promise.all([
+                    fetch('/api/members?relation=SIBLING', { headers }),
+                    fetch('/api/members?relation=PATRIARCH', { headers })
+                ]);
+
+                if (foundersRes.ok) setFounders(await foundersRes.json());
+                if (patriarchsRes.ok) setPatriarchs(await patriarchsRes.json());
             } else if (activeTab === 'events') {
                 const res = await fetch('/api/events', { headers });
                 if (res.ok) {
                     const data = await res.json();
-                    // Filter only manual events (not automatic birthdays)
                     setEvents(data.filter((e: any) => !e.isAutomatic));
                 }
             }
@@ -470,6 +475,85 @@ export const AdminScreen = () => {
                         {activeTab === 'settings' && (
                             <div className="settings-section">
                                 <h2>⚙️ Configuración de la Familia</h2>
+
+                                <div className="settings-group">
+                                    <h3>👑 Patriarcas (Raíz)</h3>
+                                    <p className="settings-desc">Edita los nombres y fotos de los patriarcas fundadores.</p>
+
+                                    <div className="founders-grid">
+                                        {patriarchs.map(patriarch => (
+                                            <div key={patriarch.id} className="founder-card">
+                                                <div className="founder-avatar" style={{ borderColor: '#D4AF37' }}>
+                                                    {patriarch.photo ? (
+                                                        <img src={patriarch.photo} alt={patriarch.name} />
+                                                    ) : (
+                                                        <span>{patriarch.name.charAt(0)}</span>
+                                                    )}
+                                                    <label className="photo-upload-btn" title="Cambiar foto">
+                                                        📷
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            style={{ display: 'none' }}
+                                                            onChange={async (e) => {
+                                                                const file = e.target.files?.[0];
+                                                                if (!file) return;
+                                                                const formData = new FormData();
+                                                                formData.append('photo', file);
+                                                                try {
+                                                                    const res = await fetch(`/api/members/${patriarch.id}/photo`, {
+                                                                        method: 'POST',
+                                                                        headers: { 'Authorization': `Bearer ${token}` },
+                                                                        body: formData
+                                                                    });
+                                                                    if (res.ok) {
+                                                                        setMessage('✅ Foto actualizada');
+                                                                        fetchData();
+                                                                    } else {
+                                                                        setMessage('❌ Error al subir foto');
+                                                                    }
+                                                                } catch {
+                                                                    setMessage('❌ Error de conexión');
+                                                                }
+                                                            }}
+                                                        />
+                                                    </label>
+                                                </div>
+                                                <div className="founder-info">
+                                                    <input
+                                                        type="text"
+                                                        defaultValue={patriarch.name}
+                                                        className="founder-name-input"
+                                                        onBlur={async (e) => {
+                                                            const newName = e.target.value.trim();
+                                                            if (newName && newName !== patriarch.name) {
+                                                                try {
+                                                                    const res = await fetch(`/api/members/${patriarch.id}`, {
+                                                                        method: 'PUT',
+                                                                        headers: {
+                                                                            'Authorization': `Bearer ${token}`,
+                                                                            'Content-Type': 'application/json'
+                                                                        },
+                                                                        body: JSON.stringify({ name: newName })
+                                                                    });
+                                                                    if (res.ok) {
+                                                                        setMessage(`✅ Nombre actualizado a "${newName}"`);
+                                                                        fetchData();
+                                                                    }
+                                                                } catch {
+                                                                    setMessage('❌ Error al actualizar nombre');
+                                                                }
+                                                            }
+                                                        }}
+                                                    />
+                                                    <span className="founder-branch" style={{ color: '#D4AF37' }}>
+                                                        {patriarch.branch?.name || 'Patriarca'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
 
                                 <div className="settings-group">
                                     <h3>👴👵 Los 12 Fundadores (Hijos de los Patriarcas)</h3>

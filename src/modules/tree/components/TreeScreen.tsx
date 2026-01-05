@@ -13,8 +13,8 @@ import './TreeScreen.css';
 export const TreeScreen: React.FC = () => {
     const navigate = useNavigate();
     const [view, setView] = useState<'vertical' | 'horizontal' | 'radial' | '3d'>('vertical');
-    const [members, setMembers] = useState<FamilyMember[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [members, _setMembers] = useState<FamilyMember[]>([]);
+    const [_loading, _setLoading] = useState(true);
     const [selectedMember, setSelectedMember] = useState<FamilyMember | null>(null);
 
     // Global Search State

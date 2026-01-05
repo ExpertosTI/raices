@@ -158,7 +158,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
                     <X size={24} />
                 </button>
 
-                <h2 id="edit-profile-title">Editar Perfil</h2>
+                <h2 id="edit-profile-title">Editar Perfil ✏️</h2>
 
 
                 {error && <div className="error-message" role="alert">{error}</div>}
