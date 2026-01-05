@@ -1,19 +1,57 @@
 import { useState, useEffect } from 'react';
-import { useGoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import { GrowingRoots } from './GrowingRoots';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 import './LoginScreen.css';
+
+const GOOGLE_CLIENT_ID = "609647959676-2jdrb9ursfnqi3uu6gmk2i6gj6ker42b.apps.googleusercontent.com";
 
 export const LoginScreen = () => {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const isNative = Capacitor.isNativePlatform();
 
     useEffect(() => {
         if (localStorage.getItem('token')) {
             navigate('/app');
         }
     }, [navigate]);
+
+    // Listen for OAuth callback from deep link (for native apps)
+    useEffect(() => {
+        if (!isNative) return;
+
+        const handleAppUrlOpen = async (event: any) => {
+            const url = event.url || event.detail?.url;
+            if (url && url.includes('access_token=')) {
+                const hashParams = new URLSearchParams(url.split('#')[1]);
+                const accessToken = hashParams.get('access_token');
+                if (accessToken) {
+                    await handleGoogleSuccess(accessToken);
+                }
+                await Browser.close();
+            }
+        };
+
+        // Listen for deep link events
+        window.addEventListener('appUrlOpen', handleAppUrlOpen);
+
+        // Also check URL on load (in case user was redirected back)
+        const hash = window.location.hash;
+        if (hash.includes('access_token=')) {
+            const hashParams = new URLSearchParams(hash.substring(1));
+            const accessToken = hashParams.get('access_token');
+            if (accessToken) {
+                handleGoogleSuccess(accessToken);
+            }
+        }
+
+        return () => {
+            window.removeEventListener('appUrlOpen', handleAppUrlOpen);
+        };
+    }, [isNative]);
 
     const completeLogin = (data: any) => {
         localStorage.setItem('token', data.token);
@@ -31,7 +69,9 @@ export const LoginScreen = () => {
         setError('');
 
         try {
-            const res = await fetch('/api/auth/google', {
+            // For native apps, we need the full server URL
+            const baseUrl = isNative ? 'https://raices.renace.tech' : '';
+            const res = await fetch(`${baseUrl}/api/auth/google`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ accessToken }),
@@ -52,15 +92,53 @@ export const LoginScreen = () => {
         }
     };
 
-    const googleLogin = useGoogleLogin({
-        onSuccess: (tokenResponse) => {
-            handleGoogleSuccess(tokenResponse.access_token);
-        },
-        onError: () => {
-            setError('Falló la conexión con Google.');
-        },
-        flow: 'implicit',
-    });
+    const handleGoogleLoginClick = async () => {
+        if (isNative) {
+            // For native apps: Open external browser for OAuth
+            const redirectUri = 'com.renacetech.raices://oauth';
+            const scope = 'email profile';
+            const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+                `client_id=${GOOGLE_CLIENT_ID}` +
+                `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+                `&response_type=token` +
+                `&scope=${encodeURIComponent(scope)}` +
+                `&include_granted_scopes=true`;
+
+            try {
+                await Browser.open({ url: authUrl });
+            } catch (e) {
+                console.error('Failed to open browser:', e);
+                setError('No se pudo abrir el navegador para iniciar sesión.');
+            }
+        } else {
+            // For web: Use Google's OAuth 2.0 implicit flow via redirect
+            // Use Google's OAuth 2.0 implicit flow via redirect for web too
+            const redirectUri = window.location.origin + '/';
+            const scope = 'email profile';
+            const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+                `client_id=${GOOGLE_CLIENT_ID}` +
+                `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+                `&response_type=token` +
+                `&scope=${encodeURIComponent(scope)}` +
+                `&include_granted_scopes=true`;
+
+            window.location.href = authUrl;
+        }
+    };
+
+    // Check for OAuth callback on page load (for web redirect flow)
+    useEffect(() => {
+        const hash = window.location.hash;
+        if (hash.includes('access_token=')) {
+            const hashParams = new URLSearchParams(hash.substring(1));
+            const accessToken = hashParams.get('access_token');
+            if (accessToken) {
+                // Clear the hash from URL
+                window.history.replaceState(null, '', window.location.pathname);
+                handleGoogleSuccess(accessToken);
+            }
+        }
+    }, []);
 
     return (
         <div className="login-screen">
@@ -98,7 +176,7 @@ export const LoginScreen = () => {
                     ) : (
                         <div className="auth-buttons-column" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
                             <button
-                                onClick={() => googleLogin()}
+                                onClick={handleGoogleLoginClick}
                                 className="google-login-btn"
                                 style={{
                                     display: 'flex',
@@ -140,4 +218,3 @@ export const LoginScreen = () => {
         </div>
     );
 };
-
