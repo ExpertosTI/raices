@@ -19,6 +19,11 @@ import { OnboardingScreen } from './modules/onboarding/OnboardingScreen';
 import { ProfileScreen } from './modules/profile/ProfileScreen';
 import { ProtectedRoute } from './modules/auth/components/ProtectedRoute';
 import { ConfirmDialogProvider } from './components/ConfirmDialog';
+// Utilities
+import { UtilitiesScreen } from './modules/utilities/UtilitiesScreen';
+import { WhoIsWhoGame } from './modules/utilities/components/WhoIsWhoGame';
+import { DominoScorekeeper } from './modules/utilities/components/DominoScorekeeper';
+import { BasketScorekeeper } from './modules/utilities/components/BasketScorekeeper';
 
 function App() {
   return (
@@ -47,6 +52,11 @@ function App() {
             <Route path="/admin" element={<AdminScreen />} />
             <Route path="/onboarding" element={<OnboardingScreen />} />
             <Route path="/profile" element={<ProfileScreen />} />
+            {/* Utilities */}
+            <Route path="/utilities" element={<UtilitiesScreen />} />
+            <Route path="/utilities/who-is-who" element={<WhoIsWhoGame />} />
+            <Route path="/utilities/domino" element={<DominoScorekeeper />} />
+            <Route path="/utilities/basket" element={<BasketScorekeeper />} />
           </Route>
           {/* Redirect unknown routes to home */}
           <Route path="*" element={<Navigate to="/" replace />} />

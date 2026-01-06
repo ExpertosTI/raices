@@ -205,6 +205,10 @@ export const AppDashboard: React.FC = () => {
                             <span className="action-icon">🏆</span>
                             <span className="action-label">Copa Familia</span>
                         </button>
+                        <button className="action-card utilities" onClick={() => navigate('/utilities')}>
+                            <span className="action-icon">🧰</span>
+                            <span className="action-label">Utilidades</span>
+                        </button>
                         <button className="action-card feed" onClick={() => navigate('/feed')}>
                             <span className="action-icon">📰</span>
                             <span className="action-label">Actividad</span>

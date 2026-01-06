@@ -1,0 +1,418 @@
+.domino-screen {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #0A0A0F 0%, #0f2419 100%);
+    color: white;
+    padding-bottom: 100px;
+}
+
+.domino-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.domino-header .back-btn {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.domino-header h1 {
+    font-size: 1.5rem;
+    font-family: 'Playfair Display', serif;
+    color: #22c55e;
+}
+
+.domino-header .settings-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+/* Settings Panel */
+.settings-panel {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 1.5rem;
+    margin: 0 1rem 1rem;
+    border-radius: 12px;
+}
+
+.settings-panel h3 {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.setting-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.setting-row label {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+    min-width: 100px;
+}
+
+.target-options {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.target-options button {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.target-options button.active {
+    background: rgba(34, 197, 94, 0.2);
+    border-color: #22c55e;
+    color: #22c55e;
+}
+
+.setting-row input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.5rem;
+    border-radius: 8px;
+    color: white;
+}
+
+/* Target Display */
+.target-display {
+    text-align: center;
+    padding: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.9rem;
+}
+
+.target-display strong {
+    color: #22c55e;
+}
+
+/* Score Boards */
+.score-boards {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1rem;
+    align-items: stretch;
+}
+
+.score-board {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.03);
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.score-board.leading {
+    border-color: rgba(34, 197, 94, 0.3);
+    background: rgba(34, 197, 94, 0.05);
+}
+
+.score-board.winner {
+    border-color: #D4AF37;
+    background: rgba(212, 175, 55, 0.1);
+    animation: glow 1s infinite alternate;
+}
+
+@keyframes glow {
+    from {
+        box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+    }
+
+    to {
+        box-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+    }
+}
+
+.team-name {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+.score {
+    font-size: 4rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.pending-points {
+    font-size: 1.5rem;
+    color: #fbbf24;
+    margin-bottom: 1rem;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+}
+
+.point-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+}
+
+.point-buttons button {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    padding: 0.75rem 0.5rem;
+    border-radius: 8px;
+    color: #22c55e;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.point-buttons button:hover:not(:disabled) {
+    background: rgba(34, 197, 94, 0.2);
+    transform: scale(1.05);
+}
+
+.point-buttons button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.vs-divider {
+    align-self: center;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 0.9rem;
+}
+
+/* Round Actions */
+.round-actions {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.confirm-round-btn {
+    flex: 1;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    border: none;
+    padding: 1rem;
+    border-radius: 12px;
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.confirm-round-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(34, 197, 94, 0.3);
+}
+
+.confirm-round-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.reset-round-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+}
+
+/* Rounds History */
+.rounds-history {
+    background: rgba(0, 0, 0, 0.2);
+    margin: 1rem;
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.rounds-history h3 {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 0.75rem;
+}
+
+.rounds-list {
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.round-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.round-num {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.8rem;
+}
+
+.round-row .highlight {
+    color: #22c55e;
+    font-weight: 600;
+}
+
+.separator {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.undo-btn {
+    width: 100%;
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.75rem;
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.undo-btn:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+/* Winner Modal */
+.winner-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.winner-content {
+    text-align: center;
+    animation: scaleIn 0.5s;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.winner-content .trophy {
+    font-size: 6rem;
+    margin-bottom: 1rem;
+    animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-15px);
+    }
+}
+
+.winner-content h2 {
+    font-size: 2rem;
+    color: #D4AF37;
+    margin-bottom: 0.5rem;
+}
+
+.winner-content p {
+    font-size: 1.5rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 2rem;
+}
+
+.winner-content button {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Game Actions */
+.game-actions {
+    padding: 1rem;
+}
+
+.reset-game-btn {
+    width: 100%;
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 1rem;
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.reset-game-btn:hover {
+    border-color: rgba(239, 68, 68, 0.5);
+    color: #ef4444;
+}
