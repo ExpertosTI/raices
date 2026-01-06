@@ -166,7 +166,7 @@ export const DominoScorekeeper = () => {
     return (
         <div className="domino-screen">
             <header className="domino-header">
-                <button className="back-btn" onClick={() => navigate('/utilities')}>
+                <button className="back-btn" onClick={() => navigate('/utilities')} aria-label="Volver a utilidades">
                     ←
                 </button>
                 <h1>🁩 Dominó</h1>
@@ -174,10 +174,11 @@ export const DominoScorekeeper = () => {
                     <button
                         className={`sound-btn ${soundEnabled ? 'on' : 'off'}`}
                         onClick={() => setSoundEnabled(!soundEnabled)}
+                        aria-label={soundEnabled ? "Desactivar sonido" : "Activar sonido"}
                     >
                         {soundEnabled ? '🔊' : '🔇'}
                     </button>
-                    <button className="settings-btn" onClick={() => setShowSettings(!showSettings)}>
+                    <button className="settings-btn" onClick={() => setShowSettings(!showSettings)} aria-label="Ajustes">
                         ⚙️
                     </button>
                 </div>
@@ -194,6 +195,7 @@ export const DominoScorekeeper = () => {
                                     key={t}
                                     className={targetScore === t ? 'active' : ''}
                                     onClick={() => setTargetScore(t)}
+                                    aria-label={`Establecer meta en ${t} puntos`}
                                 >
                                     {t}
                                 </button>
@@ -203,7 +205,7 @@ export const DominoScorekeeper = () => {
                 </div>
             )}
 
-            <div className="target-display">
+            <div className="target-display" role="status">
                 Gana quien llegue a <strong>{targetScore}</strong>
             </div>
 
@@ -213,17 +215,24 @@ export const DominoScorekeeper = () => {
                     className={`score-board team1 ${winner === 1 ? 'winner' : ''} ${team1Score > team2Score ? 'leading' : ''} ${selectedTeam === 1 ? 'selected' : ''}`}
                     style={{ '--team-color': team1Color } as React.CSSProperties}
                     onClick={() => setSelectedTeam(1)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Seleccionar equipo 1. Puntaje actual: ${team1Score}`}
+                    onKeyDown={(e) => { if (e.key === 'Enter') setSelectedTeam(1); }}
                 >
                     <div className="team-header">
                         <input
                             className="team-name"
                             value={team1Name}
                             onChange={e => setTeam1Name(e.target.value)}
+                            aria-label="Nombre del equipo 1"
+                            onClick={(e) => e.stopPropagation()}
                         />
                         <button
                             className="color-picker-btn"
                             style={{ background: team1Color }}
-                            onClick={() => setShowColorPicker(showColorPicker === 1 ? null : 1)}
+                            onClick={(e) => { e.stopPropagation(); setShowColorPicker(showColorPicker === 1 ? null : 1); }}
+                            aria-label="Cambiar color del equipo 1"
                         />
                     </div>
 
@@ -234,13 +243,14 @@ export const DominoScorekeeper = () => {
                                     key={c.value}
                                     style={{ background: c.value }}
                                     className={team1Color === c.value ? 'selected' : ''}
-                                    onClick={() => { setTeam1Color(c.value); setShowColorPicker(null); }}
+                                    onClick={(e) => { e.stopPropagation(); setTeam1Color(c.value); setShowColorPicker(null); }}
+                                    aria-label={`Seleccionar color ${c.name}`}
                                 />
                             ))}
                         </div>
                     )}
 
-                    <div className="score">{team1Score}</div>
+                    <div className="score" role="timer" aria-live="polite">{team1Score}</div>
                     {currentRound.team1 > 0 && (
                         <div className="pending-points">+{currentRound.team1}</div>
                     )}
@@ -252,14 +262,19 @@ export const DominoScorekeeper = () => {
                     </div>
                     <div className="point-buttons">
                         {pointButtons.map(p => (
-                            <button key={p} onClick={() => addPoints(1, p)} disabled={!!winner}>
+                            <button
+                                key={p}
+                                onClick={(e) => { e.stopPropagation(); addPoints(1, p); }}
+                                disabled={!!winner}
+                                aria-label={`Sumar ${p} puntos al equipo 1`}
+                            >
                                 +{p}
                             </button>
                         ))}
                     </div>
                 </div>
 
-                <div className="vs-divider">
+                <div className="vs-divider" aria-hidden="true">
                     <span>VS</span>
                 </div>
 
@@ -267,17 +282,24 @@ export const DominoScorekeeper = () => {
                     className={`score-board team2 ${winner === 2 ? 'winner' : ''} ${team2Score > team1Score ? 'leading' : ''} ${selectedTeam === 2 ? 'selected' : ''}`}
                     style={{ '--team-color': team2Color } as React.CSSProperties}
                     onClick={() => setSelectedTeam(2)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Seleccionar equipo 2. Puntaje actual: ${team2Score}`}
+                    onKeyDown={(e) => { if (e.key === 'Enter') setSelectedTeam(2); }}
                 >
                     <div className="team-header">
                         <input
                             className="team-name"
                             value={team2Name}
                             onChange={e => setTeam2Name(e.target.value)}
+                            aria-label="Nombre del equipo 2"
+                            onClick={(e) => e.stopPropagation()}
                         />
                         <button
                             className="color-picker-btn"
                             style={{ background: team2Color }}
-                            onClick={() => setShowColorPicker(showColorPicker === 2 ? null : 2)}
+                            onClick={(e) => { e.stopPropagation(); setShowColorPicker(showColorPicker === 2 ? null : 2); }}
+                            aria-label="Cambiar color del equipo 2"
                         />
                     </div>
 
@@ -288,13 +310,14 @@ export const DominoScorekeeper = () => {
                                     key={c.value}
                                     style={{ background: c.value }}
                                     className={team2Color === c.value ? 'selected' : ''}
-                                    onClick={() => { setTeam2Color(c.value); setShowColorPicker(null); }}
+                                    onClick={(e) => { e.stopPropagation(); setTeam2Color(c.value); setShowColorPicker(null); }}
+                                    aria-label={`Seleccionar color ${c.name}`}
                                 />
                             ))}
                         </div>
                     )}
 
-                    <div className="score">{team2Score}</div>
+                    <div className="score" role="timer" aria-live="polite">{team2Score}</div>
                     {currentRound.team2 > 0 && (
                         <div className="pending-points">+{currentRound.team2}</div>
                     )}
@@ -306,7 +329,12 @@ export const DominoScorekeeper = () => {
                     </div>
                     <div className="point-buttons">
                         {pointButtons.map(p => (
-                            <button key={p} onClick={() => addPoints(2, p)} disabled={!!winner}>
+                            <button
+                                key={p}
+                                onClick={(e) => { e.stopPropagation(); addPoints(2, p); }}
+                                disabled={!!winner}
+                                aria-label={`Sumar ${p} puntos al equipo 2`}
+                            >
                                 +{p}
                             </button>
                         ))}
@@ -345,6 +373,7 @@ export const DominoScorekeeper = () => {
                                 playSound('click');
                             }}
                             disabled={!!winner || (key === '✓' && !numpadInput)}
+                            aria-label={key === 'C' ? 'Borrar' : key === '✓' ? 'Confirmar puntos' : `Número ${key}`}
                         >
                             {key}
                         </button>
@@ -358,10 +387,15 @@ export const DominoScorekeeper = () => {
                     className="confirm-round-btn"
                     onClick={confirmRound}
                     disabled={currentRound.team1 === 0 && currentRound.team2 === 0}
+                    aria-label="Confirmar ronda y guardar puntos"
                 >
                     ✓ Confirmar Ronda
                 </button>
-                <button className="reset-round-btn" onClick={resetCurrentRound}>
+                <button
+                    className="reset-round-btn"
+                    onClick={resetCurrentRound}
+                    aria-label="Reiniciar ronda actual"
+                >
                     ↩
                 </button>
             </div>
@@ -371,7 +405,7 @@ export const DominoScorekeeper = () => {
                 <div className="rounds-history">
                     <div className="history-header">
                         <h3>Rondas ({rounds.length})</h3>
-                        <button className="undo-btn" onClick={undoLastRound}>
+                        <button className="undo-btn" onClick={undoLastRound} aria-label="Deshacer última ronda confirmada">
                             ↩ Deshacer
                         </button>
                     </div>
@@ -382,6 +416,7 @@ export const DominoScorekeeper = () => {
                                 <span
                                     className={r.team1 > r.team2 ? 'highlight' : ''}
                                     style={{ color: r.team1 > r.team2 ? team1Color : undefined }}
+                                    aria-label={`Puntos equipo 1: ${r.team1}`}
                                 >
                                     {r.team1}
                                 </span>
@@ -389,6 +424,7 @@ export const DominoScorekeeper = () => {
                                 <span
                                     className={r.team2 > r.team1 ? 'highlight' : ''}
                                     style={{ color: r.team2 > r.team1 ? team2Color : undefined }}
+                                    aria-label={`Puntos equipo 2: ${r.team2}`}
                                 >
                                     {r.team2}
                                 </span>
@@ -400,7 +436,7 @@ export const DominoScorekeeper = () => {
 
             {/* Winner Modal */}
             {winner && (
-                <div className="winner-modal">
+                <div className="winner-modal" role="dialog" aria-modal="true" aria-labelledby="winner-title">
                     <div className="winner-content">
                         <div className="confetti">
                             {[...Array(30)].map((_, i) => (
@@ -419,7 +455,7 @@ export const DominoScorekeeper = () => {
                             <div className="trophy">🏆</div>
                             <div className="glow" style={{ background: winner === 1 ? team1Color : team2Color }} />
                         </div>
-                        <h2 style={{ color: winner === 1 ? team1Color : team2Color }}>
+                        <h2 id="winner-title" style={{ color: winner === 1 ? team1Color : team2Color }}>
                             ¡{winner === 1 ? team1Name : team2Name} Gana!
                         </h2>
                         <div className="final-score">
@@ -427,7 +463,7 @@ export const DominoScorekeeper = () => {
                             <span className="dash"> - </span>
                             <span style={{ color: team2Color }}>{team2Score}</span>
                         </div>
-                        <button onClick={resetGame} className="new-game-btn">
+                        <button onClick={resetGame} className="new-game-btn" autoFocus>
                             🔄 Nueva Partida
                         </button>
                     </div>
@@ -436,7 +472,7 @@ export const DominoScorekeeper = () => {
 
             {/* Game Actions */}
             <div className="game-actions">
-                <button className="reset-game-btn" onClick={resetGame}>
+                <button className="reset-game-btn" onClick={resetGame} aria-label="Reiniciar partida completa">
                     🔄 Reiniciar Partida
                 </button>
             </div>

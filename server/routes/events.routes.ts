@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../db';
-import { authenticateToken, requireAdmin } from '../middleware/auth';
+import { authenticateToken, requireAdmin, requirePatriarch } from '../middleware/auth';
 import { upload, processImage } from '../middleware/upload';
 
 const router = Router();
@@ -73,7 +73,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 // CREATE event (admin only)
-router.post('/', authenticateToken, requireAdmin, upload.single('image'), processImage, async (req: any, res: Response) => {
+router.post('/', authenticateToken, requirePatriarch, upload.single('image'), processImage, async (req: any, res: Response) => {
     try {
         const { title, description, date, endDate, type, location, isRecurring } = req.body;
         const imageUrl = req.body.imageUrl;
@@ -104,7 +104,7 @@ router.post('/', authenticateToken, requireAdmin, upload.single('image'), proces
 });
 
 // UPDATE event (admin only)
-router.put('/:id', authenticateToken, requireAdmin, upload.single('image'), processImage, async (req: any, res: Response) => {
+router.put('/:id', authenticateToken, requirePatriarch, upload.single('image'), processImage, async (req: any, res: Response) => {
     try {
         const { title, description, date, endDate, type, location, isRecurring } = req.body;
         const imageUrl = req.body.imageUrl;
@@ -132,7 +132,7 @@ router.put('/:id', authenticateToken, requireAdmin, upload.single('image'), proc
 });
 
 // DELETE event (admin only)
-router.delete('/:id', authenticateToken, requireAdmin, async (req: Request, res: Response) => {
+router.delete('/:id', authenticateToken, requirePatriarch, async (req: Request, res: Response) => {
     try {
         await prisma.event.delete({
             where: { id: req.params.id }

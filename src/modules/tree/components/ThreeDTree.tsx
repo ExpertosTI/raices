@@ -205,7 +205,6 @@ export const ThreeDTree: React.FC<ThreeDTreeProps & { loading?: boolean }> = ({ 
     const [zoom, setZoom] = useState(1);
     const [isResetting, setIsResetting] = useState(false);
     const [hoveredId, setHoveredId] = useState<string | null>(null); // Highlight state
-    const [searchQuery, setSearchQuery] = useState(''); // Search state
     const [pan, setPan] = useState({ x: 0, y: 0 }); // Pan state
     const [isFullscreen, setIsFullscreen] = useState(false); // Fullscreen state
     const [showPatriarchMenu, setShowPatriarchMenu] = useState(false); // Menu for patriarchs
@@ -222,13 +221,8 @@ export const ThreeDTree: React.FC<ThreeDTreeProps & { loading?: boolean }> = ({ 
     // Highlighted IDs logic
     const highlightedIds = useMemo(() => {
         if (hoveredId) return getRelatedIds(hoveredId, members);
-        if (searchQuery) {
-            // Find members matching search
-            const matches = members.filter(m => m.name.toLowerCase().includes(searchQuery.toLowerCase()));
-            return new Set(matches.map(m => m.id));
-        }
         return null;
-    }, [hoveredId, searchQuery, members]);
+    }, [hoveredId, members]);
 
     // Sound effect helper
     const playSound = useCallback((type: 'hover' | 'click') => {
@@ -548,21 +542,7 @@ export const ThreeDTree: React.FC<ThreeDTreeProps & { loading?: boolean }> = ({ 
                         );
                     })}
                 </div>
-                {/* Search / Filter Overlay */}
-                <div className="search-overlay">
-                    <div className="search-bar">
-                        <span className="search-icon">🔍</span>
-                        <input
-                            type="text"
-                            placeholder="Buscar familiar..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                        {searchQuery && (
-                            <button className="clear-search" onClick={() => setSearchQuery('')}>×</button>
-                        )}
-                    </div>
-                </div>
+                {/* Search Overlay removed - using global search */}
 
                 {/* Loading Indicator */}
                 {loading && (

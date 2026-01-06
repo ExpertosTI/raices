@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ProfileScreen.css';
+import { EditProfileModal } from '../home/components/EditProfileModal';
 
 interface FamilyMember {
     id: string;
@@ -11,9 +12,14 @@ interface FamilyMember {
     whatsapp?: string;
     bio?: string;
     skills?: string[];
-    branch?: { name: string; color: string };
+    branchId?: string; // Add this
+    branch?: { id: string; name: string; color: string }; // Update this
     relation: string;
     isPatriarch?: boolean;
+    children?: { id: string; name: string; birthDate?: string }[];
+    preferredColor?: string;
+    expectedChildCount?: number;
+    userId?: string;
 }
 
 export const ProfileScreen = () => {
@@ -120,6 +126,34 @@ export const ProfileScreen = () => {
         );
     }
 
+    const [showAddChild, setShowAddChild] = useState(false);
+    const [childForm, setChildForm] = useState({ name: '', birthDate: '' });
+    const [childToEdit, setChildToEdit] = useState<FamilyMember | null>(null);
+
+    const handleAddChild = async () => {
+        if (!childForm.name) return;
+        try {
+            const res = await fetch('/api/members/child', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(childForm)
+            });
+            if (res.ok) {
+                setMessage('✅ Hijo/a agregado correctamente');
+                setShowAddChild(false);
+                setChildForm({ name: '', birthDate: '' });
+                fetchProfile();
+            } else {
+                setMessage('❌ Error al agregar hijo');
+            }
+        } catch (error) {
+            setMessage('❌ Error de conexión');
+        }
+    };
+
     return (
         <div className="profile-screen">
             <div className="profile-header">
@@ -215,6 +249,82 @@ export const ProfileScreen = () => {
                                 <p><strong>WhatsApp:</strong> {member.whatsapp || 'No registrado'}</p>
                             </div>
 
+                            {/* Children Section */}
+                            <div className="info-card glass-panel children-section">
+                                <div className="section-header">
+                                    <h3>👶 Mis Hijos ({member.children?.length || 0})</h3>
+                                    <button className="add-mini-btn" onClick={() => setShowAddChild(!showAddChild)}>
+                                        {showAddChild ? '✕' : '+'}
+                                    </button>
+                                </div>
+
+                                {showAddChild && (
+                                    <div className="add-child-form">
+                                        <input
+                                            type="text"
+                                            placeholder="Nombre completo"
+                                            className="text-input"
+                                            value={childForm.name}
+                                            onChange={e => setChildForm({ ...childForm, name: e.target.value })}
+                                        />
+                                        <input
+                                            type="date"
+                                            className="text-input"
+                                            value={childForm.birthDate}
+                                            onChange={e => setChildForm({ ...childForm, birthDate: e.target.value })}
+                                        />
+                                        <button className="save-mini-btn" onClick={handleAddChild}>Guardar</button>
+                                    </div>
+                                )}
+
+                                <div className="children-list">
+                                    {member.children && member.children.length > 0 ? (
+                                        member.children.map(child => (
+                                            <div key={child.id} className="child-item">
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+                                                    <div className="child-avatar" style={{ backgroundColor: member.branch?.color }}>{child.name[0]}</div>
+                                                    <div className="child-info">
+                                                        <span className="child-name">{child.name}</span>
+                                                        {child.birthDate && <span className="child-age">
+                                                            {new Date().getFullYear() - new Date(child.birthDate).getFullYear()} años
+                                                        </span>}
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    className="edit-mini-btn"
+                                                    onClick={() => {
+                                                        const fetchChildDetails = async () => {
+                                                            try {
+                                                                // Ideally fetch fresh data, but for now allow editing basic info
+                                                                const tempChild: any = {
+                                                                    ...child,
+                                                                    nickname: '', // Defaults
+                                                                    phone: '',
+                                                                    whatsapp: '',
+                                                                    bio: '',
+                                                                    skills: [],
+                                                                    branch: member.branch,
+                                                                    branchId: member.branch?.id || '',
+                                                                    relation: 'CHILD'
+                                                                };
+                                                                setChildToEdit(tempChild);
+                                                            } catch (e) { console.error(e); }
+                                                        };
+                                                        fetchChildDetails();
+                                                    }}
+                                                    title="Editar hijo/a"
+                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.7 }}
+                                                >
+                                                    ✏️
+                                                </button>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="no-data">No hay hijos registrados</p>
+                                    )}
+                                </div>
+                            </div>
+
                             {member.bio && (
                                 <div className="info-card glass-panel">
                                     <h3>📝 Bio</h3>
@@ -240,6 +350,21 @@ export const ProfileScreen = () => {
                     )}
                 </div>
             </div>
+
+            {/* Reuse EditProfileModal for Children */}
+            {childToEdit && (
+                <div style={{ position: 'fixed', zIndex: 9999 }}> {/* Ensure it's on top */}
+                    <EditProfileModal
+                        isOpen={true}
+                        onClose={() => setChildToEdit(null)}
+                        member={childToEdit as any}
+                        onSuccess={() => {
+                            setChildToEdit(null);
+                            fetchProfile(); // Refresh list
+                        }}
+                    />
+                </div>
+            )}
         </div>
     );
 };

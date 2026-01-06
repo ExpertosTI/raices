@@ -6,47 +6,50 @@ interface Branch {
     id: string;
     name: string;
     color: string;
-    birthDate: string;
+}
+
+interface Member {
+    id: string;
+    name: string;
+    branchId: string;
+    branch?: { name: string; color: string };
+    photo?: string;
 }
 
 export const OnboardingScreen = () => {
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
-    const [branches, setBranches] = useState<Branch[]>([]);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [members, setMembers] = useState<Member[]>([]);
+    const [branches, setBranches] = useState<Branch[]>([]);
+    const [manualMode, setManualMode] = useState(false);
 
+    // State
     const [formData, setFormData] = useState({
-        grandparentId: '',
-        grandparentName: '',
-        parentName: '',
-        parentType: 'MOTHER' as 'FATHER' | 'MOTHER', // Default to mother
-        relation: 'GRANDCHILD',
+        // Personal
         nickname: '',
         birthDate: '',
         phone: '',
         whatsapp: '',
         bio: '',
-        skills: [] as string[]
+        skills: [] as string[],
+
+        // Parent Link (Preferred)
+        parentMemberId: '',
+        parentMemberName: '',
+
+        // Manual Fallback
+        branchId: '',
+        parentName: '',
+        parentType: 'MOTHER' as 'FATHER' | 'MOTHER',
+        relation: 'GRANDCHILD'
     });
 
-    // New state for photo upload
+    // Photo
     const [photoFile, setPhotoFile] = useState<File | null>(null);
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-
-    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            setPhotoFile(file);
-            setPhotoPreview(URL.createObjectURL(file));
-        }
-    };
-
-    const SKILLS_LIST = [
-        "Ordenado/a", "Puntual", "Deportista", "Cocinero/a", "Estudioso/a",
-        "Amable", "Solidario/a", "Creativo/a", "Valiente", "Líder",
-        "Tecnológico/a", "Músico/a", "Aventurero/a", "Paciente", "Trabajador/a"
-    ];
 
     const token = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
@@ -57,36 +60,32 @@ export const OnboardingScreen = () => {
             navigate('/login');
             return;
         }
-
-        // If user is already linked to a family member, redirect to app
-        // Check both stored user and fetch latest to be sure
         if (user?.familyMember && user.familyMember.id) {
             navigate('/app');
             return;
         }
-
-        fetchBranches();
+        fetchData();
     }, [navigate, user?.familyMember]);
 
-    const fetchBranches = async () => {
+    const fetchData = async () => {
         try {
-            const res = await fetch('/api/branches', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setBranches(Array.isArray(data) ? data : []);
-            }
+            const [membersRes, branchesRes] = await Promise.all([
+                fetch('/api/members', { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch('/api/branches', { headers: { 'Authorization': `Bearer ${token}` } })
+            ]);
+
+            if (membersRes.ok) setMembers(await membersRes.json());
+            if (branchesRes.ok) setBranches(await branchesRes.json());
         } catch (err) {
-            console.error('Failed to fetch branches', err);
+            console.error('Failed to fetch data', err);
         }
     };
 
-    const toggleSkill = (skill: string) => {
-        if (formData.skills.includes(skill)) {
-            setFormData({ ...formData, skills: formData.skills.filter(s => s !== skill) });
-        } else {
-            setFormData({ ...formData, skills: [...formData.skills, skill] });
+    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setPhotoFile(file);
+            setPhotoPreview(URL.createObjectURL(file));
         }
     };
 
@@ -95,182 +94,87 @@ export const OnboardingScreen = () => {
         setMessage('');
 
         try {
-            const formDataPayload = new FormData();
+            // Decision: Verification (Direct) or Registration (Manual)
+            const isManual = !formData.parentMemberId;
+            const endpoint = isManual ? '/api/registration-request' : '/api/verification/request';
 
-            // Append all string/blob fields
-            formDataPayload.append('name', user?.name || 'Usuario');
-            formDataPayload.append('branchId', formData.grandparentId);
-            formDataPayload.append('grandparentId', formData.grandparentId);
-            if (formData.parentName) formDataPayload.append('parentName', formData.parentName);
-            if (formData.parentType) formDataPayload.append('parentType', formData.parentType);
-            formDataPayload.append('relation', formData.relation);
-            if (formData.nickname) formDataPayload.append('nickname', formData.nickname);
-            if (formData.birthDate) formDataPayload.append('birthDate', formData.birthDate);
-            if (formData.phone) formDataPayload.append('phone', formData.phone);
-            if (formData.whatsapp) formDataPayload.append('whatsapp', formData.whatsapp);
-            if (formData.bio) formDataPayload.append('bio', formData.bio);
-            if (formData.skills && formData.skills.length > 0) {
-                formDataPayload.append('skills', JSON.stringify(formData.skills));
-            }
-            if (photoFile) {
-                formDataPayload.append('photo', photoFile); // 'photo' matches backend
-            }
+            let payload: any;
 
-            const res = await fetch('/api/registration-request', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                    // Do NOT set Content-Type header when using FormData; browser sets it automatically with boundary
-                },
-                body: formDataPayload
-            });
+            if (isManual) {
+                // FormData for Registration
+                const fd = new FormData();
+                fd.append('name', user?.name || 'Usuario');
+                fd.append('branchId', formData.branchId);
+                fd.append('grandparentId', formData.branchId); // Legacy field
+                fd.append('parentName', formData.parentName);
+                fd.append('parentType', formData.parentType);
+                fd.append('relation', formData.relation);
 
-            if (res.ok) {
-                setStep(5); // Success step
+                // Add common fields
+                if (formData.nickname) fd.append('nickname', formData.nickname);
+                if (formData.birthDate) fd.append('birthDate', formData.birthDate);
+                if (formData.phone) fd.append('phone', formData.phone);
+                if (formData.whatsapp) fd.append('whatsapp', formData.whatsapp);
+                if (formData.bio) fd.append('bio', formData.bio);
+                if (photoFile) fd.append('photo', photoFile);
+
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: fd
+                });
+                if (!res.ok) throw await res.json();
+
             } else {
-                const data = await res.json();
-                setMessage(data.error || 'Error al enviar solicitud');
+                // JSON for Verification
+                payload = {
+                    parentMemberId: formData.parentMemberId,
+                    childName: formData.nickname ? `${user?.name} (${formData.nickname})` : user?.name,
+                    message: formData.bio
+                };
+
+                // Note: Verification endpoint doesn't support photo upload yet, 
+                // but we can do it in a separate call if needed later, 
+                // or we rely on User profile image.
+
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw await res.json();
             }
-        } catch (err) {
-            setMessage('Error de conexión - Intenta nuevamente');
+
+            setStep(4); // Success
+
+        } catch (err: any) {
+            setMessage(err.error || 'Error al enviar solicitud');
             console.error(err);
         }
-
         setLoading(false);
     };
 
-    const selectedBranch = branches.find(b => b.id === formData.grandparentId);
+    const filteredMembers = members.filter(m =>
+        m.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <div className="onboarding-screen">
-            {/* Progress Bar */}
             <div className="progress-bar">
-                <div className="progress-fill" style={{ width: `${(step / 5) * 100}%` }}></div>
+                <div className="progress-fill" style={{ width: `${(step / 4) * 100}%` }}></div>
             </div>
 
             <div className="onboarding-content">
-                {/* Step 1: Welcome + Select Grandparent */}
+
+                {/* Step 1: Who are you? */}
                 {step === 1 && (
                     <div className="onboarding-step">
                         <div className="welcome-emoji">👋</div>
-                        <h1>¡Bienvenido, {user?.name?.split(' ')[0]}!</h1>
-                        <p className="step-desc">
-                            Para completar tu registro, necesitamos saber de qué rama eres descendiente.
-                        </p>
-
-                        <h2 className="question">¿Quién es tu abuelo/a de los 12 hermanos?</h2>
-
-                        <div className="branches-grid">
-                            {branches.map(branch => (
-                                <button
-                                    key={branch.id}
-                                    className={`branch-card ${formData.grandparentId === branch.id ? 'selected' : ''}`}
-                                    style={{
-                                        borderColor: formData.grandparentId === branch.id ? branch.color : 'transparent',
-                                        backgroundColor: formData.grandparentId === branch.id ? `${branch.color}20` : undefined
-                                    }}
-                                    onClick={() => setFormData({ ...formData, grandparentId: branch.id, grandparentName: branch.name })}
-                                >
-                                    <span className="branch-initial" style={{ backgroundColor: branch.color }}>
-                                        {branch.name.charAt(0)}
-                                    </span>
-                                    <span className="branch-name">{branch.name.split(' ')[0]}</span>
-                                </button>
-                            ))}
-                        </div>
-
-                        <button
-                            className="next-btn"
-                            disabled={!formData.grandparentId}
-                            onClick={() => setStep(2)}
-                        >
-                            Continuar →
-                        </button>
-                    </div>
-                )}
-
-                {/* Step 2: Parent Info / Relation */}
-                {step === 2 && (
-                    <div className="onboarding-step">
-                        <button className="back-link" onClick={() => setStep(1)}>← Atrás</button>
-
-                        <div className="selected-branch" style={{ borderColor: selectedBranch?.color }}>
-                            <span>Rama de</span>
-                            <strong>{selectedBranch?.name}</strong>
-                        </div>
-
-                        {/* First ask for relation type */}
-                        <h2 className="question">¿Cuál es tu relación con {selectedBranch?.name?.split(' ')[0]}?</h2>
-                        <div className="relation-options">
-                            <button
-                                className={`relation-btn ${formData.relation === 'CHILD' ? 'active' : ''}`}
-                                onClick={() => setFormData({ ...formData, relation: 'CHILD', parentName: selectedBranch?.name || '' })}
-                            >
-                                👶 Hijo/a directo
-                            </button>
-                            <button
-                                className={`relation-btn ${formData.relation === 'GRANDCHILD' ? 'active' : ''}`}
-                                onClick={() => setFormData({ ...formData, relation: 'GRANDCHILD' })}
-                            >
-                                🧒 Nieto/a
-                            </button>
-                            <button
-                                className={`relation-btn ${formData.relation === 'GREAT_GRANDCHILD' ? 'active' : ''}`}
-                                onClick={() => setFormData({ ...formData, relation: 'GREAT_GRANDCHILD' })}
-                            >
-                                👶 Bisnieto/a
-                            </button>
-                        </div>
-
-                        {/* Only show parent info if NOT a direct child */}
-                        {formData.relation !== 'CHILD' && (
-                            <>
-                                <h3 className="sub-question">¿Cómo se llama tu papá o mamá?</h3>
-                                <p className="step-hint">El que sea hijo/a de {selectedBranch?.name?.split(' ')[0]}</p>
-
-                                <input
-                                    type="text"
-                                    className="text-input"
-                                    placeholder="Ej: María García"
-                                    value={formData.parentName}
-                                    onChange={e => setFormData({ ...formData, parentName: e.target.value })}
-                                />
-
-                                <h3 className="sub-question">¿Es tu padre o madre?</h3>
-                                <div className="relation-options">
-                                    <button
-                                        className={`relation-btn ${formData.parentType === 'MOTHER' ? 'active' : ''}`}
-                                        onClick={() => setFormData({ ...formData, parentType: 'MOTHER' })}
-                                    >
-                                        👩 Madre
-                                    </button>
-                                    <button
-                                        className={`relation-btn ${formData.parentType === 'FATHER' ? 'active' : ''}`}
-                                        onClick={() => setFormData({ ...formData, parentType: 'FATHER' })}
-                                    >
-                                        👨 Padre
-                                    </button>
-                                </div>
-                            </>
-                        )}
-
-                        <button
-                            className="next-btn"
-                            disabled={formData.relation !== 'CHILD' && !formData.parentName}
-                            onClick={() => setStep(3)}
-                        >
-                            Continuar →
-                        </button>
-                    </div>
-                )}
-
-                {/* Step 3: Personal Info + Nickname */}
-                {step === 3 && (
-                    <div className="onboarding-step">
-                        <button className="back-link" onClick={() => setStep(2)}>← Atrás</button>
-
-                        <h2 className="question">Más sobre ti</h2>
-                        <p className="step-hint">Cuéntanos quién eres y sube tu mejor foto</p>
+                        <h1>¡Hola, {user?.name?.split(' ')[0]}!</h1>
+                        <p className="step-desc">Empecemos creando tu perfil.</p>
 
                         <div className="form-group photo-upload-section">
                             <div className="photo-preview-wrapper" onClick={() => document.getElementById('photo-upload')?.click()}>
@@ -289,20 +193,15 @@ export const OnboardingScreen = () => {
                                 accept="image/*"
                                 onChange={handlePhotoChange}
                                 style={{ display: 'none' }}
-                                aria-label="Subir foto de perfil"
                             />
-                            {photoFile && <button className="remove-photo-btn" onClick={() => {
-                                setPhotoFile(null);
-                                setPhotoPreview(null);
-                            }}>Quitar foto</button>}
                         </div>
 
                         <div className="form-group">
-                            <label>Apodo (¿Cómo te dicen?)</label>
+                            <label>Apodo (Opcional)</label>
                             <input
                                 type="text"
                                 className="text-input"
-                                placeholder="Ej: Juancito, La rubia..."
+                                placeholder="¿Cómo te dicen en la familia?"
                                 value={formData.nickname}
                                 onChange={e => setFormData({ ...formData, nickname: e.target.value })}
                             />
@@ -318,63 +217,168 @@ export const OnboardingScreen = () => {
                             />
                         </div>
 
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label>Teléfono</label>
-                                <input
-                                    type="tel"
-                                    className="text-input"
-                                    placeholder="809-000-0000"
-                                    value={formData.phone}
-                                    onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>WhatsApp</label>
-                                <input
-                                    type="tel"
-                                    className="text-input"
-                                    placeholder="809-000-0000"
-                                    value={formData.whatsapp}
-                                    onChange={e => setFormData({ ...formData, whatsapp: e.target.value })}
-                                />
-                            </div>
-                        </div>
-
-                        <button
-                            className="next-btn"
-                            onClick={() => setStep(4)}
-                        >
+                        <button className="next-btn" onClick={() => setStep(2)}>
                             Continuar →
                         </button>
                     </div>
                 )}
 
-                {/* Step 4: Superpowers (Skills) */}
-                {step === 4 && (
+                {/* Step 2: Parent Selection */}
+                {step === 2 && (
                     <div className="onboarding-step">
-                        <button className="back-link" onClick={() => setStep(3)}>← Atrás</button>
+                        <button className="back-link" onClick={() => setStep(1)}>← Atrás</button>
 
-                        <h2 className="question">Tus Superpoderes ⚡</h2>
-                        <p className="step-hint">Selecciona tus fortalezas y bondades (Multiselección)</p>
+                        {!manualMode ? (
+                            <>
+                                <h1>¿Quién es tu padre o madre?</h1>
+                                <p className="step-desc">Busca a tu papá o mamá en la lista.</p>
 
-                        <div className="skills-grid">
-                            {SKILLS_LIST.map(skill => (
+                                <input
+                                    type="text"
+                                    className="search-input"
+                                    placeholder="Buscar por nombre..."
+                                    value={searchTerm}
+                                    onChange={e => setSearchTerm(e.target.value)}
+                                    autoFocus
+                                />
+
+                                <div className="members-list">
+                                    {filteredMembers.slice(0, 10).map(member => (
+                                        <div
+                                            key={member.id}
+                                            className={`member-option ${formData.parentMemberId === member.id ? 'selected' : ''}`}
+                                            onClick={() => setFormData({
+                                                ...formData,
+                                                parentMemberId: member.id,
+                                                parentMemberName: member.name
+                                            })}
+                                            style={{ borderLeftColor: member.branch?.color || '#ccc' }}
+                                        >
+                                            <div className="member-info">
+                                                <strong>{member.name}</strong>
+                                                <span>Rama: {member.branch?.name}</span>
+                                            </div>
+                                            {formData.parentMemberId === member.id && <span className="check-icon">✓</span>}
+                                        </div>
+                                    ))}
+                                    {searchTerm && filteredMembers.length === 0 && (
+                                        <p className="no-results">No se encontraron miembros</p>
+                                    )}
+                                </div>
+
+                                <div className="toggle-mode">
+                                    <p>¿No encuentras a tu padre/madre?</p>
+                                    <button className="link-btn" onClick={() => setManualMode(true)}>
+                                        Ingresar manualmente
+                                    </button>
+                                </div>
+
                                 <button
-                                    key={skill}
-                                    className={`skill-tag ${formData.skills.includes(skill) ? 'selected' : ''}`}
-                                    onClick={() => toggleSkill(skill)}
+                                    className="next-btn"
+                                    disabled={!formData.parentMemberId}
+                                    onClick={() => setStep(3)}
                                 >
-                                    {skill}
+                                    Continuar →
                                 </button>
-                            ))}
+                            </>
+                        ) : (
+                            <>
+                                <h1>Ingreso Manual</h1>
+                                <p className="step-desc">¿A qué rama de la familia perteneces?</p>
+
+                                <div className="branches-grid mini-grid">
+                                    {branches.map(branch => (
+                                        <button
+                                            key={branch.id}
+                                            className={`branch-card ${formData.branchId === branch.id ? 'selected' : ''}`}
+                                            style={{
+                                                borderColor: formData.branchId === branch.id ? branch.color : 'transparent',
+                                                backgroundColor: formData.branchId === branch.id ? `${branch.color}20` : undefined
+                                            }}
+                                            onClick={() => setFormData({ ...formData, branchId: branch.id })}
+                                        >
+                                            <span className="branch-initial" style={{ backgroundColor: branch.color }}>
+                                                {branch.name.charAt(0)}
+                                            </span>
+                                            <span className="branch-name">{branch.name.split(' ')[0]}</span>
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {formData.branchId && (
+                                    <div className="manual-inputs fade-in">
+                                        <div className="form-group">
+                                            <label>Nombre de tu padre/madre</label>
+                                            <input
+                                                type="text"
+                                                className="text-input"
+                                                placeholder="Nombre completo"
+                                                value={formData.parentName}
+                                                onChange={e => setFormData({ ...formData, parentName: e.target.value })}
+                                            />
+                                        </div>
+
+                                        <div className="relation-options">
+                                            <button
+                                                className={`relation-btn ${formData.parentType === 'MOTHER' ? 'active' : ''}`}
+                                                onClick={() => setFormData({ ...formData, parentType: 'MOTHER' })}
+                                            >👩 Madre</button>
+                                            <button
+                                                className={`relation-btn ${formData.parentType === 'FATHER' ? 'active' : ''}`}
+                                                onClick={() => setFormData({ ...formData, parentType: 'FATHER' })}
+                                            >👨 Padre</button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="toggle-mode">
+                                    <button className="link-btn" onClick={() => setManualMode(false)}>
+                                        Volver a buscar
+                                    </button>
+                                </div>
+
+                                <button
+                                    className="next-btn"
+                                    disabled={!formData.branchId || !formData.parentName}
+                                    onClick={() => setStep(3)}
+                                >
+                                    Continuar →
+                                </button>
+                            </>
+                        )}
+                    </div>
+                )}
+
+                {/* Step 3: Confirmation */}
+                {step === 3 && (
+                    <div className="onboarding-step">
+                        <button className="back-link" onClick={() => setStep(2)}>← Atrás</button>
+
+                        <h1>Todo listo para enviar</h1>
+                        <p className="step-desc">Revisa que la información sea correcta.</p>
+
+                        <div className="summary-card">
+                            <div className="summary-row">
+                                <span>Nombre:</span>
+                                <strong>{user?.name} {formData.nickname && `(${formData.nickname})`}</strong>
+                            </div>
+                            <div className="summary-row">
+                                <span>Padre/Madre:</span>
+                                <strong>
+                                    {formData.parentMemberId ? formData.parentMemberName : formData.parentName}
+                                </strong>
+                            </div>
+                            <div className="summary-row">
+                                <span>Método:</span>
+                                <span>{formData.parentMemberId ? 'Enlace Directo' : 'Solicitud Manual'}</span>
+                            </div>
                         </div>
 
-                        <div className="form-group" style={{ marginTop: '2rem' }}>
-                            <label>Algo más que quieras contar (Bio)</label>
+                        <div className="form-group">
+                            <label>Mensaje (Opcional)</label>
                             <textarea
-                                className="text-input textarea"
-                                placeholder="Me encanta organizar eventos..."
+                                className="text-input"
+                                placeholder="Algún detalle adicional..."
                                 value={formData.bio}
                                 onChange={e => setFormData({ ...formData, bio: e.target.value })}
                                 rows={3}
@@ -393,33 +397,21 @@ export const OnboardingScreen = () => {
                     </div>
                 )}
 
-                {/* Step 5: Success */}
-                {step === 5 && (
+                {/* Step 4: Success */}
+                {step === 4 && (
                     <div className="onboarding-step success-step">
                         <div className="success-icon">🎉</div>
                         <h1>¡Solicitud Enviada!</h1>
                         <p className="step-desc">
-                            Un administrador revisará tu información y aprobará tu registro.
-                            Te notificaremos por correo cuando estés listo.
+                            Hemos notificado a tu padre/madre.
+                            Cuando aprueben tu solicitud, podrás acceder a todas las funciones.
                         </p>
-
-                        <div className="summary-card">
-                            <h3>Resumen</h3>
-                            <p><strong>Rama:</strong> {selectedBranch?.name}</p>
-                            <p><strong>{formData.parentType === 'FATHER' ? 'Padre' : 'Madre'}:</strong> {formData.parentName}</p>
-                            <p><strong>Relación:</strong> {
-                                formData.relation === 'GRANDCHILD' ? 'Nieto/a' :
-                                    formData.relation === 'GREAT_GRANDCHILD' ? 'Bisnieto/a' :
-                                        formData.relation === 'CHILD' ? 'Hijo/a directo' : formData.relation
-                            }</p>
-                            {formData.nickname && <p><strong>Apodo:</strong> {formData.nickname}</p>}
-                        </div>
-
                         <button className="next-btn" onClick={() => navigate('/app')}>
                             Ir al Inicio →
                         </button>
                     </div>
                 )}
+
             </div>
         </div>
     );

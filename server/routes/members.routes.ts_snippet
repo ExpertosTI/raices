@@ -1,0 +1,41 @@
+
+// Add child to current user
+router.post('/child', authenticateToken, async (req: any, res: Response) => {
+    try {
+        const userId = req.user?.id;
+        const { name, birthDate, gender } = req.body; // gender/relation
+
+        // Get parent (current user)
+        const parent = await prisma.familyMember.findUnique({
+            where: { userId },
+            include: { branch: true }
+        });
+
+        if (!parent) {
+            return res.status(404).json({ error: 'Debes tener un perfil activado para agregar hijos.' });
+        }
+
+        // Determine relation (if parent is CHILD, child is GRANDCHILD, etc)
+        let childRelation = 'GREAT_GRANDCHILD';
+        if (parent.relation === 'PATRIARCH') childRelation = 'SIBLING'; // Should not happen usually as patriarchs are set
+        else if (parent.relation === 'SIBLING') childRelation = 'CHILD';
+        else if (parent.relation === 'CHILD') childRelation = 'GRANDCHILD';
+        else if (parent.relation === 'GRANDCHILD') childRelation = 'GREAT_GRANDCHILD';
+
+        const child = await prisma.familyMember.create({
+            data: {
+                name,
+                birthDate: birthDate ? new Date(birthDate) : null,
+                parentId: parent.id,
+                branchId: parent.branchId,
+                relation: childRelation as any,
+                user: undefined // No user account yet
+            }
+        });
+
+        res.json(child);
+    } catch (error) {
+        console.error('Add child error:', error);
+        res.status(500).json({ error: 'Error al agregar hijo' });
+    }
+});

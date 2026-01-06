@@ -51,6 +51,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
         birthDate: '',
         phone: '',
         whatsapp: '',
+        nickname: '',
         skills: '', // Comma separated string
         preferredColor: '#D4AF37',
         parentId: '',
@@ -91,6 +92,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
                 birthDate: member.birthDate ? new Date(member.birthDate).toISOString().split('T')[0] : '',
                 phone: member.phone || '',
                 whatsapp: member.whatsapp || '',
+                nickname: member.nickname || '',
                 skills: Array.isArray(member.skills)
                     ? member.skills.join(', ')
                     : (typeof member.skills === 'string' ? member.skills : ''),
@@ -126,6 +128,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
             if (formData.birthDate) data.append('birthDate', formData.birthDate);
             if (formData.phone) data.append('phone', formData.phone);
             if (formData.whatsapp) data.append('whatsapp', formData.whatsapp);
+            if (formData.nickname) data.append('nickname', formData.nickname);
 
             if (formData.skills) {
                 const skillsArray = formData.skills.split(',').map(s => s.trim()).filter(Boolean);
@@ -220,6 +223,20 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
                                 value={formData.name}
                                 onChange={e => setFormData({ ...formData, name: e.target.value })}
                                 required
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="nickname">Apodo</label>
+                        <div className="input-wrapper">
+                            <User size={18} aria-hidden="true" />
+                            <input
+                                id="nickname"
+                                type="text"
+                                value={formData.nickname}
+                                onChange={e => setFormData({ ...formData, nickname: e.target.value })}
+                                placeholder="Ej: La Chiqui"
                             />
                         </div>
                     </div>
@@ -364,6 +381,38 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
                                     Guardar Cambios
                                 </>
                             )}
+                        </button>
+                    </div>
+
+                    <div className="modal-footer-danger" style={{ marginTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem' }}>
+                        <button
+                            type="button"
+                            className="btn-danger-ghost"
+                            style={{ color: '#ff6b6b', background: 'transparent', border: '1px solid #ff6b6b30', fontSize: '0.9rem' }}
+                            onClick={async () => {
+                                if (window.confirm('¿Estás seguro de eliminar este miembro? Esta acción no se puede deshacer y desvinculará a sus descendientes.')) {
+                                    try {
+                                        setLoading(true);
+                                        const token = localStorage.getItem('token');
+                                        const res = await fetch(`/api/members/${member.id}`, {
+                                            method: 'DELETE',
+                                            headers: { 'Authorization': `Bearer ${token}` }
+                                        });
+                                        if (res.ok) {
+                                            onSuccess();
+                                            onClose();
+                                        } else {
+                                            alert('Error al eliminar');
+                                        }
+                                    } catch (e) {
+                                        console.error(e);
+                                    } finally {
+                                        setLoading(false);
+                                    }
+                                }
+                            }}
+                        >
+                            🗑️ Eliminar Miembro
                         </button>
                     </div>
                 </form>

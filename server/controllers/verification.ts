@@ -139,7 +139,11 @@ export const approveVerification = async (req: any, res: Response) => {
             where: { id: verification.parentMemberId }
         });
 
-        if (parentMember?.userId !== userId) {
+        if (!parentMember) {
+            return res.status(404).json({ error: 'Miembro padre no encontrado' });
+        }
+
+        if (parentMember.userId !== userId) {
             return res.status(403).json({ error: 'No tienes permiso para aprobar esta solicitud' });
         }
 
@@ -220,7 +224,11 @@ export const rejectVerification = async (req: any, res: Response) => {
             where: { id: verification.parentMemberId }
         });
 
-        if (parentMember?.userId !== userId) {
+        if (!parentMember) {
+            return res.status(404).json({ error: 'Miembro padre no encontrado' });
+        }
+
+        if (parentMember.userId !== userId) {
             return res.status(403).json({ error: 'No tienes permiso para rechazar esta solicitud' });
         }
 
@@ -274,7 +282,54 @@ export const getAdminVerifications = async (req: any, res: Response) => {
             orderBy: { createdAt: 'desc' }
         });
 
-        res.json(verifications);
+        const registrations = await prisma.registrationRequest.findMany({
+            where: { status: 'PENDING' },
+            include: {
+                user: { select: { id: true, email: true, name: true, image: true } },
+                branch: true
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        // Normalize data for UI
+        const normalized = [
+            ...verifications.map(v => ({
+                id: v.id,
+                type: 'VERIFICATION',
+                childName: v.childName,
+                message: v.message,
+                status: v.status,
+                createdAt: v.createdAt,
+                requester: v.requester,
+                parentMember: v.parentMember,
+                reviewNote: v.reviewNote
+            })),
+            ...registrations.map(r => ({
+                id: r.id,
+                type: 'REGISTRATION',
+                childName: r.name, // The person registering
+                message: `Solicitud Manual: Hijo de ${r.parentName} (${r.parentType || 'Padre/Madre'})`,
+                status: r.status,
+                createdAt: r.createdAt,
+                requester: r.user,
+                parentMember: {
+                    name: r.parentName || 'Desconocido',
+                    branch: r.branch
+                },
+                details: {
+                    nickname: r.nickname,
+                    birthDate: r.birthDate,
+                    phone: r.phone,
+                    skills: r.skills,
+                    grandparentId: r.grandparentId
+                }
+            }))
+        ];
+
+        // Sort by date desc
+        normalized.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+        res.json(normalized);
 
     } catch (error) {
         console.error('Get Admin Verifications Error:', error);

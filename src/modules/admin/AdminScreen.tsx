@@ -48,6 +48,7 @@ export const AdminScreen = () => {
     const [activeTab, setActiveTab] = useState<'claims' | 'registrations' | 'verifications' | 'users' | 'members' | 'stats' | 'settings' | 'events'>('stats');
     const [founders, setFounders] = useState<any[]>([]);
     const [patriarchs, setPatriarchs] = useState<any[]>([]);
+    const [inputModal, setInputModal] = useState<{ show: boolean, title: string, placeholder?: string, onConfirm: (val: string) => void } | null>(null);
     const [events, setEvents] = useState<any[]>([]);
     const [showEventModal, setShowEventModal] = useState(false);
     const [editingEvent, setEditingEvent] = useState<any>(null);
@@ -685,31 +686,37 @@ export const AdminScreen = () => {
                                         {/* Add New Patriarch Button */}
                                         <div
                                             className="founder-card add-new-card"
-                                            onClick={async () => {
-                                                const name = prompt('Nombre del patriarca (ej: Papá Juan, Mamá María):');
-                                                if (!name || !name.trim()) return;
-                                                try {
-                                                    const res = await fetch('/api/members', {
-                                                        method: 'POST',
-                                                        headers: {
-                                                            'Authorization': `Bearer ${token}`,
-                                                            'Content-Type': 'application/json'
-                                                        },
-                                                        body: JSON.stringify({
-                                                            name: name.trim(),
-                                                            relation: 'PATRIARCH',
-                                                            isPatriarch: true
-                                                        })
-                                                    });
-                                                    if (res.ok) {
-                                                        setMessage(`✅ Patriarca "${name}" agregado`);
-                                                        fetchData();
-                                                    } else {
-                                                        setMessage('❌ Error al agregar');
+                                            onClick={() => {
+                                                setInputModal({
+                                                    show: true,
+                                                    title: 'Agregar Patriarca',
+                                                    placeholder: 'Nombre (ej: Papá Juan)',
+                                                    onConfirm: async (name) => {
+                                                        try {
+                                                            const res = await fetch('/api/members', {
+                                                                method: 'POST',
+                                                                headers: {
+                                                                    'Authorization': `Bearer ${token}`,
+                                                                    'Content-Type': 'application/json'
+                                                                },
+                                                                body: JSON.stringify({
+                                                                    name: name.trim(),
+                                                                    relation: 'PATRIARCH',
+                                                                    isPatriarch: true
+                                                                })
+                                                            });
+                                                            if (res.ok) {
+                                                                setMessage(`✅ Patriarca "${name}" agregado`);
+                                                                fetchData();
+                                                                setInputModal(null);
+                                                            } else {
+                                                                setMessage('❌ Error al agregar');
+                                                            }
+                                                        } catch {
+                                                            setMessage('❌ Error de conexión');
+                                                        }
                                                     }
-                                                } catch {
-                                                    setMessage('❌ Error de conexión');
-                                                }
+                                                });
                                             }}
                                         >
                                             <div className="add-icon">➕</div>
@@ -822,30 +829,36 @@ export const AdminScreen = () => {
                                         {/* Add New Founder Button */}
                                         <div
                                             className="founder-card add-new-card"
-                                            onClick={async () => {
-                                                const name = prompt('Nombre del nuevo fundador (rama):');
-                                                if (!name || !name.trim()) return;
-                                                try {
-                                                    const res = await fetch('/api/members', {
-                                                        method: 'POST',
-                                                        headers: {
-                                                            'Authorization': `Bearer ${token}`,
-                                                            'Content-Type': 'application/json'
-                                                        },
-                                                        body: JSON.stringify({
-                                                            name: name.trim(),
-                                                            relation: 'SIBLING'
-                                                        })
-                                                    });
-                                                    if (res.ok) {
-                                                        setMessage(`✅ Fundador "${name}" agregado`);
-                                                        fetchData();
-                                                    } else {
-                                                        setMessage('❌ Error al agregar');
+                                            onClick={() => {
+                                                setInputModal({
+                                                    show: true,
+                                                    title: 'Nuevo Fundador (Rama)',
+                                                    placeholder: 'Nombre del fundador',
+                                                    onConfirm: async (name) => {
+                                                        try {
+                                                            const res = await fetch('/api/members', {
+                                                                method: 'POST',
+                                                                headers: {
+                                                                    'Authorization': `Bearer ${token}`,
+                                                                    'Content-Type': 'application/json'
+                                                                },
+                                                                body: JSON.stringify({
+                                                                    name: name,
+                                                                    relation: 'SIBLING'
+                                                                })
+                                                            });
+                                                            if (res.ok) {
+                                                                setMessage(`✅ Fundador "${name}" agregado`);
+                                                                fetchData();
+                                                                setInputModal(null);
+                                                            } else {
+                                                                setMessage('❌ Error al agregar');
+                                                            }
+                                                        } catch {
+                                                            setMessage('❌ Error de conexión');
+                                                        }
                                                     }
-                                                } catch {
-                                                    setMessage('❌ Error de conexión');
-                                                }
+                                                });
                                             }}
                                         >
                                             <div className="add-icon">➕</div>
@@ -1002,7 +1015,41 @@ export const AdminScreen = () => {
                 )}
             </div>
 
+            {/* Generic Input Modal */}
+            {inputModal && (
+                <div className="modal-overlay" onClick={() => setInputModal(null)}>
+                    <div className="modal-content input-modal" onClick={e => e.stopPropagation()}>
+                        <h3>{inputModal.title}</h3>
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            const val = (e.target as any).inputVal.value;
+                            if (val && val.trim()) {
+                                inputModal.onConfirm(val.trim());
+                            }
+                        }}>
+                            <input
+                                name="inputVal"
+                                className="text-input"
+                                placeholder={inputModal.placeholder}
+                                autoFocus
+                                defaultValue=""
+                            />
+                            <div className="modal-actions">
+                                <button type="button" className="cancel-btn" onClick={() => setInputModal(null)}>
+                                    Cancelar
+                                </button>
+                                <button type="submit" className="approve-btn">
+                                    Confirmar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
             <FloatingDock />
-        </div >
+        </div>
     );
 };
+
+

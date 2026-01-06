@@ -489,7 +489,13 @@ export const me = async (req: any, res: Response) => {
             where: { id: req.user.id },
             include: {
                 familyMember: {
-                    include: { branch: true }
+                    include: {
+                        branch: true,
+                        children: {
+                            orderBy: { birthDate: 'asc' },
+                            select: { id: true, name: true, birthDate: true, photo: true, relation: true }
+                        }
+                    }
                 }
             }
         });

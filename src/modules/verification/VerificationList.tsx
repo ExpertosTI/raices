@@ -4,6 +4,7 @@ import './VerificationList.css';
 
 interface VerificationRequest {
     id: string;
+    type?: 'VERIFICATION' | 'REGISTRATION';
     childName: string;
     message?: string;
     requester: {
@@ -17,6 +18,7 @@ interface VerificationRequest {
     };
     status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'ADMIN_REVIEW';
     createdAt: string;
+    details?: any;
 }
 
 interface VerificationListProps {
@@ -57,6 +59,9 @@ export const VerificationList: React.FC<VerificationListProps> = ({ requests, on
                             </div>
                         </div>
                         <div className={`status-badge ${req.status.toLowerCase()}`}>
+                            {req.type === 'REGISTRATION' && <span className="manual-badge" style={{
+                                background: '#f59f00', color: '#fff', padding: '2px 6px', borderRadius: '4px', marginRight: '6px', fontSize: '0.7em'
+                            }}>MANUAL</span>}
                             {req.status === 'PENDING' ? 'Pendiente' :
                                 req.status === 'APPROVED' ? 'Aprobado' :
                                     req.status === 'REJECTED' ? 'Rechazado' : 'En Revisión'}
@@ -64,7 +69,24 @@ export const VerificationList: React.FC<VerificationListProps> = ({ requests, on
                     </div>
 
                     <div className="verification-body">
-                        {type === 'incoming' ? (
+                        {req.type === 'REGISTRATION' ? (
+                            <div className="registration-details">
+                                <p>
+                                    Solicitud de registro manual vinculada a: <strong>{req.parentMember?.name}</strong>
+                                </p>
+                                {req.details && (
+                                    <div className="details-grid" style={{
+                                        display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem',
+                                        fontSize: '0.9rem', background: 'rgba(0,0,0,0.2)', padding: '0.5rem', borderRadius: '4px', marginTop: '0.5rem'
+                                    }}>
+                                        <div><strong>Apodo:</strong> {req.details.nickname || '-'}</div>
+                                        <div><strong>Nacimiento:</strong> {req.details.birthDate ? new Date(req.details.birthDate).toLocaleDateString() : '-'}</div>
+                                        <div><strong>Teléfono:</strong> {req.details.phone || '-'}</div>
+                                        <div><strong>Habilidades:</strong> {Array.isArray(req.details.skills) ? req.details.skills.join(', ') : '-'}</div>
+                                    </div>
+                                )}
+                            </div>
+                        ) : type === 'incoming' ? (
                             <p>
                                 Quiere registrarse como <strong>{req.childName}</strong> (Hijo/a)
                             </p>
