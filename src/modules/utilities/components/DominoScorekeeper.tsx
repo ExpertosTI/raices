@@ -456,43 +456,6 @@ export const DominoScorekeeper = () => {
                     🔄 Reiniciar Partida
                 </button>
             </div>
-
-            {/* Calculator-style Numpad */}
-            <div className="calculator-numpad">
-                {/* Display */}
-                <div
-                    className="calc-display"
-                    style={{ borderColor: selectedTeam === 1 ? team1Color : team2Color }}
-                >
-                    <span className="display-label">+ {selectedTeam === 1 ? team1Name : team2Name}</span>
-                    <span className="display-value">{numpadInput || '0'}</span>
-                </div>
-
-                {/* Numpad Grid */}
-                <div className="numpad-buttons">
-                    {['7', '8', '9', '4', '5', '6', '1', '2', '3', 'C', '0', '⌫'].map(key => (
-                        <button
-                            key={key}
-                            className={`numpad-btn ${key === 'C' ? 'clear' : ''} ${key === '⌫' ? 'backspace' : ''}`}
-                            onClick={() => handleNumpadKey(key)}
-                            disabled={!!winner}
-                        >
-                            {key}
-                        </button>
-                    ))}
-                </div>
-
-                {/* Confirm Button */}
-                <button
-                    className="confirm-numpad-btn"
-                    style={{ background: selectedTeam === 1 ? team1Color : team2Color }}
-                    onClick={() => handleNumpadKey('✓')}
-                    disabled={!!winner || !numpadInput}
-                >
-                    + Agregar a {selectedTeam === 1 ? team1Name : team2Name}
-                </button>
-            </div>
         </div>
     );
 };
-
