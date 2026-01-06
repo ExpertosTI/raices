@@ -37,6 +37,9 @@ model User {
   // OAuth
   accounts      Account[]
   sessions      Session[]
+  
+  // Games
+  blackjackPlayers BlackjackPlayer[]
 }
 
 enum UserRole {
