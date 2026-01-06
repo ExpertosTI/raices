@@ -36,6 +36,10 @@ export const DominoScorekeeper = () => {
     const [customInput1, setCustomInput1] = useState('');
     const [customInput2, setCustomInput2] = useState('');
 
+    // Numpad state
+    const [selectedTeam, setSelectedTeam] = useState<1 | 2>(1);
+    const [numpadInput, setNumpadInput] = useState('');
+
     const handleCustomAdd = (team: 1 | 2) => {
         const value = team === 1 ? customInput1 : customInput2;
         const points = parseInt(value, 10);
@@ -43,6 +47,28 @@ export const DominoScorekeeper = () => {
             addPoints(team, points);
             if (team === 1) setCustomInput1('');
             else setCustomInput2('');
+        }
+    };
+
+    // Numpad key handler
+    const handleNumpadKey = (key: string) => {
+        if (winner) return;
+        playSound('click');
+
+        if (key === 'C') {
+            setNumpadInput('');
+        } else if (key === '⌫') {
+            setNumpadInput(prev => prev.slice(0, -1));
+        } else if (key === '✓') {
+            const points = parseInt(numpadInput, 10);
+            if (!isNaN(points) && points > 0) {
+                addPoints(selectedTeam, points);
+                setNumpadInput('');
+            }
+        } else {
+            if (numpadInput.length < 3) {
+                setNumpadInput(prev => prev + key);
+            }
         }
     };
 
@@ -429,15 +455,63 @@ export const DominoScorekeeper = () => {
                 </button>
             </div>
 
-            {/* Decorative Numpad */}
-            <div className="decorative-numpad">
-                <div className="numpad-grid">
-                    {[7, 8, 9, 4, 5, 6, 1, 2, 3, 0].map(num => (
-                        <div key={num} className="numpad-key">{num}</div>
+            {/* Functional Calculator-style Numpad */}
+            <div className="calculator-numpad">
+                <div className="calc-header">
+                    <span className="calc-title">🁩 DOMINÓ</span>
+                </div>
+
+                {/* Team Selector */}
+                <div className="team-selector">
+                    <button
+                        className={`team-btn ${selectedTeam === 1 ? 'active' : ''}`}
+                        style={{ '--btn-color': team1Color } as React.CSSProperties}
+                        onClick={() => setSelectedTeam(1)}
+                    >
+                        {team1Name}
+                    </button>
+                    <button
+                        className={`team-btn ${selectedTeam === 2 ? 'active' : ''}`}
+                        style={{ '--btn-color': team2Color } as React.CSSProperties}
+                        onClick={() => setSelectedTeam(2)}
+                    >
+                        {team2Name}
+                    </button>
+                </div>
+
+                {/* Display */}
+                <div
+                    className="calc-display"
+                    style={{ borderColor: selectedTeam === 1 ? team1Color : team2Color }}
+                >
+                    <span className="display-value">{numpadInput || '0'}</span>
+                </div>
+
+                {/* Numpad Grid */}
+                <div className="numpad-buttons">
+                    {['7', '8', '9', '4', '5', '6', '1', '2', '3', 'C', '0', '⌫'].map(key => (
+                        <button
+                            key={key}
+                            className={`numpad-btn ${key === 'C' ? 'clear' : ''} ${key === '⌫' ? 'backspace' : ''}`}
+                            onClick={() => handleNumpadKey(key)}
+                            disabled={!!winner}
+                        >
+                            {key}
+                        </button>
                     ))}
                 </div>
-                <div className="numpad-label">Raíces Dominó</div>
+
+                {/* Confirm Button */}
+                <button
+                    className="confirm-numpad-btn"
+                    style={{ background: selectedTeam === 1 ? team1Color : team2Color }}
+                    onClick={() => handleNumpadKey('✓')}
+                    disabled={!!winner || !numpadInput}
+                >
+                    + Agregar a {selectedTeam === 1 ? team1Name : team2Name}
+                </button>
             </div>
         </div>
     );
 };
+
