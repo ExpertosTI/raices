@@ -33,44 +33,10 @@ export const DominoScorekeeper = () => {
     const [currentRound, setCurrentRound] = useState({ team1: 0, team2: 0 });
     const [soundEnabled, setSoundEnabled] = useState(true);
     const [showColorPicker, setShowColorPicker] = useState<1 | 2 | null>(null);
-    const [customInput1, setCustomInput1] = useState('');
-    const [customInput2, setCustomInput2] = useState('');
 
     // Numpad state
     const [selectedTeam, setSelectedTeam] = useState<1 | 2>(1);
     const [numpadInput, setNumpadInput] = useState('');
-
-    const handleCustomAdd = (team: 1 | 2) => {
-        const value = team === 1 ? customInput1 : customInput2;
-        const points = parseInt(value, 10);
-        if (!isNaN(points) && points > 0) {
-            addPoints(team, points);
-            if (team === 1) setCustomInput1('');
-            else setCustomInput2('');
-        }
-    };
-
-    // Numpad key handler
-    const handleNumpadKey = (key: string) => {
-        if (winner) return;
-        playSound('click');
-
-        if (key === 'C') {
-            setNumpadInput('');
-        } else if (key === '⌫') {
-            setNumpadInput(prev => prev.slice(0, -1));
-        } else if (key === '✓') {
-            const points = parseInt(numpadInput, 10);
-            if (!isNaN(points) && points > 0) {
-                addPoints(selectedTeam, points);
-                setNumpadInput('');
-            }
-        } else {
-            if (numpadInput.length < 3) {
-                setNumpadInput(prev => prev + key);
-            }
-        }
-    };
 
     const audioContextRef = useRef<AudioContext | null>(null);
 
