@@ -808,3 +808,73 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* Simple Numpad */
+.simple-numpad {
+    margin: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 20px;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.numpad-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 12px;
+    margin-bottom: 0.75rem;
+}
+
+.numpad-team {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.numpad-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: white;
+}
+
+.numpad-keys {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+}
+
+.numpad-key {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.numpad-key:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.numpad-key:active:not(:disabled) {
+    transform: scale(0.95);
+}
+
+.numpad-key:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.numpad-key.clear {
+    color: #ef4444;
+}
+
+.numpad-key.confirm {
+    color: #0A0A0F;
+    font-weight: 800;
+}

@@ -291,16 +291,6 @@ export const DominoScorekeeper = () => {
                             </button>
                         ))}
                     </div>
-                    <div className="custom-input">
-                        <input
-                            type="number"
-                            placeholder="Otro"
-                            value={customInput1}
-                            onChange={e => setCustomInput1(e.target.value)}
-                            disabled={!!winner}
-                        />
-                        <button onClick={() => handleCustomAdd(1)} disabled={!!winner || !customInput1}>+</button>
-                    </div>
                 </div>
 
                 <div className="vs-divider">
@@ -355,16 +345,44 @@ export const DominoScorekeeper = () => {
                             </button>
                         ))}
                     </div>
-                    <div className="custom-input">
-                        <input
-                            type="number"
-                            placeholder="Otro"
-                            value={customInput2}
-                            onChange={e => setCustomInput2(e.target.value)}
-                            disabled={!!winner}
-                        />
-                        <button onClick={() => handleCustomAdd(2)} disabled={!!winner || !customInput2}>+</button>
-                    </div>
+                </div>
+            </div>
+
+            {/* Simple Numpad */}
+            <div className="simple-numpad">
+                <div className="numpad-display">
+                    <span className="numpad-team" style={{ color: selectedTeam === 1 ? team1Color : team2Color }}>
+                        {selectedTeam === 1 ? team1Name : team2Name}
+                    </span>
+                    <span className="numpad-value">+{numpadInput || '0'}</span>
+                </div>
+                <div className="numpad-keys">
+                    {['7', '8', '9', '4', '5', '6', '1', '2', '3', 'C', '0', '✓'].map(key => (
+                        <button
+                            key={key}
+                            className={`numpad-key ${key === 'C' ? 'clear' : ''} ${key === '✓' ? 'confirm' : ''}`}
+                            style={key === '✓' ? { background: selectedTeam === 1 ? team1Color : team2Color } : {}}
+                            onClick={() => {
+                                if (key === 'C') {
+                                    setNumpadInput('');
+                                } else if (key === '✓') {
+                                    const pts = parseInt(numpadInput, 10);
+                                    if (!isNaN(pts) && pts > 0) {
+                                        addPoints(selectedTeam, pts);
+                                        setNumpadInput('');
+                                    }
+                                } else {
+                                    if (numpadInput.length < 3) {
+                                        setNumpadInput(prev => prev + key);
+                                    }
+                                }
+                                playSound('click');
+                            }}
+                            disabled={!!winner || (key === '✓' && !numpadInput)}
+                        >
+                            {key}
+                        </button>
+                    ))}
                 </div>
             </div>
 
