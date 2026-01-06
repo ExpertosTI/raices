@@ -8,7 +8,6 @@ interface GamePauseProps {
     onExit?: () => void;
     score?: number;
     highScore?: number;
-    showMuteControl?: boolean;
 }
 
 export const GamePause: React.FC<GamePauseProps> = ({
@@ -17,8 +16,7 @@ export const GamePause: React.FC<GamePauseProps> = ({
     onRestart,
     onExit,
     score,
-    highScore,
-    showMuteControl = false
+    highScore
 }) => {
     return (
         <div className="game-pause-overlay">
