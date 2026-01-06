@@ -6,8 +6,8 @@ import { GrowingRoots } from './GrowingRoots';
 import './LoginScreen.css';
 import './EmailAuthScreen.css';
 
-// Google Client ID from environment or default
-const GOOGLE_CLIENT_ID = '865106755259-s3l06vljb6qcagtdoa6chb459f8i48qm.apps.googleusercontent.com';
+// Google Client ID - MUST match server configuration
+const GOOGLE_CLIENT_ID = '609647959676-2jdrb9ursfnqi3uu6gmk2i6gj6ker42b.apps.googleusercontent.com';
 
 export const LoginScreen = () => {
     const navigate = useNavigate();
