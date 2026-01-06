@@ -151,6 +151,21 @@ export const LoginScreen = () => {
                     )}
                 </div>
 
+                {/* Utilidades públicas - sin login */}
+                <div className="public-utilities">
+                    <p>Explora sin iniciar sesión:</p>
+                    <div className="utilities-buttons">
+                        <button onClick={() => navigate('/utilities/domino')} className="utility-mini-btn">
+                            <span>🁩</span>
+                            <span>Dominó</span>
+                        </button>
+                        <button onClick={() => navigate('/utilities/basket')} className="utility-mini-btn">
+                            <span>🏀</span>
+                            <span>Basket</span>
+                        </button>
+                    </div>
+                </div>
+
                 <div className="login-footer">
                     <a href="/privacy">Privacidad</a>
                     <span>•</span>
