@@ -83,28 +83,24 @@
     display: inline-block;
 }
 
-/* Animación del gamepad - se mueve como jugando */
+/* Animación del gamepad - vibra como jugando */
 .icon-gamepad {
-    animation: gamepadMove 2s ease-in-out infinite;
+    animation: gamepadVibrate 0.15s ease-in-out infinite;
 }
 
-@keyframes gamepadMove {
+@keyframes gamepadVibrate {
 
     0%,
     100% {
-        transform: translateY(0) rotate(0deg);
+        transform: translateX(0);
     }
 
     25% {
-        transform: translateY(-3px) rotate(-5deg);
-    }
-
-    50% {
-        transform: translateY(0) rotate(0deg);
+        transform: translateX(-2px) rotate(-1deg);
     }
 
     75% {
-        transform: translateY(-3px) rotate(5deg);
+        transform: translateX(2px) rotate(1deg);
     }
 }
 

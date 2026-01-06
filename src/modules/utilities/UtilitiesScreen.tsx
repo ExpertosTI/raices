@@ -1,9 +1,22 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FloatingDock } from '../../components/FloatingDock';
 import './UtilitiesScreen.css';
 
+// Diferentes fichas de dominó
+const DOMINO_TILES = ['🁩', '🁫', '🁭', '🁮', '🁯', '🁰', '🁱'];
+
 export const UtilitiesScreen = () => {
     const navigate = useNavigate();
+    const [dominoIndex, setDominoIndex] = useState(0);
+
+    // Cambiar ficha de dominó cada 2 segundos
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setDominoIndex(prev => (prev + 1) % DOMINO_TILES.length);
+        }, 2000);
+        return () => clearInterval(interval);
+    }, []);
 
     const utilities = [
         {
@@ -17,7 +30,7 @@ export const UtilitiesScreen = () => {
         },
         {
             id: 'domino',
-            icon: '🁩',
+            icon: DOMINO_TILES[dominoIndex],
             iconClass: 'icon-domino',
             title: 'Dominó',
             description: 'Anota los puntos de la partida',
@@ -64,3 +77,4 @@ export const UtilitiesScreen = () => {
         </div>
     );
 };
+
