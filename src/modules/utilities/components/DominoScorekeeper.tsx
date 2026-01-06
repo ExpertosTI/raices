@@ -241,11 +241,12 @@ export const DominoScorekeeper = () => {
                 Gana quien llegue a <strong>{targetScore}</strong>
             </div>
 
-            {/* Score Boards */}
+            {/* Score Boards - Click to select for numpad */}
             <div className="score-boards">
                 <div
-                    className={`score-board team1 ${winner === 1 ? 'winner' : ''} ${team1Score > team2Score ? 'leading' : ''}`}
+                    className={`score-board team1 ${winner === 1 ? 'winner' : ''} ${team1Score > team2Score ? 'leading' : ''} ${selectedTeam === 1 ? 'selected' : ''}`}
                     style={{ '--team-color': team1Color } as React.CSSProperties}
+                    onClick={() => setSelectedTeam(1)}
                 >
                     <div className="team-header">
                         <input
@@ -307,8 +308,9 @@ export const DominoScorekeeper = () => {
                 </div>
 
                 <div
-                    className={`score-board team2 ${winner === 2 ? 'winner' : ''} ${team2Score > team1Score ? 'leading' : ''}`}
+                    className={`score-board team2 ${winner === 2 ? 'winner' : ''} ${team2Score > team1Score ? 'leading' : ''} ${selectedTeam === 2 ? 'selected' : ''}`}
                     style={{ '--team-color': team2Color } as React.CSSProperties}
+                    onClick={() => setSelectedTeam(2)}
                 >
                     <div className="team-header">
                         <input
@@ -459,24 +461,9 @@ export const DominoScorekeeper = () => {
             <div className="calculator-numpad">
                 <div className="calc-header">
                     <span className="calc-title">🁩 DOMINÓ</span>
-                </div>
-
-                {/* Team Selector */}
-                <div className="team-selector">
-                    <button
-                        className={`team-btn ${selectedTeam === 1 ? 'active' : ''}`}
-                        style={{ '--btn-color': team1Color } as React.CSSProperties}
-                        onClick={() => setSelectedTeam(1)}
-                    >
-                        {team1Name}
-                    </button>
-                    <button
-                        className={`team-btn ${selectedTeam === 2 ? 'active' : ''}`}
-                        style={{ '--btn-color': team2Color } as React.CSSProperties}
-                        onClick={() => setSelectedTeam(2)}
-                    >
-                        {team2Name}
-                    </button>
+                    <span className="selected-team-hint">
+                        Toca un equipo arriba para seleccionar
+                    </span>
                 </div>
 
                 {/* Display */}
@@ -484,6 +471,7 @@ export const DominoScorekeeper = () => {
                     className="calc-display"
                     style={{ borderColor: selectedTeam === 1 ? team1Color : team2Color }}
                 >
+                    <span className="display-label">+ {selectedTeam === 1 ? team1Name : team2Name}</span>
                     <span className="display-value">{numpadInput || '0'}</span>
                 </div>
 
