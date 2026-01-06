@@ -428,6 +428,16 @@ export const DominoScorekeeper = () => {
                     🔄 Reiniciar Partida
                 </button>
             </div>
+
+            {/* Decorative Numpad */}
+            <div className="decorative-numpad">
+                <div className="numpad-grid">
+                    {[7, 8, 9, 4, 5, 6, 1, 2, 3, 0].map(num => (
+                        <div key={num} className="numpad-key">{num}</div>
+                    ))}
+                </div>
+                <div className="numpad-label">Raíces Dominó</div>
+            </div>
         </div>
     );
 };

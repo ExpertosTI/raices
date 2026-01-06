@@ -338,10 +338,17 @@ export const BasketScorekeeper = () => {
                     )}
 
                     <div className="score-buttons">
-                        <button onClick={() => addPoints(1, 1)} disabled={!!winner}>+1</button>
-                        <button onClick={() => addPoints(1, 2)} disabled={!!winner}>+2</button>
-                        {!gameMode.startsWith('3x3') && (
-                            <button onClick={() => addPoints(1, 3)} disabled={!!winner}>+3</button>
+                        {gameMode.startsWith('3x3') ? (
+                            <>
+                                <button onClick={() => addPoints(1, 2)} disabled={!!winner}>+2</button>
+                                <button onClick={() => addPoints(1, 3)} disabled={!!winner}>+3</button>
+                            </>
+                        ) : (
+                            <>
+                                <button onClick={() => addPoints(1, 1)} disabled={!!winner}>+1</button>
+                                <button onClick={() => addPoints(1, 2)} disabled={!!winner}>+2</button>
+                                <button onClick={() => addPoints(1, 3)} disabled={!!winner}>+3</button>
+                            </>
                         )}
                     </div>
                 </div>
@@ -378,10 +385,17 @@ export const BasketScorekeeper = () => {
                     )}
 
                     <div className="score-buttons">
-                        <button onClick={() => addPoints(2, 1)} disabled={!!winner}>+1</button>
-                        <button onClick={() => addPoints(2, 2)} disabled={!!winner}>+2</button>
-                        {!gameMode.startsWith('3x3') && (
-                            <button onClick={() => addPoints(2, 3)} disabled={!!winner}>+3</button>
+                        {gameMode.startsWith('3x3') ? (
+                            <>
+                                <button onClick={() => addPoints(2, 2)} disabled={!!winner}>+2</button>
+                                <button onClick={() => addPoints(2, 3)} disabled={!!winner}>+3</button>
+                            </>
+                        ) : (
+                            <>
+                                <button onClick={() => addPoints(2, 1)} disabled={!!winner}>+1</button>
+                                <button onClick={() => addPoints(2, 2)} disabled={!!winner}>+2</button>
+                                <button onClick={() => addPoints(2, 3)} disabled={!!winner}>+3</button>
+                            </>
                         )}
                     </div>
                 </div>
