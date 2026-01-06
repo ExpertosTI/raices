@@ -242,3 +242,316 @@
     font-size: 0.7rem;
     color: rgba(255, 255, 255, 0.5);
 }
+
+/* TicTacToe - Pulse & Rotate */
+.icon-tictactoe {
+    animation: tictacPulse 2s ease-in-out infinite;
+}
+
+@keyframes tictacPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.utility-card:hover .icon-tictactoe {
+    animation: tictacSpin 0.5s ease-in-out forwards;
+}
+
+@keyframes tictacSpin {
+    0% {
+        transform: rotate(0deg) scale(1.1);
+    }
+
+    100% {
+        transform: rotate(90deg) scale(1.2);
+    }
+}
+
+/* Battleship - Floating Boat */
+.icon-battleship {
+    animation: boatFloat 3s ease-in-out infinite;
+}
+
+@keyframes boatFloat {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-5px) rotate(3deg);
+    }
+}
+
+.utility-card:hover .icon-battleship {
+    animation: boatRock 0.5s ease-in-out infinite;
+}
+
+@keyframes boatRock {
+
+    0%,
+    100% {
+        transform: rotate(-5deg);
+    }
+
+    50% {
+        transform: rotate(5deg);
+    }
+}
+
+/* Timeline - Swinging Calendar */
+.icon-timeline {
+    transform-origin: top center;
+    animation: calendarSwing 4s ease-in-out infinite;
+}
+
+@keyframes calendarSwing {
+
+    0%,
+    100% {
+        transform: rotate(-5deg);
+    }
+
+    50% {
+        transform: rotate(5deg);
+    }
+}
+
+.utility-card:hover .icon-timeline {
+    animation: calendarShake 0.5s ease-in-out infinite;
+}
+
+@keyframes calendarShake {
+
+    0%,
+    100% {
+        transform: rotate(-10deg);
+    }
+
+    50% {
+        transform: rotate(10deg);
+    }
+}
+
+/* Snake - Slithering */
+.icon-snake {
+    animation: snakeSlither 3s ease-in-out infinite;
+}
+
+@keyframes snakeSlither {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-3px) rotate(-5deg);
+    }
+
+    75% {
+        transform: translateX(3px) rotate(5deg);
+    }
+}
+
+.utility-card:hover .icon-snake {
+    animation: snakeAttack 0.4s ease-in-out infinite;
+}
+
+@keyframes snakeAttack {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+}
+
+/* Space Invaders - Floating Alien */
+.icon-space {
+    animation: alienFloat 2s ease-in-out infinite;
+}
+
+@keyframes alienFloat {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+.utility-card:hover .icon-space {
+    animation: alienGlitch 0.2s steps(2) infinite;
+}
+
+@keyframes alienGlitch {
+    0% {
+        transform: translateX(-2px);
+        opacity: 1;
+    }
+
+    50% {
+        transform: translateX(2px);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translateX(-2px);
+        opacity: 1;
+    }
+}
+
+/* Word Search - Bouncing Letters */
+.icon-word {
+    animation: letterBounce 2s ease-in-out infinite;
+}
+
+@keyframes letterBounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    20% {
+        transform: translateY(-5px);
+    }
+
+    40% {
+        transform: translateY(0);
+    }
+}
+
+.utility-card:hover .icon-word {
+    animation: letterJumble 0.5s ease-in-out infinite;
+}
+
+@keyframes letterJumble {
+
+    0%,
+    100% {
+        transform: scale(1) rotate(0deg);
+    }
+
+    25% {
+        transform: scale(1.1) rotate(-10deg);
+    }
+
+    75% {
+        transform: scale(1.1) rotate(10deg);
+    }
+}
+
+/* Compass - Spinning Needle */
+.icon-compass {
+    animation: compassFloat 3s ease-in-out infinite;
+}
+
+@keyframes compassFloat {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+.utility-card:hover .icon-compass {
+    animation: compassSpin 1s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+@keyframes compassSpin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* BlackJack - Card Flip */
+.icon-cards {
+    animation: cardFloat 3s ease-in-out infinite;
+}
+
+@keyframes cardFloat {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(-5deg);
+    }
+
+    50% {
+        transform: translateY(-5px) rotate(5deg);
+    }
+}
+
+.utility-card:hover .icon-cards {
+    animation: cardFlip 0.6s ease-in-out forwards;
+}
+
+@keyframes cardFlip {
+    0% {
+        transform: rotateY(0);
+    }
+
+    100% {
+        transform: rotateY(180deg);
+    }
+}
+
+/* Angelito - Flying Santa */
+.icon-angelito {
+    animation: santaFly 4s ease-in-out infinite;
+}
+
+@keyframes santaFly {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    25% {
+        transform: translateY(-5px) rotate(-5deg);
+    }
+
+    75% {
+        transform: translateY(0) rotate(5deg);
+    }
+}
+
+.utility-card:hover .icon-angelito {
+    animation: santaShake 0.4s ease-in-out infinite;
+}
+
+@keyframes santaShake {
+
+    0%,
+    100% {
+        transform: rotate(-10deg);
+    }
+
+    50% {
+        transform: rotate(10deg);
+    }
+}

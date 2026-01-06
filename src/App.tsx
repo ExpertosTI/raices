@@ -31,7 +31,7 @@ import { SnakeGame } from './modules/utilities/components/SnakeGame';
 import { SpaceInvadersGame } from './modules/utilities/components/SpaceInvadersGame';
 import { WordSearchGame } from './modules/utilities/components/WordSearchGame';
 import { CompassGame } from './modules/utilities/components/CompassGame';
-import { BlackJackGame } from './modules/utilities/components/BlackJackGame';
+import { BlackJackOnline } from './modules/utilities/components/BlackJackOnline';
 import { AngelitoGame } from './modules/utilities/components/AngelitoGame';
 
 function App() {
@@ -60,7 +60,7 @@ function App() {
           <Route path="/utilities/space-invaders" element={<SpaceInvadersGame />} />
           <Route path="/utilities/word-search" element={<WordSearchGame />} />
           <Route path="/utilities/compass" element={<CompassGame />} />
-          <Route path="/utilities/blackjack" element={<BlackJackGame />} />
+          <Route path="/utilities/blackjack" element={<BlackJackOnline />} />
 
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>

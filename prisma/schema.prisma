@@ -369,3 +369,36 @@ enum ParticipantStatus {
   CONFIRMED
   DECLINED
 }
+
+// ============= BLACKJACK ONLINE =============
+
+model BlackjackTable {
+  id          String   @id @default(cuid())
+  status      String   @default("WAITING") // WAITING, BETTING, DEALING, PLAYING, DEALER_TURN, FINISHED
+  deck        String   @db.Text // JSON string of Card[]
+  dealerHand  String   @db.Text // JSON string of Card[]
+  turnIndex   Int      @default(0) // Whose turn is it?
+  
+  players     BlackjackPlayer[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model BlackjackPlayer {
+  id          String   @id @default(cuid())
+  tableId     String
+  userId      String?  // Null if Bot
+  name        String   // Display name
+  avatar      String?  // Photo URL
+  isBot       Boolean  @default(false)
+  seatIndex   Int
+  
+  // Game State
+  hands       String   @db.Text // JSON: array of { cards: Card[], bet: number, status: 'PLAYING'|'BUST'|'STAND', canSplit: bool }
+  money       Int      @default(1000)
+  currentBet  Int      @default(0)
+  
+  table       BlackjackTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  user        User?    @relation(fields: [userId], references: [id])
+}

@@ -3,64 +3,96 @@ import type { TouchEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FloatingDock } from '../../../components/FloatingDock';
 import { getFamilyMembers } from '../../../services/api';
+import { soundManager } from '../../../utils/SoundManager';
 import './SpaceInvadersGame.css';
 
 const CANVAS_WIDTH = 350;
 const CANVAS_HEIGHT = 500;
-const ENEMY_SIZE = 25;
+const ENEMY_SIZE = 30; // Slightly bigger
 const BULLET_SIZE = 5;
+
+// Powerup types
+type PowerupType = 'TRIPLE' | 'LASER' | 'SHIELD';
+const POWERUP_DURATION = 5000; // 5 seconds
 
 export const SpaceInvadersGame = () => {
     const navigate = useNavigate();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [score, setScore] = useState(0);
+    const [level, setLevel] = useState(1);
     const [gameOver, setGameOver] = useState(false);
     const [victory, setVictory] = useState(false);
+    const [activePowerup, setActivePowerup] = useState<PowerupType | null>(null);
 
     // Game State
     const playerX = useRef(CANVAS_WIDTH / 2);
-    const bullets = useRef<{ x: number, y: number }[]>([]);
-    const enemies = useRef<{ x: number, y: number, image?: HTMLImageElement }[]>([]);
-    const enemyDirection = useRef(1); // 1 right, -1 left
+    const bullets = useRef<{ x: number; y: number; type: 'NORMAL' | 'LASER' }[]>([]);
+    const enemies = useRef<{ x: number; y: number; image?: HTMLImageElement }[]>([]);
+    const fallingUncles = useRef<{ x: number; y: number; type: PowerupType; image?: HTMLImageElement }[]>([]);
+
+    const enemyDirection = useRef(1);
     const enemySpeed = useRef(1);
     const animationFrame = useRef<number | undefined>(undefined);
     const lastShot = useRef(0);
+    const powerupTimer = useRef<NodeJS.Timeout | null>(null);
+
+    // Assets
     const imagesCache = useRef<HTMLImageElement[]>([]);
+    const uncleImages = useRef<HTMLImageElement[]>([]); // Subset for powerups
 
     useEffect(() => {
         loadAssets();
         return () => {
             if (animationFrame.current) cancelAnimationFrame(animationFrame.current);
+            if (powerupTimer.current) clearTimeout(powerupTimer.current);
         };
     }, []);
 
     const loadAssets = async () => {
         try {
             const members = await getFamilyMembers();
-            // Preload 5-10 images
-            const valid = members.filter(m => m.photo).slice(0, 10);
+            // All with photos
+            const valid = members.filter(m => m.photo);
 
-            const loaded: HTMLImageElement[] = [];
-            for (const m of valid) {
+            // Randomly pick "enemies" and "uncles"
+            const shuffled = valid.sort(() => 0.5 - Math.random());
+
+            const loadedEnemies: HTMLImageElement[] = [];
+            const loadedUncles: HTMLImageElement[] = [];
+
+            // Load images
+            for (let i = 0; i < shuffled.length; i++) {
                 const img = new Image();
-                img.src = m.photo!;
-                loaded.push(img);
+                img.src = shuffled[i].photo!;
+                if (i < 15) loadedEnemies.push(img); // First 15 are enemies
+                else loadedUncles.push(img); // Rest are uncles
             }
-            imagesCache.current = loaded;
-            initGame();
+
+            // Fallback if not enough
+            if (loadedUncles.length === 0 && loadedEnemies.length > 0) {
+                loadedUncles.push(loadedEnemies[0]);
+            }
+
+            imagesCache.current = loadedEnemies;
+            uncleImages.current = loadedUncles;
+
+            initGame(1);
         } catch (e) {
             console.error(e);
-            initGame();
+            initGame(1);
         }
     };
 
-    const initGame = () => {
-        // Create grid of enemies
-        const rows = 4;
-        const cols = 6;
-        const padding = 10;
+    const initGame = (lvl: number) => {
+        setLevel(lvl);
+        enemySpeed.current = 1 + (lvl * 0.2); // Increase speed per level
+
+        // Rows increase with level (max 6)
+        const rows = Math.min(3 + Math.floor(lvl / 2), 6);
+        const cols = 5;
+        const padding = 15;
         const startX = 20;
-        const startY = 40;
+        const startY = 50;
 
         enemies.current = [];
         for (let r = 0; r < rows; r++) {
@@ -75,11 +107,33 @@ export const SpaceInvadersGame = () => {
             }
         }
 
-        setScore(0);
+        bullets.current = [];
+        fallingUncles.current = [];
+
+        // Reset player if level 1, keep if progressing?
+        if (lvl === 1) {
+            setScore(0);
+            playerX.current = CANVAS_WIDTH / 2;
+            setActivePowerup(null);
+        }
+
         setGameOver(false);
         setVictory(false);
-        setScore(0);
         loop();
+    };
+
+    const spawnUncle = () => {
+        if (Math.random() < 0.005) { // 0.5% chance per frame
+            const type: PowerupType = Math.random() < 0.4 ? 'TRIPLE' : Math.random() < 0.7 ? 'LASER' : 'SHIELD';
+            fallingUncles.current.push({
+                x: Math.random() * (CANVAS_WIDTH - 30),
+                y: 0,
+                type,
+                image: uncleImages.current.length > 0
+                    ? uncleImages.current[Math.floor(Math.random() * uncleImages.current.length)]
+                    : undefined
+            });
+        }
     };
 
     const loop = () => {
@@ -91,13 +145,48 @@ export const SpaceInvadersGame = () => {
         }
     };
 
+    const activatePowerup = (type: PowerupType) => {
+        setActivePowerup(type);
+        soundManager.playLevelUp(); // Positive sound
+
+        if (powerupTimer.current) clearTimeout(powerupTimer.current);
+        powerupTimer.current = setTimeout(() => {
+            setActivePowerup(null);
+        }, POWERUP_DURATION);
+    };
+
     const update = () => {
         if (gameOver || victory) return;
 
+        // Spawn Uncles
+        spawnUncle();
+
         // Move Bullets
-        bullets.current = bullets.current
-            .map(b => ({ ...b, y: b.y - 5 }))
-            .filter(b => b.y > 0);
+        bullets.current.forEach(b => {
+            b.y -= (activePowerup === 'LASER' ? 10 : 5);
+        });
+        bullets.current = bullets.current.filter(b => b.y > -50);
+
+        // Move Falling Uncles & Check Collision with Player
+        fallingUncles.current.forEach(u => u.y += 2);
+
+        // Check Player vs Uncle Collision
+        // Player is approx at (playerX-15, HEIGHT-30) size 30x30
+        const pRect = { x: playerX.current - 15, y: CANVAS_HEIGHT - 30, w: 30, h: 30 };
+
+        fallingUncles.current = fallingUncles.current.filter(u => {
+            if (
+                pRect.x < u.x + 30 &&
+                pRect.x + pRect.w > u.x &&
+                pRect.y < u.y + 30 &&
+                pRect.y + pRect.h > u.y
+            ) {
+                // Caught!
+                activatePowerup(u.type);
+                return false; // Remove
+            }
+            return u.y < CANVAS_HEIGHT;
+        });
 
         // Move Enemies
         let hitWall = false;
@@ -111,17 +200,23 @@ export const SpaceInvadersGame = () => {
         if (hitWall) {
             enemyDirection.current *= -1;
             enemies.current.forEach(e => {
-                e.y += 10; // Move down
-                // Game Over check
+                e.y += 10;
                 if (e.y + ENEMY_SIZE >= CANVAS_HEIGHT - 50) {
                     setGameOver(true);
+                    soundManager.playGameOver();
                 }
             });
         }
 
-        // Collision Detection
+        // Collision: Bullets vs Enemies
         bullets.current.forEach((b, bIdx) => {
+            let bHit = false;
+            // Raycast for laser? No, simplified laser: fast bullet piercing?
+            // For now, laser is just very fast bullet.
+
             enemies.current.forEach((e, eIdx) => {
+                if (bHit && activePowerup !== 'LASER') return; // Normal bullets hit one target
+
                 if (
                     b.x < e.x + ENEMY_SIZE &&
                     b.x + BULLET_SIZE > e.x &&
@@ -129,17 +224,27 @@ export const SpaceInvadersGame = () => {
                     b.y + BULLET_SIZE > e.y
                 ) {
                     // Hit!
-                    bullets.current.splice(bIdx, 1);
                     enemies.current.splice(eIdx, 1);
                     setScore(s => s + 100);
-                    // Increase speed slightly
-                    enemySpeed.current += 0.05;
+                    soundManager.playExplosion();
+                    bHit = true;
+                    // Dont remove bullet if Laser
                 }
             });
+
+            if (bHit && activePowerup !== 'LASER') {
+                bullets.current.splice(bIdx, 1);
+            }
         });
 
         if (enemies.current.length === 0) {
-            setVictory(true);
+            if (level < 5) { // Max 5 levels for demo
+                soundManager.playLevelUp();
+                initGame(level + 1); // Next Level
+            } else {
+                setVictory(true);
+                soundManager.playLevelUp();
+            }
         }
     };
 
@@ -148,27 +253,41 @@ export const SpaceInvadersGame = () => {
         if (!ctx) return;
 
         // Clear
-        ctx.fillStyle = '#000';
+        ctx.fillStyle = '#020617';
         ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
         // Stars
         ctx.fillStyle = '#fff';
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 15; i++) {
+            ctx.globalAlpha = Math.random();
             ctx.fillRect(Math.random() * CANVAS_WIDTH, Math.random() * CANVAS_HEIGHT, 1, 1);
         }
+        ctx.globalAlpha = 1;
 
         // Draw Player
-        ctx.fillStyle = '#0ea5e9';
+        ctx.fillStyle = activePowerup ? '#f59e0b' : '#0ea5e9'; // Gold if powerup
         ctx.beginPath();
-        ctx.moveTo(playerX.current, CANVAS_HEIGHT - 30);
+        // Ship shape
+        ctx.moveTo(playerX.current, CANVAS_HEIGHT - 40);
         ctx.lineTo(playerX.current - 15, CANVAS_HEIGHT - 10);
         ctx.lineTo(playerX.current + 15, CANVAS_HEIGHT - 10);
         ctx.fill();
 
+        // Powerup Shield Visual
+        if (activePowerup === 'SHIELD') {
+            ctx.strokeStyle = '#22c55e';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(playerX.current, CANVAS_HEIGHT - 20, 25, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
         // Draw Bullets
-        ctx.fillStyle = '#ef4444';
         bullets.current.forEach(b => {
-            ctx.fillRect(b.x, b.y, BULLET_SIZE, 8);
+            ctx.fillStyle = b.type === 'LASER' ? '#ef4444' : '#fbbf24';
+            const w = b.type === 'LASER' ? 4 : BULLET_SIZE;
+            const h = b.type === 'LASER' ? 20 : 8;
+            ctx.fillRect(b.x, b.y, w, h);
         });
 
         // Draw Enemies
@@ -180,10 +299,37 @@ export const SpaceInvadersGame = () => {
                 ctx.clip();
                 ctx.drawImage(e.image, e.x, e.y, ENEMY_SIZE, ENEMY_SIZE);
                 ctx.restore();
+                // Red Border
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 2;
+                ctx.stroke();
             } else {
-                ctx.fillStyle = '#22c55e';
+                ctx.fillStyle = '#ef4444';
                 ctx.fillRect(e.x, e.y, ENEMY_SIZE, ENEMY_SIZE);
             }
+        });
+
+        // Draw Falling Uncles (Powerups)
+        fallingUncles.current.forEach(u => {
+            const size = 30;
+            // Glow logic
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = u.type === 'TRIPLE' ? '#3b82f6' : u.type === 'LASER' ? '#ef4444' : '#22c55e';
+
+            if (u.image) {
+                ctx.drawImage(u.image, u.x, u.y, size, size);
+            } else {
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(u.x, u.y, size, size);
+            }
+
+            // Reset shadow
+            ctx.shadowBlur = 0;
+
+            // Icon
+            ctx.fillStyle = '#fff';
+            ctx.font = '12px Arial';
+            ctx.fillText(u.type === 'TRIPLE' ? '3x' : u.type === 'LASER' ? '⚡' : '🛡️', u.x + 8, u.y - 5);
         });
     };
 
@@ -198,8 +344,20 @@ export const SpaceInvadersGame = () => {
 
     const handleShoot = () => {
         const now = Date.now();
-        if (now - lastShot.current > 300) { // Cooldown
-            bullets.current.push({ x: playerX.current - 2, y: CANVAS_HEIGHT - 30 });
+        // Faster fire rate with powerups
+        const cooldown = activePowerup === 'LASER' ? 100 : activePowerup === 'TRIPLE' ? 200 : 300;
+
+        if (now - lastShot.current > cooldown) {
+            if (activePowerup === 'TRIPLE') {
+                bullets.current.push({ x: playerX.current - 15, y: CANVAS_HEIGHT - 30, type: 'NORMAL' });
+                bullets.current.push({ x: playerX.current, y: CANVAS_HEIGHT - 40, type: 'NORMAL' });
+                bullets.current.push({ x: playerX.current + 15, y: CANVAS_HEIGHT - 30, type: 'NORMAL' });
+            } else if (activePowerup === 'LASER') {
+                bullets.current.push({ x: playerX.current, y: CANVAS_HEIGHT - 40, type: 'LASER' });
+            } else {
+                bullets.current.push({ x: playerX.current, y: CANVAS_HEIGHT - 30, type: 'NORMAL' });
+            }
+            soundManager.playShoot();
             lastShot.current = now;
         }
     };
@@ -208,8 +366,10 @@ export const SpaceInvadersGame = () => {
         <div className="space-invaders-screen">
             <header className="game-header">
                 <button className="back-btn" onClick={() => navigate('/utilities')}>←</button>
-                <h3>Space Cousins</h3>
-                <span className="score">{score}</span>
+                <div className="game-stats">
+                    <h3>Nivel {level}</h3>
+                    <span className="score">PTS: {score}</span>
+                </div>
             </header>
 
             <div className="canvas-wrapper">
@@ -223,14 +383,20 @@ export const SpaceInvadersGame = () => {
 
                 {(gameOver || victory) && (
                     <div className="overlay">
-                        <h2>{victory ? '¡VICTORIA!' : 'GAME OVER'}</h2>
-                        <button onClick={() => { loadAssets(); }}>Reiniciar</button>
+                        <h2>{victory ? '¡VICTORIA TOTAL!' : 'GAME OVER'}</h2>
+                        <button onClick={() => initGame(1)}>Reiniciar</button>
+                    </div>
+                )}
+
+                {activePowerup && (
+                    <div className="powerup-indicator">
+                        ACTIVADO: {activePowerup}
                     </div>
                 )}
             </div>
 
             <p className="instructions">
-                Desliza para mover • Toca para disparar
+                Mueve con el dedo • Toca para disparar • Atrapa a los Tíos 📷
             </p>
 
             <FloatingDock />

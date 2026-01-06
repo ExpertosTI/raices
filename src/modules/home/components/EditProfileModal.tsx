@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, User, Phone, Calendar, MessageCircle } from 'lucide-react';
+import { ImageCropper } from '../../../components/ImageCropper';
 import './EditProfileModal.css';
 
 interface FamilyMember {
@@ -106,12 +107,33 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
         }
     }, [member]);
 
+    const [showCropper, setShowCropper] = useState(false);
+    const [tempImageSrc, setTempImageSrc] = useState<string | null>(null);
+
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
-            setPhotoFile(file);
-            setPhotoPreview(URL.createObjectURL(file));
+            const reader = new FileReader();
+            reader.onload = () => {
+                setTempImageSrc(reader.result as string);
+                setShowCropper(true);
+            };
+            reader.readAsDataURL(file);
+            // Reset input so same file can be selected again
+            e.target.value = '';
         }
+    };
+
+    const handleCropComplete = (croppedBlob: Blob) => {
+        setPhotoFile(croppedBlob as File);
+        setPhotoPreview(URL.createObjectURL(croppedBlob));
+        setShowCropper(false);
+        setTempImageSrc(null);
+    };
+
+    const handleCancelCrop = () => {
+        setShowCropper(false);
+        setTempImageSrc(null);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -417,6 +439,14 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
                     </div>
                 </form>
             </div>
+
+            {showCropper && tempImageSrc && (
+                <ImageCropper
+                    imageSrc={tempImageSrc}
+                    onCropComplete={handleCropComplete}
+                    onCancel={handleCancelCrop}
+                />
+            )}
         </div>
     );
 };

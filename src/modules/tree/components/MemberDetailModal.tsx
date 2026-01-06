@@ -7,9 +7,10 @@ import './MemberDetailModal.css';
 interface Props {
     member: FamilyMember | null;
     onClose: () => void;
+    canEdit?: boolean;
 }
 
-export const MemberDetailModal: React.FC<Props> = ({ member, onClose }) => {
+export const MemberDetailModal: React.FC<Props> = ({ member, onClose, canEdit = true }) => {
     const [isEditOpen, setIsEditOpen] = useState(false);
 
     if (!member) return null;
@@ -57,13 +58,15 @@ export const MemberDetailModal: React.FC<Props> = ({ member, onClose }) => {
                             {translateRelation(member.relation)}
                         </span>
                     </div>
-                    <button
-                        className="edit-member-btn"
-                        onClick={() => setIsEditOpen(true)}
-                        title="Editar perfil"
-                    >
-                        <Edit2 size={16} />
-                    </button>
+                    {canEdit && (
+                        <button
+                            className="edit-member-btn"
+                            onClick={() => setIsEditOpen(true)}
+                            title="Editar perfil"
+                        >
+                            <Edit2 size={16} />
+                        </button>
+                    )}
                 </div>
 
                 <div className="modal-body">

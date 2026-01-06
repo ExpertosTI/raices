@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { soundManager } from '../../../utils/SoundManager';
 import { useNavigate } from 'react-router-dom';
 import './WhoIsWhoGame.css';
 
@@ -91,7 +92,10 @@ export const WhoIsWhoGame = () => {
         const round = generateRound();
         setCurrentRound(round);
         setBlur(20);
-        setTimeLeft(TIME_PER_ROUND);
+        setBlur(20);
+        // Level logic: Time decreases as you progress? Or static?
+        // Let's make rounds 6-10 faster (7 seconds)
+        setTimeLeft(roundNumber > 5 ? 7 : TIME_PER_ROUND);
     };
 
     // Timer effect
@@ -104,6 +108,7 @@ export const WhoIsWhoGame = () => {
                     handleAnswer(null);
                     return 0;
                 }
+                if (prev <= 4) soundManager.playTone(800, 'triangle', 0.05); // Tick tock
                 return prev - 1;
             });
 
@@ -120,6 +125,9 @@ export const WhoIsWhoGame = () => {
         const isCorrect = selectedMember?.id === currentRound.correctMember.id;
         const timeBonus = Math.floor(timeLeft * 10);
         const roundScore = isCorrect ? 100 + timeBonus : 0;
+
+        if (isCorrect) soundManager.playLevelUp(); // Reusing the happy sound
+        else soundManager.playExplosion(); // Reusing the sad/error sound
 
         setCurrentRound({ ...currentRound, answered: true, correct: isCorrect });
         setScore(prev => prev + roundScore);
@@ -141,11 +149,14 @@ export const WhoIsWhoGame = () => {
         const round = generateRound();
         setCurrentRound(round);
         setBlur(20);
-        setTimeLeft(TIME_PER_ROUND);
+        // Progressive difficulty: Next round is roundNumber + 1
+        const nextRoundNum = roundNumber + 1;
+        setTimeLeft(nextRoundNum > 5 ? 7 : TIME_PER_ROUND);
     };
 
     const endGame = () => {
         setGameState('finished');
+        soundManager.playGameOver();
         if (score > highScore) {
             setHighScore(score);
             localStorage.setItem('whoIsWhoHighScore', score.toString());
@@ -243,10 +254,10 @@ export const WhoIsWhoGame = () => {
                             <button
                                 key={member.id}
                                 className={`option-btn ${currentRound.answered
-                                        ? member.id === currentRound.correctMember.id
-                                            ? 'correct'
-                                            : 'disabled'
-                                        : ''
+                                    ? member.id === currentRound.correctMember.id
+                                        ? 'correct'
+                                        : 'disabled'
+                                    : ''
                                     }`}
                                 onClick={() => handleAnswer(member)}
                                 disabled={currentRound.answered}

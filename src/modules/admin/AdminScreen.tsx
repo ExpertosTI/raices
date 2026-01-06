@@ -301,7 +301,12 @@ export const AdminScreen = () => {
                 >
                     Miembros ({members.length})
                 </button>
-                {/* Settings Tab Removed as per user request */}
+                <button
+                    className={`tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('settings')}
+                >
+                    ⚙️ Configuración
+                </button>
                 <button
                     className={`tab-btn ${activeTab === 'events' ? 'active' : ''}`}
                     onClick={() => setActiveTab('events')}

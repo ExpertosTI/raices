@@ -91,7 +91,7 @@ export const TreeScreen: React.FC = () => {
                 ) : (
                     <>
                         {view === 'vertical' && <VerticalTree members={members} onMemberClick={handleMemberClick} />}
-                        {view === 'horizontal' && <HorizontalTree members={members} />}
+                        {view === 'horizontal' && <HorizontalTree members={members} onMemberClick={handleMemberClick} />}
                         {view === 'radial' && <RadialTree members={members} onMemberClick={handleMemberClick} />}
                         {view === '3d' && <ThreeDTree members={members} onMemberClick={handleMemberClick} />}
                     </>
@@ -103,6 +103,7 @@ export const TreeScreen: React.FC = () => {
                 <MemberDetailModal
                     member={selectedMember}
                     onClose={() => setSelectedMember(null)}
+                    canEdit={view !== '3d'}
                 />
             )}
 

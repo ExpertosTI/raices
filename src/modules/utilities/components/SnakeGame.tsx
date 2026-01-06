@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FloatingDock } from '../../../components/FloatingDock';
 import { getFamilyMembers } from '../../../services/api';
 import type { FamilyMember } from '../../../types';
+import { soundManager } from '../../../utils/SoundManager';
 import './SnakeGame.css';
 
 const GRID_SIZE = 20;
@@ -17,6 +18,7 @@ export const SnakeGame = () => {
     const navigate = useNavigate();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [score, setScore] = useState(0);
+    const [level, setLevel] = useState(1);
     const [highScore, setHighScore] = useState(0);
     const [gameOver, setGameOver] = useState(false);
     const [paused, setPaused] = useState(false);
@@ -49,13 +51,30 @@ export const SnakeGame = () => {
         }
     };
 
+    const foodImageRef = useRef<HTMLImageElement | null>(null);
+
+    // ... existing refs ...
+
     const spawnFood = (availableMembers: FamilyMember[]) => {
         food.current = {
             x: Math.floor(Math.random() * TILE_COUNT),
             y: Math.floor(Math.random() * TILE_COUNT)
         };
+
+        // Reset image
+        foodImageRef.current = null;
+
         if (availableMembers.length > 0) {
-            currentMember.current = availableMembers[Math.floor(Math.random() * availableMembers.length)];
+            const member = availableMembers[Math.floor(Math.random() * availableMembers.length)];
+            currentMember.current = member;
+
+            if (member.photo) {
+                const img = new Image();
+                img.src = member.photo;
+                img.onload = () => {
+                    foodImageRef.current = img;
+                };
+            }
         }
     };
 
@@ -63,10 +82,12 @@ export const SnakeGame = () => {
         snake.current = [{ x: 10, y: 10 }];
         velocity.current = { x: 1, y: 0 }; // Start moving right
         setScore(0);
+        setLevel(1);
         setGameOver(false);
         setPaused(false);
         spawnFood(members);
         speed.current = 150;
+        soundManager.playLevelUp();
 
         if (timerRef.current) clearInterval(timerRef.current);
         timerRef.current = window.setInterval(gameLoop, speed.current);
@@ -101,12 +122,18 @@ export const SnakeGame = () => {
                     setHighScore(newScore);
                     localStorage.setItem('snakeHelper_highScore', newScore.toString());
                 }
+                // Level Up every 50 points
+                if (newScore % 50 === 0) {
+                    setLevel(l => l + 1);
+                    soundManager.playLevelUp();
+                    speed.current = Math.max(50, speed.current - 15);
+                } else {
+                    soundManager.playEat();
+                }
                 return newScore;
             });
             spawnFood(members);
-            // Don't pop tail
-            // Increase speed slightly
-            if (speed.current > 50) speed.current -= 2;
+
             clearInterval(timerRef.current);
             timerRef.current = window.setInterval(gameLoop, speed.current);
         } else {
@@ -118,6 +145,7 @@ export const SnakeGame = () => {
 
     const handleGameOver = () => {
         setGameOver(true);
+        soundManager.playGameOver();
         clearInterval(timerRef.current);
     };
 
@@ -126,18 +154,48 @@ export const SnakeGame = () => {
         if (!ctx) return;
 
         // Clear
-        ctx.fillStyle = '#1e293b';
-        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        // Equalizer / Level Visuals background
+        // Draw grid lines faintly
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 0.5;
+        for (let i = 0; i <= TILE_COUNT; i++) {
+            ctx.beginPath();
+            ctx.moveTo(i * GRID_SIZE, 0);
+            ctx.lineTo(i * GRID_SIZE, 400);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(0, i * GRID_SIZE);
+            ctx.lineTo(400, i * GRID_SIZE);
+            ctx.stroke();
+        }
 
         // Draw Food (Avatar)
         const fx = food.current.x * GRID_SIZE;
         const fy = food.current.y * GRID_SIZE;
 
-        ctx.beginPath();
-        ctx.arc(fx + GRID_SIZE / 2, fy + GRID_SIZE / 2, GRID_SIZE / 2 - 2, 0, Math.PI * 2);
-        ctx.fillStyle = '#ef4444';
-        ctx.fill();
-        ctx.closePath();
+        if (foodImageRef.current) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(fx + GRID_SIZE / 2, fy + GRID_SIZE / 2, GRID_SIZE / 2, 0, Math.PI * 2);
+            ctx.closePath();
+            ctx.clip();
+            ctx.drawImage(foodImageRef.current, fx, fy, GRID_SIZE, GRID_SIZE);
+            ctx.restore();
+            // Border
+            ctx.beginPath();
+            ctx.arc(fx + GRID_SIZE / 2, fy + GRID_SIZE / 2, GRID_SIZE / 2, 0, Math.PI * 2);
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.closePath();
+        } else {
+            // Fallback red apple 🍎
+            ctx.beginPath();
+            ctx.arc(fx + GRID_SIZE / 2, fy + GRID_SIZE / 2, GRID_SIZE / 2 - 2, 0, Math.PI * 2);
+            ctx.fillStyle = '#ef4444';
+            ctx.fill();
+            ctx.closePath();
+        }
 
         // Draw Snake
         ctx.fillStyle = '#22c55e';
@@ -175,6 +233,7 @@ export const SnakeGame = () => {
             <header className="game-header">
                 <button className="back-btn" onClick={() => navigate('/utilities')}>←</button>
                 <div className="scores">
+                    <span className="level-badge">Nivel {level}</span>
                     <span>Score: {score}</span>
                     <span className="high-score">High: {highScore}</span>
                 </div>

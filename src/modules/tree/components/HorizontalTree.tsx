@@ -5,6 +5,7 @@ import './HorizontalTree.css';
 
 interface TreeProps {
     members: FamilyMember[];
+    onMemberClick?: (member: FamilyMember) => void;
 }
 
 // Translation function for relation types
@@ -22,7 +23,7 @@ const getRelationLabel = (relation: string) => {
     return labels[relation] || relation;
 };
 
-export const HorizontalTree: React.FC<TreeProps> = ({ members }) => {
+export const HorizontalTree: React.FC<TreeProps> = ({ members, onMemberClick }) => {
     const siblings = members.filter(m => m.relation === 'SIBLING' || m.isPatriarch).sort((a, b) => {
         const branchA = FAMILY_BRANCHES.find(br => br.name === a.name);
         const branchB = FAMILY_BRANCHES.find(br => br.name === b.name);
@@ -48,15 +49,17 @@ export const HorizontalTree: React.FC<TreeProps> = ({ members }) => {
             <div className="tree-column">
                 <div className="column-label">Los Patriarcas</div>
                 <div className="patriarch-pair">
-                    <div className="tree-node patriarch">
-                        <div className="node-avatar large">👴</div>
-                        <span className="node-name">Papá</span>
-                    </div>
-                    <div className="connector horizontal"></div>
-                    <div className="tree-node patriarch">
-                        <div className="node-avatar large">👵</div>
-                        <span className="node-name">Mamá</span>
-                    </div>
+                    {members.filter(m => m.isPatriarch).map(patriarch => (
+                        <div
+                            key={patriarch.id}
+                            className="tree-node patriarch"
+                            onClick={() => onMemberClick?.(patriarch)}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            <div className="node-avatar large">{patriarch.name.includes('Lorenza') || patriarch.name.includes('Mamá') || patriarch.name.includes('Abuela') ? '👵' : '👴'}</div>
+                            <span className="node-name">{patriarch.name}</span>
+                        </div>
+                    ))}
                 </div>
             </div>
 
@@ -74,7 +77,8 @@ export const HorizontalTree: React.FC<TreeProps> = ({ members }) => {
                             <div
                                 key={sibling.id}
                                 className="tree-node sibling"
-                                style={{ borderColor: getColor(sibling) }}
+                                style={{ borderColor: getColor(sibling), cursor: 'pointer' }}
+                                onClick={() => onMemberClick?.(sibling)}
                             >
                                 <div
                                     className="node-avatar"
@@ -106,7 +110,7 @@ export const HorizontalTree: React.FC<TreeProps> = ({ members }) => {
                         <div className="empty-message">Sin registros aún</div>
                     ) : (
                         descendants.map(member => (
-                            <div key={member.id} className="tree-node descendant">
+                            <div key={member.id} className="tree-node descendant" onClick={() => onMemberClick?.(member)} style={{ cursor: 'pointer' }}>
                                 <div className="node-avatar small">
                                     {member.photo ? (
                                         <img src={member.photo} alt={member.name} className="node-photo" />

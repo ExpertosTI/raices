@@ -155,6 +155,26 @@ export const approveVerification = async (req: any, res: Response) => {
         if (parentMember.relation === 'CHILD') childRelation = 'GRANDCHILD';
         if (parentMember.relation === 'GRANDCHILD') childRelation = 'GREAT_GRANDCHILD';
 
+        // Check if user is already linked to a family member
+        const existingMember = await prisma.familyMember.findUnique({
+            where: { userId: verification.requesterId }
+        });
+
+        if (existingMember) {
+            // Option: Update the existing member instead of creating new? 
+            // For now, let's just update the parent link if it's strictly better, 
+            // but safer to error out or handle merge.
+            // If they are strictly a new registration, they shouldn't exist.
+            // If they are claiming, they verify via Claim.
+            // Let's assume this flow implies updating the existing member to be a child of this parent.
+
+            // However, relation logic might break.
+            // Let's return a specific error for now to stop the 500.
+            return res.status(400).json({
+                error: 'El usuario ya tiene un perfil de miembro asociado. No se puede crear uno nuevo.'
+            });
+        }
+
         // Create the new family member
         const newMember = await prisma.familyMember.create({
             data: {

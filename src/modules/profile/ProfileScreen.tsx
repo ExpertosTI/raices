@@ -242,89 +242,15 @@ export const ProfileScreen = () => {
                             </div>
                         </div>
                     ) : (
+                        <div className="info-card glass-panel">
+                            <h3>📞 Contacto</h3>
+                            <p><strong>Teléfono:</strong> {member.phone || 'No registrado'}</p>
+                            <p><strong>WhatsApp:</strong> {member.whatsapp || 'No registrado'}</p>
+                        </div>
+                    )}
+
+                    {!editing && (
                         <>
-                            <div className="info-card glass-panel">
-                                <h3>📞 Contacto</h3>
-                                <p><strong>Teléfono:</strong> {member.phone || 'No registrado'}</p>
-                                <p><strong>WhatsApp:</strong> {member.whatsapp || 'No registrado'}</p>
-                            </div>
-
-                            {/* Children Section */}
-                            <div className="info-card glass-panel children-section">
-                                <div className="section-header">
-                                    <h3>👶 Mis Hijos ({member.children?.length || 0})</h3>
-                                    <button className="add-mini-btn" onClick={() => setShowAddChild(!showAddChild)}>
-                                        {showAddChild ? '✕' : '+'}
-                                    </button>
-                                </div>
-
-                                {showAddChild && (
-                                    <div className="add-child-form">
-                                        <input
-                                            type="text"
-                                            placeholder="Nombre completo"
-                                            className="text-input"
-                                            value={childForm.name}
-                                            onChange={e => setChildForm({ ...childForm, name: e.target.value })}
-                                        />
-                                        <input
-                                            type="date"
-                                            className="text-input"
-                                            value={childForm.birthDate}
-                                            onChange={e => setChildForm({ ...childForm, birthDate: e.target.value })}
-                                        />
-                                        <button className="save-mini-btn" onClick={handleAddChild}>Guardar</button>
-                                    </div>
-                                )}
-
-                                <div className="children-list">
-                                    {member.children && member.children.length > 0 ? (
-                                        member.children.map(child => (
-                                            <div key={child.id} className="child-item">
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
-                                                    <div className="child-avatar" style={{ backgroundColor: member.branch?.color }}>{child.name[0]}</div>
-                                                    <div className="child-info">
-                                                        <span className="child-name">{child.name}</span>
-                                                        {child.birthDate && <span className="child-age">
-                                                            {new Date().getFullYear() - new Date(child.birthDate).getFullYear()} años
-                                                        </span>}
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    className="edit-mini-btn"
-                                                    onClick={() => {
-                                                        const fetchChildDetails = async () => {
-                                                            try {
-                                                                // Ideally fetch fresh data, but for now allow editing basic info
-                                                                const tempChild: any = {
-                                                                    ...child,
-                                                                    nickname: '', // Defaults
-                                                                    phone: '',
-                                                                    whatsapp: '',
-                                                                    bio: '',
-                                                                    skills: [],
-                                                                    branch: member.branch,
-                                                                    branchId: member.branch?.id || '',
-                                                                    relation: 'CHILD'
-                                                                };
-                                                                setChildToEdit(tempChild);
-                                                            } catch (e) { console.error(e); }
-                                                        };
-                                                        fetchChildDetails();
-                                                    }}
-                                                    title="Editar hijo/a"
-                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.7 }}
-                                                >
-                                                    ✏️
-                                                </button>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p className="no-data">No hay hijos registrados</p>
-                                    )}
-                                </div>
-                            </div>
-
                             {member.bio && (
                                 <div className="info-card glass-panel">
                                     <h3>📝 Bio</h3>
@@ -349,22 +275,100 @@ export const ProfileScreen = () => {
                         </>
                     )}
                 </div>
-            </div>
 
-            {/* Reuse EditProfileModal for Children */}
-            {childToEdit && (
-                <div style={{ position: 'fixed', zIndex: 9999 }}> {/* Ensure it's on top */}
-                    <EditProfileModal
-                        isOpen={true}
-                        onClose={() => setChildToEdit(null)}
-                        member={childToEdit as any}
-                        onSuccess={() => {
-                            setChildToEdit(null);
-                            fetchProfile(); // Refresh list
-                        }}
-                    />
+                {/* Children Section - Moved Outside for Visibility */}
+                <div className="info-card glass-panel children-section">
+                    <div className="section-header">
+                        <h3>👶 Mis Hijos ({member.children?.length || 0})</h3>
+                        <button className="add-mini-btn" onClick={() => setShowAddChild(!showAddChild)}>
+                            {showAddChild ? '✕' : '+'}
+                        </button>
+                    </div>
+
+                    {showAddChild && (
+                        <div className="add-child-form">
+                            <input
+                                type="text"
+                                placeholder="Nombre completo"
+                                className="text-input"
+                                value={childForm.name}
+                                onChange={e => setChildForm({ ...childForm, name: e.target.value })}
+                            />
+                            <input
+                                type="date"
+                                className="text-input"
+                                value={childForm.birthDate}
+                                onChange={e => setChildForm({ ...childForm, birthDate: e.target.value })}
+                            />
+                            <button className="save-mini-btn" onClick={handleAddChild}>Guardar</button>
+                        </div>
+                    )}
+
+                    <div className="children-list">
+                        {member.children && member.children.length > 0 ? (
+                            <div className="children-grid">
+                                {member.children.map(child => (
+                                    <div key={child.id} className="child-card">
+                                        <div className="child-card-header" style={{ backgroundColor: member.branch?.color || '#ccc' }}>
+                                            <span className="child-initial">{child.name[0]}</span>
+                                        </div>
+                                        <div className="child-card-body">
+                                            <h4 className="child-name">{child.name}</h4>
+                                            {child.birthDate && <p className="child-age">
+                                                {new Date().getFullYear() - new Date(child.birthDate).getFullYear()} años
+                                            </p>}
+                                            <button
+                                                className="edit-child-btn"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    // Load details
+                                                    const tempChild: any = {
+                                                        ...child,
+                                                        nickname: '',
+                                                        phone: '',
+                                                        whatsapp: '',
+                                                        bio: '',
+                                                        skills: [],
+                                                        branch: member.branch,
+                                                        branchId: member.branch?.id || '',
+                                                        relation: 'CHILD'
+                                                    };
+                                                    setChildToEdit(tempChild);
+                                                }}
+                                            >
+                                                Editar Perfil
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="empty-children">
+                                <span className="empty-icon">👶</span>
+                                <p>Aún no has registrado hijos</p>
+                                <button className="add-first-child-btn" onClick={() => setShowAddChild(true)}>
+                                    Registrar Primero
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            )}
+
+                {/* Reuse EditProfileModal for Children */}
+                {childToEdit && (
+                    <div style={{ position: 'fixed', zIndex: 9999 }}>
+                        <EditProfileModal
+                            isOpen={true}
+                            onClose={() => setChildToEdit(null)}
+                            member={childToEdit as any}
+                            onSuccess={() => {
+                                setChildToEdit(null);
+                                fetchProfile(); // Refresh list
+                            }}
+                        />
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

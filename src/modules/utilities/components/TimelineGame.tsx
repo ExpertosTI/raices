@@ -2,6 +2,7 @@ import { useState, useEffect, Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FloatingDock } from '../../../components/FloatingDock';
 import { getFamilyMembers } from '../../../services/api';
+import { soundManager } from '../../../utils/SoundManager';
 // dnd-kit imports removed as they were unused
 import './TimelineGame.css';
 
@@ -141,10 +142,18 @@ export const TimelineGame = () => {
         }
     };
 
-    const playSound = (_type: 'correct' | 'error' | 'victory') => {
-        // Placeholder for audio
-        // const audio = new Audio(...);
-        // audio.play().catch(() => {});
+    const playSound = (type: 'correct' | 'error' | 'victory') => {
+        if (type === 'correct') {
+            soundManager.playLevelUp();
+        } else if (type === 'error') {
+            soundManager.playGameOver(); // or Explosion
+        } else if (type === 'victory') {
+            // Arpeggio
+            setTimeout(() => soundManager.playTone(400, 'sine', 0.1), 0);
+            setTimeout(() => soundManager.playTone(500, 'sine', 0.1), 100);
+            setTimeout(() => soundManager.playTone(600, 'sine', 0.1), 200);
+            setTimeout(() => soundManager.playTone(800, 'sine', 0.4), 300);
+        }
     };
 
     // Sort placed events for rendering

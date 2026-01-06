@@ -14,6 +14,9 @@ export const securityHeaders = (req: Request, res: Response, next: NextFunction)
     // Referrer Policy
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
+    // COOP - Allow popups to communicate (fixes window.postMessage blocking)
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+
     // HSTS (HTTP Strict Transport Security) - 1 year
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 

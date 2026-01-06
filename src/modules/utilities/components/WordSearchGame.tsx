@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FloatingDock } from '../../../components/FloatingDock';
 import { getFamilyMembers } from '../../../services/api';
+import { soundManager } from '../../../utils/SoundManager';
+import type { FamilyMember } from '../../../types';
 import './WordSearchGame.css';
 
 const GRID_SIZE = 10;
@@ -10,9 +12,11 @@ export const WordSearchGame = () => {
     const navigate = useNavigate();
     const [grid, setGrid] = useState<string[][]>([]);
     const [words, setWords] = useState<string[]>([]);
+    const [wordMembers, setWordMembers] = useState<Map<string, FamilyMember>>(new Map());
     const [foundWords, setFoundWords] = useState<Set<string>>(new Set());
     const [selectedCells, setSelectedCells] = useState<{ r: number, c: number }[]>([]);
     const [isSelecting, setIsSelecting] = useState(false);
+    const [lastFoundMember, setLastFoundMember] = useState<FamilyMember | null>(null);
 
     useEffect(() => {
         generateGame();
@@ -20,13 +24,24 @@ export const WordSearchGame = () => {
 
     const generateGame = async () => {
         try {
-            const members = await getFamilyMembers();
-            // Pick 5 random names
-            const names = members
-                .map(m => m.name.split(' ')[0].toUpperCase())
-                .filter(n => n.length >= 3 && n.length <= 8)
+            const membersList = await getFamilyMembers();
+            // Pick 5 random members with valid names
+            const selectedMembers = membersList
+                .filter(m => {
+                    const name = m.name.split(' ')[0].toUpperCase();
+                    return name.length >= 3 && name.length <= 8;
+                })
                 .sort(() => 0.5 - Math.random())
                 .slice(0, 5);
+
+            const names: string[] = [];
+            const memberMap = new Map<string, FamilyMember>();
+
+            selectedMembers.forEach(m => {
+                const name = m.name.split(' ')[0].toUpperCase();
+                names.push(name);
+                memberMap.set(name, m);
+            });
 
             const newGrid = Array(GRID_SIZE).fill('').map(() => Array(GRID_SIZE).fill(''));
 
@@ -47,7 +62,9 @@ export const WordSearchGame = () => {
 
             setGrid(newGrid);
             setWords(names);
+            setWordMembers(memberMap);
             setFoundWords(new Set());
+            setLastFoundMember(null);
         } catch (e) {
             console.error(e);
         }
@@ -119,8 +136,12 @@ export const WordSearchGame = () => {
 
         if (words.includes(chars) && !foundWords.has(chars)) {
             setFoundWords(prev => new Set([...prev, chars]));
+            soundManager.playTone(600, 'sine', 0.1); // Win sound logic later
+            handleWordFound(chars);
         } else if (words.includes(revChars) && !foundWords.has(revChars)) {
             setFoundWords(prev => new Set([...prev, revChars]));
+            soundManager.playTone(600, 'sine', 0.1);
+            handleWordFound(revChars);
         }
 
         setSelectedCells([]);
@@ -128,6 +149,16 @@ export const WordSearchGame = () => {
 
     const isCellSelected = (r: number, c: number) => {
         return selectedCells.some(cell => cell.r === r && cell.c === c);
+    };
+
+    const handleWordFound = (word: string) => {
+        const member = wordMembers.get(word);
+        if (member) {
+            setLastFoundMember(member);
+            soundManager.playLevelUp();
+            // Hide overlay after 2 seconds
+            setTimeout(() => setLastFoundMember(null), 2000);
+        }
     };
 
 
@@ -138,6 +169,18 @@ export const WordSearchGame = () => {
                 <button className="back-btn" onClick={() => navigate('/utilities')}>←</button>
                 <h3>Sopa de Letras</h3>
             </header>
+
+            {/* Found Member Overlay */}
+            {lastFoundMember && (
+                <div className="found-overlay fade-in">
+                    <div className="found-card">
+                        <div className="found-avatar">
+                            {lastFoundMember.photo ? <img src={lastFoundMember.photo} alt={lastFoundMember.name} /> : '👤'}
+                        </div>
+                        <h2>¡Encontraste a {lastFoundMember.name.split(' ')[0]}!</h2>
+                    </div>
+                </div>
+            )}
 
             <div className="word-list">
                 {words.map(w => (
