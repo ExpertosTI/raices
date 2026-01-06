@@ -11,6 +11,7 @@ import feedRoutes from './feed.routes';
 import adminRoutes from './admin.routes';
 import featuresRoutes from './features.routes';
 import verificationRoutes from './verification.routes';
+import exchangeRoutes from './exchange.routes';
 
 const router = Router();
 
@@ -97,6 +98,7 @@ router.use('/branches', branchesRoutes);
 router.use('/feed', feedRoutes);
 router.use('/admin', adminRoutes);
 router.use('/verification', verificationRoutes);
+router.use('/exchange', exchangeRoutes);
 
 // Features (events, sports, votes)
 router.use('/', featuresRoutes);

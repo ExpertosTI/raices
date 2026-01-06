@@ -32,6 +32,7 @@ model User {
   registrationRequests RegistrationRequest[]
   auditLogs     AuditLog[]
   familyVerifications FamilyVerification[]
+  exchangeParticipations ExchangeParticipant[]
   
   // OAuth
   accounts      Account[]
@@ -146,6 +147,10 @@ model FamilyMember {
   branch       Branch        @relation(fields: [branchId], references: [id])
   pendingClaims PendingClaim[]
   childVerifications FamilyVerification[] @relation("VerificationParent")
+  
+  // Angelito
+  angelitoParticipations ExchangeParticipant[] @relation("AngelitoMember")
+  angelitoTargets       ExchangeParticipant[] @relation("AngelitoTarget")
   
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
@@ -313,4 +318,54 @@ enum RequestStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+// ============= ANGELITO GAME (SECRET SANTA) =============
+
+model GameExchange {
+  id          String      @id @default(cuid())
+  year        Int
+  title       String      // "Angelito 2025"
+  description String?     @db.Text
+  status      ExchangeStatus @default(REGISTRATION_OPEN)
+  budget      String?     // "RD$ 1,500 - 2,000"
+  
+  participants ExchangeParticipant[]
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model ExchangeParticipant {
+  id              String            @id @default(cuid())
+  exchangeId      String
+  userId          String?           // Registered user (optional if playing for child)
+  memberId        String            // The actual person participating
+  
+  assignedMemberId String?          // Who they have to give a gift to (The "Child")
+  
+  status          ParticipantStatus @default(CONFIRMED)
+  wishes          String?           // "Me gustan los libros", etc.
+  
+  exchange        GameExchange      @relation(fields: [exchangeId], references: [id], onDelete: Cascade)
+  member          FamilyMember      @relation("AngelitoMember", fields: [memberId], references: [id])
+  assignedMember  FamilyMember?     @relation("AngelitoTarget", fields: [assignedMemberId], references: [id])
+  user            User?             @relation(fields: [userId], references: [id])
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  @@unique([exchangeId, memberId])
+}
+
+enum ExchangeStatus {
+  REGISTRATION_OPEN
+  MATCHED
+  COMPLETED
+}
+
+enum ParticipantStatus {
+  PENDING
+  CONFIRMED
+  DECLINED
 }

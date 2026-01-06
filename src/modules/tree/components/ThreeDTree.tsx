@@ -422,10 +422,7 @@ export const ThreeDTree: React.FC<ThreeDTreeProps & { loading?: boolean }> = ({ 
 
 
             {/* Compass / Orientation Gizmo */}
-            <div className="tree-compass glass-panel" style={{ transform: `rotateX(${-rotationX}deg) rotateY(${-rotationY}deg)` }}>
-                <div className="compass-arrow north">N</div>
-                <div className="compass-plane"></div>
-            </div>
+            {/* Compass / Orientation Gizmo Removed */}
 
             {/* 3D Scene */}
             <div

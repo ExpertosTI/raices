@@ -882,7 +882,7 @@
     }
 }
 
-@media (max-width: 380px) {
+@media (max-width: 480px) {
     .score-boards {
         flex-direction: column;
         gap: 1rem;
@@ -904,6 +904,11 @@
     .point-buttons {
         grid-template-columns: repeat(3, 1fr);
     }
+}
+
+/* Touch Optimization */
+button {
+    touch-action: manipulation;
 }
 
 .confirm-numpad-btn:hover:not(:disabled) {

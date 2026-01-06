@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { EditProfileModal } from '../home/components/EditProfileModal';
 import { useConfirm } from '../../components/ConfirmDialog';
 import { FloatingDock } from '../../components/FloatingDock';
 import './AdminScreen.css';
@@ -48,7 +49,16 @@ export const AdminScreen = () => {
     const [activeTab, setActiveTab] = useState<'claims' | 'registrations' | 'verifications' | 'users' | 'members' | 'stats' | 'settings' | 'events'>('stats');
     const [founders, setFounders] = useState<any[]>([]);
     const [patriarchs, setPatriarchs] = useState<any[]>([]);
-    const [inputModal, setInputModal] = useState<{ show: boolean, title: string, placeholder?: string, onConfirm: (val: string) => void } | null>(null);
+    const [inputModal, setInputModal] = useState<{
+        show: boolean;
+        title: string;
+        placeholder: string;
+        onConfirm: (val: string) => void;
+    } | null>(null);
+
+    // Edit Profile Modal State
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editingMember, setEditingMember] = useState<any>(null);
     const [events, setEvents] = useState<any[]>([]);
     const [showEventModal, setShowEventModal] = useState(false);
     const [editingEvent, setEditingEvent] = useState<any>(null);
@@ -60,8 +70,6 @@ export const AdminScreen = () => {
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState('');
-    const [_editingMember, setEditingMember] = useState<any>(null);
-    const [_showEditModal, setShowEditModal] = useState(false);
 
     const token = localStorage.getItem('token');
 
@@ -76,7 +84,7 @@ export const AdminScreen = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const headers = { 'Authorization': `Bearer ${token}` };
+            const headers = { 'Authorization': `Bearer ${token} ` };
             if (activeTab === 'stats') {
                 const res = await fetch('/api/admin/stats', { headers });
                 if (res.ok) setStats(await res.json());
@@ -120,9 +128,9 @@ export const AdminScreen = () => {
         const confirmed = await confirm('¿Seguro que deseas eliminar este miembro? Esta acción es irreversible.');
         if (!confirmed) return;
         try {
-            const res = await fetch(`/api/admin/members/${id}`, {
+            const res = await fetch(`/ api / admin / members / ${id} `, {
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${token} ` }
             });
             if (res.ok) {
                 setMessage('✅ Miembro eliminado');
@@ -137,7 +145,7 @@ export const AdminScreen = () => {
 
     const handleApproveClaim = async (id: string) => {
         try {
-            const res = await fetch(`/api/admin/claims/${id}/approve`, {
+            const res = await fetch(`/ api / admin / claims / ${id}/approve`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -293,12 +301,7 @@ export const AdminScreen = () => {
                 >
                     Miembros ({members.length})
                 </button>
-                <button
-                    className={`tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('settings')}
-                >
-                    ⚙️ Configuración
-                </button>
+                {/* Settings Tab Removed as per user request */}
                 <button
                     className={`tab-btn ${activeTab === 'events' ? 'active' : ''}`}
                     onClick={() => setActiveTab('events')}
@@ -740,7 +743,10 @@ export const AdminScreen = () => {
 
                                     <div className="founders-grid siblings-grid">
                                         {founders.map(founder => (
-                                            <div key={founder.id} className="founder-card">
+                                            <div key={founder.id} className="founder-card" onClick={() => {
+                                                setEditingMember(founder);
+                                                setShowEditModal(true);
+                                            }}>
                                                 <div className="founder-avatar" style={{ borderColor: founder.branch?.color || '#D4AF37' }}>
                                                     {founder.photo ? (
                                                         <img src={founder.photo} alt={founder.name} />
@@ -1047,9 +1053,20 @@ export const AdminScreen = () => {
                 </div>
             )}
 
+            {/* Edit Profile Modal */}
+            {showEditModal && editingMember && (
+                <EditProfileModal
+                    isOpen={showEditModal}
+                    onClose={() => setShowEditModal(false)}
+                    member={editingMember}
+                    onSuccess={() => {
+                        fetchData();
+                        setMessage('✅ Perfil actualizado');
+                    }}
+                />
+            )}
+
             <FloatingDock />
         </div>
     );
 };
-
-

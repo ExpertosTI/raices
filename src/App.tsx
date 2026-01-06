@@ -24,6 +24,15 @@ import { UtilitiesScreen } from './modules/utilities/UtilitiesScreen';
 import { WhoIsWhoGame } from './modules/utilities/components/WhoIsWhoGame';
 import { DominoScorekeeper } from './modules/utilities/components/DominoScorekeeper';
 import { BasketScorekeeper } from './modules/utilities/components/BasketScorekeeper';
+import { TicTacToeUltimate } from './modules/utilities/components/TicTacToeUltimate';
+import { BattleshipGame } from './modules/utilities/components/BattleshipGame';
+import { TimelineGame } from './modules/utilities/components/TimelineGame';
+import { SnakeGame } from './modules/utilities/components/SnakeGame';
+import { SpaceInvadersGame } from './modules/utilities/components/SpaceInvadersGame';
+import { WordSearchGame } from './modules/utilities/components/WordSearchGame';
+import { CompassGame } from './modules/utilities/components/CompassGame';
+import { BlackJackGame } from './modules/utilities/components/BlackJackGame';
+import { AngelitoGame } from './modules/utilities/components/AngelitoGame';
 
 function App() {
   return (
@@ -44,6 +53,14 @@ function App() {
           <Route path="/utilities" element={<UtilitiesScreen />} />
           <Route path="/utilities/domino" element={<DominoScorekeeper />} />
           <Route path="/utilities/basket" element={<BasketScorekeeper />} />
+          <Route path="/utilities/tictactoe" element={<TicTacToeUltimate />} />
+          <Route path="/utilities/battleship" element={<BattleshipGame />} />
+          <Route path="/utilities/timeline" element={<TimelineGame />} />
+          <Route path="/utilities/snake" element={<SnakeGame />} />
+          <Route path="/utilities/space-invaders" element={<SpaceInvadersGame />} />
+          <Route path="/utilities/word-search" element={<WordSearchGame />} />
+          <Route path="/utilities/compass" element={<CompassGame />} />
+          <Route path="/utilities/blackjack" element={<BlackJackGame />} />
 
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
@@ -59,6 +76,7 @@ function App() {
             <Route path="/profile" element={<ProfileScreen />} />
             {/* Who-is-Who needs photos from API */}
             <Route path="/utilities/who-is-who" element={<WhoIsWhoGame />} />
+            <Route path="/utilities/angelito" element={<AngelitoGame />} />
           </Route>
           {/* Redirect unknown routes to home */}
           <Route path="*" element={<Navigate to="/" replace />} />

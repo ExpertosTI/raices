@@ -44,7 +44,7 @@ export const VerificationList: React.FC<VerificationListProps> = ({ requests, on
                 <div key={req.id} className="verification-card glass-panel">
                     <div className="verification-header">
                         <div className="requester-info">
-                            {req.requester.image ? (
+                            {req.requester?.image ? (
                                 <img src={req.requester.image} alt={req.requester.name} className="requester-avatar" />
                             ) : (
                                 <div className="requester-avatar-placeholder">
@@ -52,7 +52,11 @@ export const VerificationList: React.FC<VerificationListProps> = ({ requests, on
                                 </div>
                             )}
                             <div>
-                                <h4>{type === 'incoming' ? req.requester.name : `Para: ${req.parentMember?.name}`}</h4>
+                                <h4>
+                                    {type === 'incoming'
+                                        ? (req.requester?.name || 'Usuario desconocido')
+                                        : `Para: ${req.parentMember?.name || '...'}`}
+                                </h4>
                                 <span className="verification-date">
                                     {new Date(req.createdAt).toLocaleDateString()}
                                 </span>

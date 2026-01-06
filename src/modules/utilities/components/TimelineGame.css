@@ -1,0 +1,275 @@
+.timeline-game-screen {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #475569 0%, #0f172a 100%);
+    color: white;
+    padding: 20px;
+    padding-bottom: 80px;
+    display: flex;
+    flex-direction: column;
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+}
+
+.lives .heart {
+    font-size: 1.5rem;
+    margin: 0 2px;
+    filter: drop-shadow(0 0 5px red);
+    transition: opacity 0.3s;
+}
+
+.lives .heart.empty {
+    opacity: 0.3;
+    filter: grayscale(1);
+}
+
+.score {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #ffd700;
+}
+
+/* Card Preview */
+.current-card-area {
+    text-align: center;
+    margin-bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.card-preview {
+    background: white;
+    color: #1e293b;
+    padding: 20px;
+    border-radius: 16px;
+    width: 280px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    border: 4px solid #fff;
+}
+
+.card-avatar.large {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 10px;
+}
+
+.card-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.card-preview h4 {
+    margin: 10px 0 5px;
+    font-size: 1.1rem;
+}
+
+.hint {
+    color: #64748b;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.instruction {
+    margin-top: 10px;
+    color: #cbd5e1;
+    font-size: 0.9rem;
+    animation: pulse 1.5s infinite;
+}
+
+/* Timeline */
+.timeline-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    padding: 20px 0;
+    gap: 10px;
+}
+
+.timeline-track {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateX(-50%);
+    z-index: 0;
+}
+
+.gap-button {
+    z-index: 10;
+    background: #3b82f6;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+    transition: transform 0.2s, background 0.2s;
+    border: 3px solid rgba(255, 255, 255, 0.5);
+}
+
+.gap-button:hover {
+    transform: scale(1.1);
+    background: #2563eb;
+}
+
+.gap-button:active {
+    transform: scale(0.95);
+}
+
+.timeline-node {
+    z-index: 5;
+    background: #1e293b;
+    border: 2px solid #64748b;
+    border-radius: 12px;
+    padding: 10px;
+    width: 80%;
+    max-width: 300px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.year-bubble {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-family: monospace;
+    font-size: 1.1rem;
+}
+
+.node-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.small-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #334155;
+    overflow: hidden;
+}
+
+.small-avatar img {
+    width: 100%;
+    height: 100%;
+}
+
+.node-name {
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+/* Animations */
+@keyframes pulse {
+    0% {
+        opacity: 0.7;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.7;
+    }
+}
+
+.shake-entrance {
+    animation: shake 0.5s cubic-bezier(.36, .07, .19, .97) both;
+}
+
+.bounce-in {
+    animation: bounceIn 0.5s;
+}
+
+@keyframes bounceIn {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    60% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes shake {
+
+    10%,
+    90% {
+        transform: translate3d(-1px, 0, 0);
+    }
+
+    20%,
+    80% {
+        transform: translate3d(2px, 0, 0);
+    }
+
+    30%,
+    50%,
+    70% {
+        transform: translate3d(-4px, 0, 0);
+    }
+
+    40%,
+    60% {
+        transform: translate3d(4px, 0, 0);
+    }
+}
+
+.game-over,
+.victory {
+    text-align: center;
+    margin-top: 50px;
+    animation: bounceIn 0.5s;
+}
+
+.game-over h1 {
+    color: #ef4444;
+}
+
+.victory h1 {
+    color: #22c55e;
+}
+
+.restart-btn {
+    margin-top: 20px;
+    padding: 12px 30px;
+    background: white;
+    color: black;
+    border: none;
+    border-radius: 25px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+}

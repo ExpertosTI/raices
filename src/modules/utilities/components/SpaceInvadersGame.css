@@ -1,0 +1,43 @@
+.space-invaders-screen {
+    min-height: 100vh;
+    background: #000;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    padding-bottom: 80px;
+}
+
+.canvas-wrapper {
+    position: relative;
+    border: 2px solid #333;
+    margin-top: 10px;
+}
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.overlay button {
+    background: #0ea5e9;
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.instructions {
+    color: #666;
+    margin-top: 10px;
+    font-size: 0.9rem;
+}

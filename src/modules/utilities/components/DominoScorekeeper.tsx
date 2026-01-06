@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import type { CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useConfirm } from '../../../components/ConfirmDialog';
 import './DominoScorekeeper.css';
@@ -213,7 +214,7 @@ export const DominoScorekeeper = () => {
             <div className="score-boards">
                 <div
                     className={`score-board team1 ${winner === 1 ? 'winner' : ''} ${team1Score > team2Score ? 'leading' : ''} ${selectedTeam === 1 ? 'selected' : ''}`}
-                    style={{ '--team-color': team1Color } as React.CSSProperties}
+                    style={{ '--team-color': team1Color } as CSSProperties}
                     onClick={() => setSelectedTeam(1)}
                     role="button"
                     tabIndex={0}
@@ -280,7 +281,7 @@ export const DominoScorekeeper = () => {
 
                 <div
                     className={`score-board team2 ${winner === 2 ? 'winner' : ''} ${team2Score > team1Score ? 'leading' : ''} ${selectedTeam === 2 ? 'selected' : ''}`}
-                    style={{ '--team-color': team2Color } as React.CSSProperties}
+                    style={{ '--team-color': team2Color } as CSSProperties}
                     onClick={() => setSelectedTeam(2)}
                     role="button"
                     tabIndex={0}
