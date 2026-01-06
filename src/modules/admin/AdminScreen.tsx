@@ -128,9 +128,9 @@ export const AdminScreen = () => {
         const confirmed = await confirm('¿Seguro que deseas eliminar este miembro? Esta acción es irreversible.');
         if (!confirmed) return;
         try {
-            const res = await fetch(`/ api / admin / members / ${id} `, {
+            const res = await fetch(`/api/admin/members/${id}`, {
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token} ` }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
                 setMessage('✅ Miembro eliminado');

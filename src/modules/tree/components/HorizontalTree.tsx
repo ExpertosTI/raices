@@ -24,12 +24,14 @@ const getRelationLabel = (relation: string) => {
 };
 
 export const HorizontalTree: React.FC<TreeProps> = ({ members, onMemberClick }) => {
-    const siblings = members.filter(m => m.relation === 'SIBLING' || m.isPatriarch).sort((a, b) => {
+    // ONLY siblings (12 hermanos) - NOT patriarchs
+    const siblings = members.filter(m => m.relation === 'SIBLING' && !m.isPatriarch).sort((a, b) => {
         const branchA = FAMILY_BRANCHES.find(br => br.name === a.name);
         const branchB = FAMILY_BRANCHES.find(br => br.name === b.name);
         return (branchA?.order || 0) - (branchB?.order || 0);
     });
 
+    // Descendants are everyone except patriarchs and siblings
     const descendants = members.filter(m => !m.isPatriarch && m.relation !== 'SIBLING');
 
     const getEmoji = (name: string) => {

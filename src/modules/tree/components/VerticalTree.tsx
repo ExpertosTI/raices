@@ -158,10 +158,13 @@ export const VerticalTree: React.FC<Props> = ({ members, onMemberClick }) => {
         setExpandedNodes(new Set());
     };
 
+    // Separate: siblings are the 12 hermanos (SIBLING relation, not patriarchs)
+    const siblings = members.filter(m => m.relation === 'SIBLING' && !m.isPatriarch);
+
     // Filter members by search
-    const filteredPatriarchs = searchQuery
-        ? patriarchs.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
-        : patriarchs;
+    const filteredSiblings = searchQuery
+        ? siblings.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
+        : siblings;
 
     return (
         <div className="vertical-tree">
@@ -180,45 +183,67 @@ export const VerticalTree: React.FC<Props> = ({ members, onMemberClick }) => {
                 </div>
             </div>
 
-            {/* Patriarcas - Parents */}
+            {/* Patriarcas - Parents (from database) */}
             <div className="tree-section patriarchs">
                 <h3 className="section-label">Los Patriarcas</h3>
                 <div className="tree-level parents">
-                    <div className="tree-node patriarch">
-                        <div className="node-avatar">👴</div>
-                        <span className="node-name">Papá</span>
-                    </div>
-                    <div className="tree-connector horizontal" />
-                    <div className="tree-node patriarch">
-                        <div className="node-avatar">👵</div>
-                        <span className="node-name">Mamá</span>
-                    </div>
+                    {patriarchs.length > 0 ? (
+                        patriarchs.map(patriarch => (
+                            <div
+                                key={patriarch.id}
+                                className="tree-node patriarch"
+                                onClick={() => onMemberClick?.(patriarch)}
+                                style={{ cursor: 'pointer' }}
+                            >
+                                <div className="node-avatar">
+                                    {patriarch.photo ? (
+                                        <img src={patriarch.photo} alt={patriarch.name} className="node-photo" />
+                                    ) : (
+                                        patriarch.name.includes('Mamá') || patriarch.name.includes('Abuela') ? '👵' : '👴'
+                                    )}
+                                </div>
+                                <span className="node-name">{patriarch.name}</span>
+                            </div>
+                        ))
+                    ) : (
+                        <>
+                            <div className="tree-node patriarch placeholder">
+                                <div className="node-avatar">👴</div>
+                                <span className="node-name">Papá</span>
+                            </div>
+                            <div className="tree-connector horizontal" />
+                            <div className="tree-node patriarch placeholder">
+                                <div className="node-avatar">👵</div>
+                                <span className="node-name">Mamá</span>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
 
             <div className="tree-connector vertical main" />
 
-            {/* 12 Siblings with descendants */}
+            {/* 12 Siblings (founders) with descendants */}
             <div className="tree-section siblings">
                 <h3 className="section-label">
-                    Primera Generación - Los 12 Hermanos
-                    <span className="member-count">({patriarchs.length})</span>
+                    Los 12 Hermanos (Fundadores)
+                    <span className="member-count">({siblings.length})</span>
                 </h3>
                 <div className="tree-level children">
-                    {filteredPatriarchs.map((patriarch) => {
-                        // Get children - first check byParent, then by branch
-                        let children = byParent.get(patriarch.id) || [];
-                        if (children.length === 0 && patriarch.branchId) {
-                            // Fallback: get members in same branch that aren't patriarchs
-                            children = (byBranch.get(patriarch.branchId) || [])
-                                .filter(m => m.id !== patriarch.id)
-                                .slice(0, 10); // Limit for performance
+                    {filteredSiblings.map((sibling) => {
+                        // Get children of this sibling
+                        let children = byParent.get(sibling.id) || [];
+                        if (children.length === 0 && sibling.branchId) {
+                            // Fallback: get members in same branch that aren't the sibling
+                            children = (byBranch.get(sibling.branchId) || [])
+                                .filter(m => m.id !== sibling.id && !m.isPatriarch && m.relation !== 'SIBLING')
+                                .slice(0, 10);
                         }
 
                         return (
                             <MemberNode
-                                key={patriarch.id}
-                                member={patriarch}
+                                key={sibling.id}
+                                member={sibling}
                                 children={children}
                                 byParent={byParent}
                                 level={0}
