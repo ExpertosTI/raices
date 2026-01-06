@@ -1,7 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FloatingDock } from '../../../components/FloatingDock';
-import { useAuth } from '../../../context/AuthContext';
 import { soundManager } from '../../../utils/SoundManager';
 import './BlackJackGame.css'; // Reusing styles
 
@@ -9,7 +8,6 @@ const API_URL = import.meta.env.PROD ? 'https://raices.renace.tech/api' : 'http:
 
 export const BlackJackOnline = () => {
     const navigate = useNavigate();
-    const { user } = useAuth();
     const [tableId, setTableId] = useState<string | null>(null);
     const [tableState, setTableState] = useState<any>(null);
     const [loading, setLoading] = useState(false);
@@ -74,8 +72,8 @@ export const BlackJackOnline = () => {
                 body: JSON.stringify({
                     tableId: tId,
                     seatIndex,
-                    name: isBot ? `Bot ${seatIndex}` : user?.name || 'Invitado',
-                    avatar: isBot ? 'https://ui-avatars.com/api/?name=Bot' : user?.image,
+                    name: isBot ? `Bot ${seatIndex}` : 'Jugador',
+                    avatar: isBot ? 'https://ui-avatars.com/api/?name=Bot' : 'https://ui-avatars.com/api/?name=Player',
                     isBot
                 })
             });
@@ -137,7 +135,6 @@ export const BlackJackOnline = () => {
 
     if (!tableState) return <div className="loading">Cargando mesa...</div>;
 
-    const myPlayer = tableState.players.find((p: any) => p.id === playerId);
     const isMyTurn = tableState.status === 'PLAYING' && tableState.players[tableState.turnIndex]?.id === playerId;
 
     // Parse Hands
