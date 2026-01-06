@@ -120,7 +120,7 @@ model Branch {
 model FamilyMember {
   id           String        @id @default(cuid())
   userId       String?       @unique // If registered user
-  branchId     String
+  branchId     String?       // Optional for Patriarchs
   name         String
   birthDate    DateTime?
   deathDate    DateTime?
@@ -147,7 +147,7 @@ model FamilyMember {
   expectedChildCount Int?     @default(0)
   
   user         User?         @relation(fields: [userId], references: [id])
-  branch       Branch        @relation(fields: [branchId], references: [id])
+  branch       Branch?       @relation(fields: [branchId], references: [id])
   pendingClaims PendingClaim[]
   childVerifications FamilyVerification[] @relation("VerificationParent")
   
@@ -377,6 +377,7 @@ enum ParticipantStatus {
 
 model BlackjackTable {
   id          String   @id @default(cuid())
+  tableNumber Int      @unique @default(autoincrement())
   status      String   @default("WAITING") // WAITING, BETTING, DEALING, PLAYING, DEALER_TURN, FINISHED
   deck        String   @db.Text // JSON string of Card[]
   dealerHand  String   @db.Text // JSON string of Card[]

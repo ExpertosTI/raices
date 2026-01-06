@@ -25,7 +25,7 @@ export const isValidDate = (dateStr: string): boolean => {
 
 // Middleware: Validate Member Creation
 export const validateMemberInput = (req: Request, res: Response, next: NextFunction) => {
-    const { name, branchId, relation, birthDate } = req.body;
+    const { name, branchId, relation, birthDate, isPatriarch } = req.body;
 
     const errors: string[] = [];
 
@@ -33,7 +33,14 @@ export const validateMemberInput = (req: Request, res: Response, next: NextFunct
         errors.push('El nombre debe tener al menos 2 caracteres.');
     }
 
-    if (!branchId || typeof branchId !== 'string') {
+    // Valid relation types - include PATRIARCH and SIBLING for admin creation
+    const validRelations = ['PATRIARCH', 'SIBLING', 'CHILD', 'GRANDCHILD', 'GREAT_GRANDCHILD', 'SPOUSE', 'NEPHEW', 'OTHER'];
+
+    // branchId is required except for PATRIARCH and SIBLING (founders are linked to branches differently)
+    const relationValue = relation || (isPatriarch ? 'PATRIARCH' : null);
+    const requiresBranch = relationValue && !['PATRIARCH'].includes(relationValue);
+
+    if (requiresBranch && !branchId) {
         errors.push('Rama familiar es requerida.');
     }
 
@@ -41,12 +48,12 @@ export const validateMemberInput = (req: Request, res: Response, next: NextFunct
         errors.push('Fecha de nacimiento inválida.');
     }
 
-    const validRelations = ['CHILD', 'GRANDCHILD', 'GREAT_GRANDCHILD', 'SPOUSE', 'NEPHEW', 'OTHER'];
-    if (relation && !validRelations.includes(relation)) {
-        errors.push('Tipo de relación inválido.');
+    if (relationValue && !validRelations.includes(relationValue)) {
+        errors.push(`Tipo de relación inválido: ${relationValue}`);
     }
 
     if (errors.length > 0) {
+        console.log('Validation errors:', errors, 'Body:', req.body);
         return res.status(400).json({ error: 'Validation failed', details: errors });
     }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
@@ -9,16 +9,52 @@ import './EmailAuthScreen.css';
 // Google Client ID - MUST match server configuration
 const GOOGLE_CLIENT_ID = '609647959676-2jdrb9ursfnqi3uu6gmk2i6gj6ker42b.apps.googleusercontent.com';
 
+// Facebook App ID from Meta Console
+const FACEBOOK_APP_ID = '1216780823884014';
+
+// Initialize Facebook SDK
+declare global {
+    interface Window {
+        FB: any;
+        fbAsyncInit: () => void;
+    }
+}
+
 export const LoginScreen = () => {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const [fbReady, setFbReady] = useState(false);
     const isNative = Capacitor.isNativePlatform();
 
+    // Initialize Facebook SDK
     useEffect(() => {
         // Auto-redirect if already logged in
         if (localStorage.getItem('token')) {
             navigate('/app');
+            return;
+        }
+
+        // Load Facebook SDK
+        if (!window.FB) {
+            window.fbAsyncInit = function () {
+                window.FB.init({
+                    appId: FACEBOOK_APP_ID,
+                    cookie: true,
+                    xfbml: true,
+                    version: 'v18.0'
+                });
+                setFbReady(true);
+            };
+
+            // Load the SDK asynchronously
+            const script = document.createElement('script');
+            script.src = 'https://connect.facebook.net/es_LA/sdk.js';
+            script.async = true;
+            script.defer = true;
+            document.body.appendChild(script);
+        } else {
+            setFbReady(true);
         }
     }, [navigate]);
 
@@ -55,6 +91,53 @@ export const LoginScreen = () => {
         }
     };
 
+    const handleFacebookLogin = useCallback(() => {
+        if (!window.FB) {
+            setError('Facebook SDK no cargado. Recarga la página.');
+            return;
+        }
+
+        setIsLoading(true);
+        setError('');
+
+        window.FB.login(async (response: any) => {
+            if (response.authResponse) {
+                try {
+                    const res = await fetch('/api/auth/facebook', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            accessToken: response.authResponse.accessToken,
+                            userID: response.authResponse.userID
+                        }),
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        localStorage.setItem('token', data.token);
+                        localStorage.setItem('user', JSON.stringify(data.user));
+
+                        if (!data.user.familyMember) {
+                            navigate('/onboarding');
+                        } else {
+                            navigate('/app');
+                        }
+                    } else {
+                        const errData = await res.json();
+                        setError(errData.error || 'Error al verificar con Facebook.');
+                        setIsLoading(false);
+                    }
+                } catch (error) {
+                    console.error('Error with Facebook login:', error);
+                    setError('Error de conexión.');
+                    setIsLoading(false);
+                }
+            } else {
+                setIsLoading(false);
+            }
+        }, { scope: 'email,public_profile' });
+    }, [navigate]);
+
     // For native apps, we'll use email login primarily
     // Google Sign-In on native requires SHA-1 fingerprint configuration
     const renderNativeLogin = () => (
@@ -83,7 +166,7 @@ export const LoginScreen = () => {
         </>
     );
 
-    // For web, use Google OAuth + Email option
+    // For web, use Google OAuth + Facebook + Email option
     const renderWebLogin = () => (
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
             <div className="google-btn-wrapper">
@@ -96,6 +179,18 @@ export const LoginScreen = () => {
                     width="250"
                 />
             </div>
+
+            {/* Facebook Login Button */}
+            <button
+                className="facebook-login-btn"
+                onClick={handleFacebookLogin}
+                disabled={!fbReady || isLoading}
+            >
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                </svg>
+                Continuar con Facebook
+            </button>
 
             <div className="auth-divider">
                 <span>o</span>

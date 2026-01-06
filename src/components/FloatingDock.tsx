@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/FloatingDock.css';
 
@@ -16,14 +16,61 @@ const DOCK_ITEMS: DockItem[] = [
     { path: '/feed', icon: '💬', label: 'Feed' }
 ];
 
-export const FloatingDock: React.FC = () => {
+// Paths where dock should be minimizable (games/utilities)
+const MINIMIZABLE_PATHS = [
+    '/utilities',
+    '/utilities/'
+];
+
+interface FloatingDockProps {
+    forceMinimized?: boolean;
+}
+
+export const FloatingDock: React.FC<FloatingDockProps> = ({ forceMinimized }) => {
     const navigate = useNavigate();
     const location = useLocation();
+    const [minimized, setMinimized] = useState(() => {
+        const saved = localStorage.getItem('dock_minimized');
+        return saved === 'true';
+    });
+
+    // Check if we're in a minimizable area
+    const isMinimizableArea = MINIMIZABLE_PATHS.some(p => location.pathname.startsWith(p));
+    const showMinimizeButton = isMinimizableArea;
+    const isMinimized = forceMinimized !== undefined ? forceMinimized : (minimized && isMinimizableArea);
 
     const isActive = (path: string) => location.pathname === path;
 
+    const toggleMinimize = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const newState = !minimized;
+        setMinimized(newState);
+        localStorage.setItem('dock_minimized', String(newState));
+    };
+
+    if (isMinimized) {
+        return (
+            <button
+                className="dock-expand-btn"
+                onClick={toggleMinimize}
+                aria-label="Mostrar navegación"
+            >
+                <span>☰</span>
+            </button>
+        );
+    }
+
     return (
-        <nav className="floating-dock" aria-label="Navegación principal">
+        <nav className={`floating-dock ${showMinimizeButton ? 'with-toggle' : ''}`} aria-label="Navegación principal">
+            {showMinimizeButton && (
+                <button
+                    className="dock-minimize-btn"
+                    onClick={toggleMinimize}
+                    aria-label="Minimizar navegación"
+                >
+                    ✕
+                </button>
+            )}
             {DOCK_ITEMS.map((item) => (
                 <button
                     key={item.path}

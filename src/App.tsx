@@ -19,6 +19,10 @@ import { OnboardingScreen } from './modules/onboarding/OnboardingScreen';
 import { ProfileScreen } from './modules/profile/ProfileScreen';
 import { ProtectedRoute } from './modules/auth/components/ProtectedRoute';
 import { ConfirmDialogProvider } from './components/ConfirmDialog';
+// Legal Pages
+import { PrivacyScreen } from './modules/home/components/legal/PrivacyScreen';
+import { TermsScreen } from './modules/home/components/legal/TermsScreen';
+import { DataDeletionScreen } from './modules/home/components/legal/DataDeletionScreen';
 // Utilities
 import { UtilitiesScreen } from './modules/utilities/UtilitiesScreen';
 import { WhoIsWhoGame } from './modules/utilities/components/WhoIsWhoGame';
@@ -42,6 +46,11 @@ function App() {
           <Route path="/" element={<SplashScreen />} />
           <Route path="/select" element={<SelectionScreen />} />
           <Route path="/login" element={<LoginScreen />} />
+
+          {/* Legal Pages - Public */}
+          <Route path="/privacy" element={<PrivacyScreen />} />
+          <Route path="/terms" element={<TermsScreen />} />
+          <Route path="/data-deletion" element={<DataDeletionScreen />} />
 
           {/* Email Authentication Routes */}
           <Route path="/register-email" element={<EmailRegisterScreen />} />

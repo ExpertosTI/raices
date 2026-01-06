@@ -52,9 +52,25 @@ export const createTable = async (req: Request, res: Response) => {
                 status: 'WAITING'
             }
         });
-        res.json(table);
+        res.json({ id: table.id, tableNumber: table.tableNumber });
     } catch (error) {
         res.status(500).json({ error: 'Error creating table' });
+    }
+};
+
+export const getTableByNumber = async (req: Request, res: Response) => {
+    const num = parseInt(req.params.num);
+    if (isNaN(num)) return res.status(400).json({ error: 'Invalid table number' });
+
+    try {
+        const table = await prisma.blackjackTable.findUnique({
+            where: { tableNumber: num },
+            include: { players: { orderBy: { seatIndex: 'asc' } } }
+        });
+        if (!table) return res.status(404).json({ error: 'Table not found' });
+        res.json(table);
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching table' });
     }
 };
 

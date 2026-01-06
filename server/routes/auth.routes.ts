@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import {
     googleLogin,
+    facebookLogin,
     me,
     login,
     registerWithEmail,
@@ -17,6 +18,9 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 // Google OAuth
 router.post('/google', googleLogin);
+
+// Facebook OAuth
+router.post('/facebook', facebookLogin);
 
 // Email Authentication
 router.post('/register', registerWithEmail);

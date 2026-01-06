@@ -2,18 +2,20 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FloatingDock } from '../../../components/FloatingDock';
 import { soundManager } from '../../../utils/SoundManager';
-import './BlackJackGame.css'; // Reusing styles
+import './BlackJackGame.css';
 
 const API_URL = import.meta.env.PROD ? 'https://raices.renace.tech/api' : 'http://localhost:3001/api';
 
 export const BlackJackOnline = () => {
     const navigate = useNavigate();
     const [tableId, setTableId] = useState<string | null>(null);
+    const [tableNumber, setTableNumber] = useState<number | null>(null);
     const [tableState, setTableState] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [playerId, setPlayerId] = useState<string | null>(null);
+    const [joinInput, setJoinInput] = useState('');
 
-    // Polling
+    // Polling for game state updates
     useEffect(() => {
         if (!tableId) return;
 
@@ -24,12 +26,10 @@ export const BlackJackOnline = () => {
                     const data = await res.json();
                     setTableState(data);
 
-                    // Check for Bot Turn to trigger it
+                    // Auto-trigger bot moves when it's a bot's turn
                     if (data.status === 'PLAYING') {
                         const currentPlayer = data.players[data.turnIndex];
-                        if (currentPlayer && currentPlayer.isBot && !currentPlayer.processing) {
-                            // Trigger bot move
-                            // Check local flag or time to avoid spam
+                        if (currentPlayer?.isBot) {
                             fetch(`${API_URL}/blackjack/bot-move`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
@@ -41,7 +41,7 @@ export const BlackJackOnline = () => {
             } catch (e) {
                 console.error(e);
             }
-        }, 2000);
+        }, 1500);
 
         return () => clearInterval(interval);
     }, [tableId]);
@@ -52,10 +52,36 @@ export const BlackJackOnline = () => {
             const res = await fetch(`${API_URL}/blackjack/table`, { method: 'POST' });
             const data = await res.json();
             setTableId(data.id);
+            setTableNumber(data.tableNumber);
+            soundManager.playTone(800, 'sine', 0.1);
             // Auto join as Seat 0
             joinGame(data.id, 0);
         } catch (e) {
             console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const joinByNumber = async () => {
+        const num = parseInt(joinInput);
+        if (isNaN(num) || num < 1) return;
+
+        setLoading(true);
+        try {
+            const res = await fetch(`${API_URL}/blackjack/table/number/${num}`);
+            if (res.ok) {
+                const data = await res.json();
+                setTableId(data.id);
+                setTableNumber(data.tableNumber);
+                setTableState(data);
+                soundManager.playTone(600, 'sine', 0.1);
+            } else {
+                alert('Mesa no encontrada');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Error al buscar mesa');
         } finally {
             setLoading(false);
         }
@@ -72,14 +98,16 @@ export const BlackJackOnline = () => {
                 body: JSON.stringify({
                     tableId: tId,
                     seatIndex,
-                    name: isBot ? `Bot ${seatIndex}` : 'Jugador',
-                    avatar: isBot ? 'https://ui-avatars.com/api/?name=Bot' : 'https://ui-avatars.com/api/?name=Player',
+                    name: isBot ? `Bot ${seatIndex + 1}` : 'Jugador',
+                    avatar: isBot ? 'https://ui-avatars.com/api/?name=Bot&background=random' : 'https://ui-avatars.com/api/?name=Tu&background=047857',
                     isBot
                 })
             });
             const data = await res.json();
             if (!isBot && !playerId) setPlayerId(data.id);
-            // Refresh
+            soundManager.playTone(500, 'sine', 0.08);
+
+            // Refresh table state
             const tableRes = await fetch(`${API_URL}/blackjack/table/${tId}`);
             setTableState(await tableRes.json());
         } catch (e) {
@@ -95,7 +123,7 @@ export const BlackJackOnline = () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: playerId, action })
             });
-            soundManager.playTone(500, 'sine', 0.1);
+            soundManager.playTone(action === 'hit' ? 400 : 600, 'sine', 0.1);
         } catch (e) {
             console.error(e);
         }
@@ -104,64 +132,106 @@ export const BlackJackOnline = () => {
     const deal = async () => {
         if (!tableId) return;
         await fetch(`${API_URL}/blackjack/table/${tableId}/deal`, { method: 'POST' });
-        soundManager.playTone(600, 'square', 0.05);
+        soundManager.playTone(700, 'square', 0.05);
     };
 
+    const leaveTable = () => {
+        setTableId(null);
+        setTableNumber(null);
+        setTableState(null);
+        setPlayerId(null);
+    };
+
+    // Lobby View
     if (!tableId) {
         return (
             <div className="blackjack-screen lobby">
                 <header className="game-header">
-                    <button className="back-btn" onClick={() => navigate('/utilities')}>←</button>
-                    <h3>Blackjack Online</h3>
+                    <button className="back-btn" onClick={() => navigate('/utilities')}>← Volver</button>
+                    <h3>🃏 Blackjack Online</h3>
                 </header>
                 <div className="lobby-content">
-                    <button className="action-btn deal" onClick={createTable} disabled={loading}>
-                        {loading ? 'Creando...' : 'Crear Mesa Nueva'}
-                    </button>
-                    <div className="join-manual">
-                        <input type="text" placeholder="ID de Mesa" id="join-id" />
-                        <button className="action-btn hit" onClick={() => {
-                            const val = (document.getElementById('join-id') as HTMLInputElement).value;
-                            if (val) {
-                                setTableId(val);
-                                // Prompt for seat or auto-find? For now just view.
-                            }
-                        }}>Unirse</button>
+                    <div className="lobby-card">
+                        <h2>Crear Nueva Mesa</h2>
+                        <p>Inicia una partida y comparte el número</p>
+                        <button className="action-btn deal" onClick={createTable} disabled={loading}>
+                            {loading ? '⏳ Creando...' : '🎲 Crear Mesa'}
+                        </button>
+                    </div>
+
+                    <div className="lobby-divider">
+                        <span>ó</span>
+                    </div>
+
+                    <div className="lobby-card">
+                        <h2>Unirse a Mesa</h2>
+                        <p>Ingresa el número de mesa</p>
+                        <div className="join-form">
+                            <input
+                                type="number"
+                                placeholder="Número de mesa"
+                                value={joinInput}
+                                onChange={(e) => setJoinInput(e.target.value)}
+                                min="1"
+                                className="table-input"
+                            />
+                            <button
+                                className="action-btn hit"
+                                onClick={joinByNumber}
+                                disabled={loading || !joinInput}
+                            >
+                                🚀 Unirse
+                            </button>
+                        </div>
                     </div>
                 </div>
+                <FloatingDock />
             </div>
         );
     }
 
-    if (!tableState) return <div className="loading">Cargando mesa...</div>;
+    if (!tableState) return <div className="blackjack-screen"><div className="loading-spinner">⏳ Cargando mesa...</div></div>;
 
     const isMyTurn = tableState.status === 'PLAYING' && tableState.players[tableState.turnIndex]?.id === playerId;
-
-    // Parse Hands
     const dealerHand = JSON.parse(tableState.dealerHand);
+    const playerCount = tableState.players?.length || 0;
 
     return (
         <div className="blackjack-screen">
             <header className="game-header">
-                <button className="back-btn" onClick={() => setTableId(null)}>Salir</button>
+                <button className="back-btn" onClick={leaveTable}>← Salir</button>
                 <div className="header-info">
-                    <h3>Mesa: {tableId.slice(0, 4)}</h3>
-                    <span className="status-badge">{tableState.status}</span>
+                    <h3 className="table-title">🎰 Mesa #{tableNumber}</h3>
+                    <span className={`status-badge status-${tableState.status.toLowerCase()}`}>
+                        {tableState.status === 'WAITING' && '⏳ Esperando'}
+                        {tableState.status === 'PLAYING' && '🎮 Jugando'}
+                        {tableState.status === 'FINISHED' && '🏆 Terminado'}
+                    </span>
                 </div>
+                <div className="player-count">👥 {playerCount}/3</div>
             </header>
 
             <div className="table-area online-table">
-                {/* Dealer */}
-                <div className="hand dealer-hand">
-                    <div className="hand-header">
-                        <h2>Dealer ({tableState.status === 'PLAYING' ? '?' : getScoreSum(dealerHand)})</h2>
-                    </div>
-                    <div className="cards">
-                        {dealerHand.map((c: any, i: number) => (
-                            <div key={i} className={`card ${tableState.status === 'PLAYING' && i === 0 ? 'hidden' : ''} ${['♥', '♦'].includes(c.suit) ? 'red' : ''}`}>
-                                {tableState.status === 'PLAYING' && i === 0 ? '?' : `${c.value}${c.suit}`}
-                            </div>
-                        ))}
+                {/* Dealer Section */}
+                <div className="dealer-section">
+                    <div className="hand dealer-hand">
+                        <div className="hand-header">
+                            <span className="dealer-label">🎩 Dealer</span>
+                            <span className="score-badge">
+                                {tableState.status === 'PLAYING' ? '?' : getScoreSum(dealerHand)}
+                            </span>
+                        </div>
+                        <div className="cards">
+                            {dealerHand.map((c: any, i: number) => (
+                                <div
+                                    key={i}
+                                    className={`card ${tableState.status === 'PLAYING' && i === 0 ? 'hidden' : ''} ${['♥', '♦'].includes(c.suit) ? 'red' : ''}`}
+                                    style={{ animationDelay: `${i * 0.1}s` }}
+                                >
+                                    {tableState.status === 'PLAYING' && i === 0 ? '?' : `${c.value}${c.suit}`}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
@@ -169,28 +239,48 @@ export const BlackJackOnline = () => {
                 <div className="players-grid">
                     {[0, 1, 2].map(seat => {
                         const p = tableState.players.find((pl: any) => pl.seatIndex === seat);
+                        const isCurrentTurn = tableState.turnIndex === seat && tableState.status === 'PLAYING';
+                        const isMe = p?.id === playerId;
+
                         return (
-                            <div key={seat} className={`seat ${p ? 'occupied' : 'empty'} ${tableState.turnIndex === seat && tableState.status === 'PLAYING' ? 'active-turn' : ''}`}>
+                            <div
+                                key={seat}
+                                className={`seat ${p ? 'occupied' : 'empty'} ${isCurrentTurn ? 'active-turn' : ''} ${isMe ? 'my-seat' : ''}`}
+                            >
                                 {p ? (
                                     <div className="player-spot">
-                                        <div className="name-tag">{p.name} {p.isBot && '🤖'}</div>
+                                        <div className="player-avatar">
+                                            <img src={p.avatar} alt={p.name} />
+                                            {p.isBot && <span className="bot-badge">🤖</span>}
+                                        </div>
+                                        <div className="name-tag">
+                                            {p.name}
+                                            {isMe && <span className="you-badge">Tú</span>}
+                                        </div>
+                                        <div className="player-money">💰 ${p.money}</div>
                                         <div className="player-hands">
                                             {JSON.parse(p.hands).map((h: any, hi: number) => (
-                                                <div key={hi} className={`hand-mini ${h.status}`}>
+                                                <div key={hi} className={`hand-mini hand-${h.status.toLowerCase()}`}>
                                                     <div className="cards-mini">
                                                         {h.cards.map((c: any, ci: number) => (
-                                                            <span key={ci} className={['♥', '♦'].includes(c.suit) ? 'red' : ''}>{c.value}{c.suit}</span>
+                                                            <span key={ci} className={['♥', '♦'].includes(c.suit) ? 'red' : ''}>
+                                                                {c.value}{c.suit}
+                                                            </span>
                                                         ))}
                                                     </div>
-                                                    <div className="bet-mini">${h.bet}</div>
+                                                    <div className="hand-info">
+                                                        <span className="hand-score">{getScoreSum(h.cards)}</span>
+                                                        <span className="bet-mini">${h.bet}</span>
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
                                 ) : (
                                     <div className="empty-seat-actions">
-                                        <button onClick={() => joinGame(tableId, seat)}>Sentarse</button>
-                                        <button onClick={() => joinGame(tableId, seat, true)}>+Bot</button>
+                                        <span className="seat-number">Asiento {seat + 1}</span>
+                                        <button onClick={() => joinGame(tableId, seat)}>👤 Sentarse</button>
+                                        <button onClick={() => joinGame(tableId, seat, true)}>🤖 +Bot</button>
                                     </div>
                                 )}
                             </div>
@@ -199,19 +289,38 @@ export const BlackJackOnline = () => {
                 </div>
             </div>
 
+            {/* Controls */}
             <div className="controls">
                 {tableState.status === 'WAITING' || tableState.status === 'FINISHED' ? (
-                    <button className="action-btn deal" onClick={deal}>REPARTIR MANO</button>
+                    <div className="deal-section">
+                        {playerCount > 0 ? (
+                            <button className="action-btn deal pulse" onClick={deal}>
+                                🃏 REPARTIR CARTAS
+                            </button>
+                        ) : (
+                            <p className="waiting-msg">Esperando jugadores...</p>
+                        )}
+                    </div>
                 ) : isMyTurn ? (
                     <div className="play-actions">
-                        <button className="action-btn hit" onClick={() => sendAction('hit')}>Pedir</button>
-                        <button className="action-btn stand" onClick={() => sendAction('stand')}>Plantarse</button>
-                        <button className="action-btn double" onClick={() => sendAction('double')}>Doblar</button>
-                        {/* Split check logic simplified */}
-                        <button className="action-btn" onClick={() => sendAction('split')}>Dividir</button>
+                        <button className="action-btn hit" onClick={() => sendAction('hit')}>
+                            ➕ Pedir
+                        </button>
+                        <button className="action-btn stand" onClick={() => sendAction('stand')}>
+                            ✋ Plantarse
+                        </button>
+                        <button className="action-btn double" onClick={() => sendAction('double')}>
+                            💰 Doblar
+                        </button>
+                        <button className="action-btn split" onClick={() => sendAction('split')}>
+                            ✂️ Dividir
+                        </button>
                     </div>
                 ) : (
-                    <div className="waiting-msg">Esperando turno...</div>
+                    <div className="waiting-turn">
+                        <span className="spinner">⏳</span>
+                        <span>Esperando turno...</span>
+                    </div>
                 )}
             </div>
 
@@ -220,8 +329,9 @@ export const BlackJackOnline = () => {
     );
 };
 
-// Helper for score (client side display only)
+// Helper for score calculation
 function getScoreSum(hand: any[]) {
+    if (!hand || hand.length === 0) return 0;
     let score = 0;
     let aces = 0;
     hand.forEach(c => {

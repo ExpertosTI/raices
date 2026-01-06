@@ -446,6 +446,135 @@ export const googleLogin = async (req: Request, res: Response) => {
     }
 };
 
+// ==================== FACEBOOK OAUTH ====================
+
+// Facebook OAuth Login
+export const facebookLogin = async (req: Request, res: Response) => {
+    const { accessToken, userID } = req.body;
+
+    if (!accessToken || !userID) {
+        return res.status(400).json({ error: 'Facebook access token and user ID are required' });
+    }
+
+    try {
+        // Verify token with Facebook Graph API
+        const fbResponse = await fetch(
+            `https://graph.facebook.com/v18.0/me?fields=id,name,email,picture.type(large)&access_token=${accessToken}`
+        );
+
+        if (!fbResponse.ok) {
+            return res.status(400).json({ error: 'Invalid Facebook token' });
+        }
+
+        const fbUser = await fbResponse.json();
+
+        // Verify the user ID matches
+        if (fbUser.id !== userID) {
+            return res.status(400).json({ error: 'User ID mismatch' });
+        }
+
+        const email = fbUser.email;
+        const name = fbUser.name;
+        const picture = fbUser.picture?.data?.url;
+
+        if (!email) {
+            return res.status(400).json({
+                error: 'No pudimos obtener tu email de Facebook. Asegúrate de dar permiso de email.'
+            });
+        }
+
+        // Find or create user
+        let user = await prisma.user.findUnique({
+            where: { email },
+            include: { familyMember: true }
+        });
+
+        if (!user) {
+            user = await prisma.user.create({
+                data: {
+                    email,
+                    emailVerified: new Date(), // Facebook emails are pre-verified
+                    name: name || email.split('@')[0],
+                    image: picture,
+                    role: ((email === process.env.ADMIN_EMAIL || email === 'expertostird@gmail.com') ? 'PATRIARCH' : 'MEMBER') as UserRole
+                },
+                include: { familyMember: true }
+            });
+        } else {
+            // Update profile picture if not set
+            if (!user.image && picture) {
+                user = await prisma.user.update({
+                    where: { email },
+                    data: { image: picture, emailVerified: user.emailVerified || new Date() },
+                    include: { familyMember: true }
+                });
+            } else if (!user.emailVerified) {
+                user = await prisma.user.update({
+                    where: { email },
+                    data: { emailVerified: new Date() },
+                    include: { familyMember: true }
+                });
+            }
+        }
+
+        // Link Account if not exists
+        const account = await prisma.account.findUnique({
+            where: {
+                provider_providerAccountId: {
+                    provider: 'facebook',
+                    providerAccountId: userID
+                }
+            }
+        });
+
+        if (!account) {
+            await prisma.account.create({
+                data: {
+                    userId: user.id,
+                    type: 'oauth',
+                    provider: 'facebook',
+                    providerAccountId: userID,
+                    access_token: accessToken
+                }
+            });
+        } else {
+            // Update access token
+            await prisma.account.update({
+                where: {
+                    provider_providerAccountId: {
+                        provider: 'facebook',
+                        providerAccountId: userID
+                    }
+                },
+                data: { access_token: accessToken }
+            });
+        }
+
+        // Generate JWT
+        const token = jwt.sign(
+            { id: user.id, email: user.email, role: user.role },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        res.json({
+            token,
+            user: {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                image: user.image,
+                role: user.role,
+                familyMember: user.familyMember
+            }
+        });
+
+    } catch (error) {
+        console.error('Facebook Login error:', error);
+        res.status(500).json({ error: 'Error al iniciar sesión con Facebook' });
+    }
+};
+
 // ==================== UTILITY ====================
 
 // Mock login for development
