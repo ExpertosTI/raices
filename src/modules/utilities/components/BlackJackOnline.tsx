@@ -14,6 +14,7 @@ export const BlackJackOnline = () => {
     const [loading, setLoading] = useState(false);
     const [playerId, setPlayerId] = useState<string | null>(null);
     const [joinInput, setJoinInput] = useState('');
+    const [activeTables, setActiveTables] = useState<any[]>([]);
 
     // Polling for game state updates
     useEffect(() => {
@@ -45,6 +46,20 @@ export const BlackJackOnline = () => {
 
         return () => clearInterval(interval);
     }, [tableId]);
+
+    // Load active tables when in lobby
+    useEffect(() => {
+        if (!tableId) {
+            loadActiveTables();
+        }
+    }, [tableId]);
+
+    const loadActiveTables = async () => {
+        try {
+            const res = await fetch(`${API_URL}/blackjack/tables/active`);
+            if (res.ok) setActiveTables(await res.json());
+        } catch (e) { console.error(e); }
+    };
 
     const createTable = async () => {
         setLoading(true);
@@ -115,6 +130,25 @@ export const BlackJackOnline = () => {
         }
     };
 
+    const placeBet = async (amount: number) => {
+        if (!playerId) return;
+        try {
+            const res = await fetch(`${API_URL}/blackjack/bet`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ playerId, amount })
+            });
+            if (res.ok) {
+                soundManager.playClick();
+                // Optimistic update
+                setTableState((prev: any) => ({
+                    ...prev,
+                    players: prev.players.map((p: any) => p.id === playerId ? { ...p, currentBet: amount } : p)
+                }));
+            }
+        } catch (e) { console.error(e); }
+    };
+
     const sendAction = async (action: string) => {
         if (!playerId) return;
         try {
@@ -147,9 +181,11 @@ export const BlackJackOnline = () => {
         setTableNumber(null);
         setTableState(null);
         setPlayerId(null);
+        localStorage.removeItem('lastTableId');
     };
 
-    // Lobby View
+    // --- RENDER ---
+
     if (!tableId) {
         return (
             <div className="blackjack-screen lobby">
@@ -166,29 +202,39 @@ export const BlackJackOnline = () => {
                         </button>
                     </div>
 
-                    <div className="lobby-divider">
-                        <span>ó</span>
-                    </div>
+                    <div className="lobby-divider"><span>ó</span></div>
 
                     <div className="lobby-card">
                         <h2>Unirse a Mesa</h2>
-                        <p>Ingresa el número de mesa</p>
-                        <div className="join-form">
-                            <input
-                                type="number"
-                                placeholder="Número de mesa"
-                                value={joinInput}
-                                onChange={(e) => setJoinInput(e.target.value)}
-                                min="1"
-                                className="table-input"
-                            />
-                            <button
-                                className="action-btn hit"
-                                onClick={joinByNumber}
-                                disabled={loading || !joinInput}
-                            >
-                                🚀 Unirse
-                            </button>
+                        <div className="join-sections">
+                            <div className="join-input-row">
+                                <input
+                                    type="number"
+                                    placeholder="# Mesa"
+                                    value={joinInput}
+                                    onChange={(e) => setJoinInput(e.target.value)}
+                                    className="table-input"
+                                />
+                                <button className="action-btn hit" onClick={joinByNumber} disabled={!joinInput}>🚀</button>
+                            </div>
+
+                            <div className="active-tables-list">
+                                <h4>Mesas Activas ({activeTables.length}) <button className="refresh-btn" onClick={loadActiveTables}>↻</button></h4>
+                                {activeTables.length === 0 ? <p className="no-tables">No hay mesas disponibles</p> : (
+                                    <div className="tables-scroll">
+                                        {activeTables.map(t => (
+                                            <div key={t.id} className="table-item" onClick={() => {
+                                                setTableId(t.id);
+                                                setTableNumber(t.tableNumber);
+                                                localStorage.setItem('lastTableId', t.id);
+                                            }}>
+                                                <span>Mesa #{t.tableNumber}</span>
+                                                <span className="player-count-badge">👥 {t.players.length}/3</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -286,8 +332,8 @@ export const BlackJackOnline = () => {
                                 ) : (
                                     <div className="empty-seat-actions">
                                         <span className="seat-number">Asiento {seat + 1}</span>
-                                        <button onClick={() => joinGame(tableId, seat)}>👤 Sentarse</button>
-                                        <button onClick={() => joinGame(tableId, seat, true)}>🤖 +Bot</button>
+                                        <button onClick={() => joinGame(tableId!, seat)}>👤 Sentarse</button>
+                                        <button onClick={() => joinGame(tableId!, seat, true)}>🤖 +Bot</button>
                                     </div>
                                 )}
                             </div>
@@ -296,32 +342,42 @@ export const BlackJackOnline = () => {
                 </div>
             </div>
 
-            {/* Controls */}
             <div className="controls">
                 {tableState.status === 'WAITING' || tableState.status === 'FINISHED' ? (
-                    <div className="deal-section">
-                        {playerCount > 0 ? (
-                            <button className="action-btn deal pulse" onClick={deal}>
-                                🃏 REPARTIR CARTAS
-                            </button>
-                        ) : (
-                            <p className="waiting-msg">Esperando jugadores...</p>
+                    <div className="betting-phase">
+                        {playerId && tableState.players.find((p: any) => p.id === playerId) && (
+                            <div className="chips-selector">
+                                <p>Tu Apuesta: ${tableState.players.find((p: any) => p.id === playerId)?.currentBet || 0}</p>
+                                <div className="chips-row">
+                                    {[10, 50, 100, 500].map(val => (
+                                        <button
+                                            key={val}
+                                            className="chip-btn"
+                                            onClick={() => placeBet(val)}
+                                            style={{ borderColor: val === 10 ? '#fff' : val === 50 ? 'blue' : val === 100 ? 'red' : 'gold' }}
+                                        >
+                                            ${val}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                         )}
+                        <div className="deal-section">
+                            {playerCount > 0 ? (
+                                <button className="action-btn deal pulse" onClick={deal}>
+                                    🃏 REPARTIR CARTAS
+                                </button>
+                            ) : (
+                                <p className="waiting-msg">Esperando jugadores...</p>
+                            )}
+                        </div>
                     </div>
                 ) : isMyTurn ? (
                     <div className="play-actions">
-                        <button className="action-btn hit" onClick={() => sendAction('hit')}>
-                            ➕ Pedir
-                        </button>
-                        <button className="action-btn stand" onClick={() => sendAction('stand')}>
-                            ✋ Plantarse
-                        </button>
-                        <button className="action-btn double" onClick={() => sendAction('double')}>
-                            💰 Doblar
-                        </button>
-                        <button className="action-btn split" onClick={() => sendAction('split')}>
-                            ✂️ Dividir
-                        </button>
+                        <button className="action-btn hit" onClick={() => sendAction('hit')}>➕ Pedir</button>
+                        <button className="action-btn stand" onClick={() => sendAction('stand')}>✋ Plantarse</button>
+                        <button className="action-btn double" onClick={() => sendAction('double')}>💰 Doblar</button>
+                        <button className="action-btn split" onClick={() => sendAction('split')}>✂️ Dividir</button>
                     </div>
                 ) : (
                     <div className="waiting-turn">
@@ -330,7 +386,6 @@ export const BlackJackOnline = () => {
                     </div>
                 )}
             </div>
-
             <FloatingDock />
         </div>
     );

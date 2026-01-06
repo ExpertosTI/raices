@@ -54,27 +54,20 @@ export const SpaceInvadersGame = () => {
             // All with photos
             const valid = members.filter(m => m.photo);
 
-            // Randomly pick "enemies" and "uncles"
-            const shuffled = valid.sort(() => 0.5 - Math.random());
+            // Use all available photos for both enemies and uncles to ensure variety
+            const allImages: HTMLImageElement[] = [];
 
-            const loadedEnemies: HTMLImageElement[] = [];
-            const loadedUncles: HTMLImageElement[] = [];
-
-            // Load images
-            for (let i = 0; i < shuffled.length; i++) {
+            for (const member of valid) {
                 const img = new Image();
-                img.src = shuffled[i].photo!;
-                if (i < 15) loadedEnemies.push(img); // First 15 are enemies
-                else loadedUncles.push(img); // Rest are uncles
+                img.src = member.photo!;
+                allImages.push(img);
             }
 
-            // Fallback if not enough
-            if (loadedUncles.length === 0 && loadedEnemies.length > 0) {
-                loadedUncles.push(loadedEnemies[0]);
-            }
+            // Shuffle for enemies
+            imagesCache.current = [...allImages].sort(() => 0.5 - Math.random());
 
-            imagesCache.current = loadedEnemies;
-            uncleImages.current = loadedUncles;
+            // Shuffle differently for uncles
+            uncleImages.current = [...allImages].sort(() => 0.5 - Math.random());
 
             initGame(1);
         } catch (e) {

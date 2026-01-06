@@ -24,15 +24,29 @@ const getRelationLabel = (relation: string) => {
 };
 
 export const HorizontalTree: React.FC<TreeProps> = ({ members, onMemberClick }) => {
-    // ONLY siblings (12 hermanos) - NOT patriarchs
-    const siblings = members.filter(m => m.relation === 'SIBLING' && !m.isPatriarch).sort((a, b) => {
-        const branchA = FAMILY_BRANCHES.find(br => br.name === a.name);
-        const branchB = FAMILY_BRANCHES.find(br => br.name === b.name);
+    // Helper to identify the 12 Branch Founders
+    const isFounder = (m: FamilyMember) => {
+        const mName = m.name.toLowerCase().trim();
+        const firstWord = mName.split(' ')[0];
+
+        return FAMILY_BRANCHES.some(br => {
+            const bName = br.name.toLowerCase();
+            return mName.includes(bName) || bName.includes(mName) || bName.startsWith(firstWord);
+        });
+    };
+
+    // The 12 Siblings (Founders) - Filter by name match from constants
+    const siblings = members.filter(m => isFounder(m)).sort((a, b) => {
+        const branchA = FAMILY_BRANCHES.find(br => a.name.includes(br.name) || br.name === a.name);
+        const branchB = FAMILY_BRANCHES.find(br => b.name.includes(br.name) || br.name === b.name);
         return (branchA?.order || 0) - (branchB?.order || 0);
     });
 
-    // Descendants are everyone except patriarchs and siblings
-    const descendants = members.filter(m => !m.isPatriarch && m.relation !== 'SIBLING');
+    // Root Patriarchs are those marked as patriarch but NOT in the founders list
+    const rootPatriarchs = members.filter(m => m.isPatriarch && !isFounder(m));
+
+    // Descendants are everyone else
+    const descendants = members.filter(m => !m.isPatriarch && !isFounder(m));
 
     const getEmoji = (name: string) => {
         const femaleNames = ['Lorenza', 'Carmen', 'Andrea', 'Mercedes', 'Xiomara', 'Bernarda'];
@@ -51,7 +65,7 @@ export const HorizontalTree: React.FC<TreeProps> = ({ members, onMemberClick }) 
             <div className="tree-column">
                 <div className="column-label">Los Patriarcas</div>
                 <div className="patriarch-pair">
-                    {members.filter(m => m.isPatriarch).map(patriarch => (
+                    {rootPatriarchs.map(patriarch => (
                         <div
                             key={patriarch.id}
                             className="tree-node patriarch"

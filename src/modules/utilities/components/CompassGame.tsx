@@ -77,7 +77,12 @@ export const CompassGame = () => {
             <div className="compass-container">
                 <div
                     className="compass-dial"
-                    style={{ transform: `rotate(${-orientation}deg)` }}
+                    style={{
+                        transform: `rotate(${-orientation}deg)`,
+                        borderColor: isAligned ? '#4ade80' : '#D4AF37',
+                        boxShadow: isAligned ? '0 0 30px #4ade80' : 'none',
+                        transition: 'box-shadow 0.3s'
+                    }}
                 >
                     <div className="marker north">N</div>
                     <div className="marker east">E</div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/FloatingDock.css';
 
@@ -48,12 +48,74 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({ forceMinimized }) =>
         localStorage.setItem('dock_minimized', String(newState));
     };
 
+    // Drag Logic
+    const [position, setPosition] = useState<{ x: number, y: number } | null>(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const [isPressed, setIsPressed] = useState(false);
+    const dragStartRef = useRef<{ x: number, y: number } | null>(null);
+
+    const onDown = (clientX: number, clientY: number) => {
+        setIsPressed(true);
+        setIsDragging(false);
+        dragStartRef.current = { x: clientX, y: clientY };
+    };
+
+    useEffect(() => {
+        if (!isPressed) return;
+
+        const handleMove = (e: MouseEvent | TouchEvent) => {
+            const clientX = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
+            const clientY = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
+
+            if (!dragStartRef.current) return;
+            const dx = clientX - dragStartRef.current.x;
+            const dy = clientY - dragStartRef.current.y;
+
+            if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+                setIsDragging(true);
+                const btn = document.getElementById('dock-expand-btn');
+                if (btn) {
+                    const rect = btn.getBoundingClientRect();
+                    setPosition({
+                        x: rect.left + dx,
+                        y: rect.top + dy
+                    });
+                    dragStartRef.current = { x: clientX, y: clientY };
+                }
+            }
+        };
+
+        const handleEnd = () => {
+            setIsPressed(false);
+            dragStartRef.current = null;
+            setTimeout(() => setIsDragging(false), 100);
+        };
+
+        window.addEventListener('mousemove', handleMove);
+        window.addEventListener('touchmove', handleMove);
+        window.addEventListener('mouseup', handleEnd);
+        window.addEventListener('touchend', handleEnd);
+
+        return () => {
+            window.removeEventListener('mousemove', handleMove);
+            window.removeEventListener('touchmove', handleMove);
+            window.removeEventListener('mouseup', handleEnd);
+            window.removeEventListener('touchend', handleEnd);
+        };
+    }, [isPressed]);
+
     if (isMinimized) {
         return (
             <button
+                id="dock-expand-btn"
                 className="dock-expand-btn"
-                onClick={toggleMinimize}
+                onClick={(e) => {
+                    if (!isDragging) toggleMinimize(e);
+                }}
+                onMouseDown={(e) => onDown(e.clientX, e.clientY)}
+                onTouchStart={(e) => onDown(e.touches[0].clientX, e.touches[0].clientY)}
                 aria-label="Mostrar navegación"
+                style={position ? { left: position.x, top: position.y, bottom: 'auto', transform: 'none' } : {}}
             >
                 <span>☰</span>
             </button>

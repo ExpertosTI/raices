@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import type { FamilyMember } from '../../../types';
+import { FAMILY_BRANCHES } from '../../family/constants';
 import './VerticalTree.css';
 
 interface Props {
@@ -7,9 +8,21 @@ interface Props {
     onMemberClick?: (member: FamilyMember) => void;
 }
 
+// Helper to identify the 12 Branch Founders
+const isFounder = (m: FamilyMember) => {
+    const mName = m.name.toLowerCase().trim();
+    const firstWord = mName.split(' ')[0];
+
+    return FAMILY_BRANCHES.some(br => {
+        const bName = br.name.toLowerCase();
+        return mName.includes(bName) || bName.includes(mName) || bName.startsWith(firstWord);
+    });
+};
+
 // Build a hierarchical tree structure
 const buildTree = (members: FamilyMember[]) => {
-    const patriarchs = members.filter(m => m.isPatriarch);
+    // Root Patriarchs are those marked as patriarch but NOT in the founders list
+    const patriarchs = members.filter(m => m.isPatriarch && !isFounder(m));
     const byParent = new Map<string, FamilyMember[]>();
 
     // Group members by their parentId
@@ -158,8 +171,8 @@ export const VerticalTree: React.FC<Props> = ({ members, onMemberClick }) => {
         setExpandedNodes(new Set());
     };
 
-    // Separate: siblings are the 12 hermanos (SIBLING relation, not patriarchs)
-    const siblings = members.filter(m => m.relation === 'SIBLING' && !m.isPatriarch);
+    // Separate: siblings are the 12 hermanos (Founders)
+    const siblings = members.filter(m => isFounder(m));
 
     // Filter members by search
     const filteredSiblings = searchQuery

@@ -310,27 +310,23 @@ export const BattleshipGame = () => {
 
                     {message && <div className="game-toast">{message}</div>}
 
-                    <div className="board-wrapper">
-                        {/* Radar overlay */}
-                        <div className="radar-scan"></div>
+                    <div className="battleship-layout" style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', maxWidth: '400px', margin: '0 auto' }}>
 
-                        <div className="board-container">
-                            <div className="grid-labels">
-                                <div className="corner"></div>
-                                {Array(8).fill(0).map((_, i) => <div key={i} className="col-label">{i + 1}</div>)}
-                                {Array(8).fill(0).map((_, i) => (
-                                    <div key={`row-${i}`}>
-                                        <div className="row-label">{String.fromCharCode(65 + i)}</div>
-                                        {Array(8).fill(0).map((_, j) => {
-                                            // Render logic
-                                            let cellClass = 'cell empty';
-                                            let content = '';
-
-                                            if (gameState === 'SETUP') {
-                                                const board = currentPlayerBoard;
-                                                if (board[i][j] === 'ship') cellClass = 'cell ship';
-                                            } else {
+                        {/* 1. OFFENSIVE BOARD (RADAR) - My guesses */}
+                        <div className="board-section">
+                            <h3>📡 RADAR (Tus ataques)</h3>
+                            <div className="board-container">
+                                <div className="grid-labels">
+                                    <div className="corner"></div>
+                                    {Array(8).fill(0).map((_, i) => <div key={i} className="col-label">{i + 1}</div>)}
+                                    {Array(8).fill(0).map((_, i) => (
+                                        <div key={`row-${i}`} style={{ display: 'contents' }}>
+                                            <div className="row-label">{String.fromCharCode(65 + i)}</div>
+                                            {Array(8).fill(0).map((_, j) => {
                                                 const guesses = turn === 1 ? player1Guesses : player2Guesses;
+                                                let cellClass = 'cell empty';
+                                                let content = '';
+
                                                 if (guesses[i][j] === 'hit') {
                                                     cellClass = 'cell hit';
                                                     content = '💥';
@@ -338,22 +334,72 @@ export const BattleshipGame = () => {
                                                     cellClass = 'cell miss';
                                                     content = '🌊';
                                                 }
-                                            }
 
-                                            return (
-                                                <div
-                                                    key={`${i}-${j}`}
-                                                    className={cellClass}
-                                                    onClick={() => handleCellClick(i, j)}
-                                                >
-                                                    {content}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                ))}
+                                                return (
+                                                    <div
+                                                        key={`${i}-${j}`}
+                                                        className={cellClass}
+                                                        onClick={() => handleCellClick(i, j)}
+                                                    >
+                                                        {content}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
+
+                        {/* 2. DEFENSIVE BOARD (MY FLEET) - My ships and enemy hits */}
+                        {gameState === 'PLAY' && (
+                            <div className="board-section">
+                                <h3>🚢 MI FLOTA (Tu territorio)</h3>
+                                <div className="board-container small-board" style={{ transform: 'scale(0.9)' }}>
+                                    <div className="grid-labels">
+                                        <div className="corner"></div>
+                                        {Array(8).fill(0).map((_, i) => <div key={i} className="col-label">{i + 1}</div>)}
+                                        {Array(8).fill(0).map((_, i) => (
+                                            <div key={`row-${i}`} style={{ display: 'contents' }}>
+                                                <div className="row-label">{String.fromCharCode(65 + i)}</div>
+                                                {Array(8).fill(0).map((_, j) => {
+                                                    // My board (ships) vs Enemy guesses
+                                                    const myBoard = turn === 1 ? player1Board : player2Board;
+                                                    const enemyGuesses = turn === 1 ? player2Guesses : player1Guesses;
+
+                                                    let cellClass = 'cell empty';
+                                                    let content = '';
+
+                                                    if (myBoard[i][j] === 'ship') {
+                                                        cellClass = 'cell ship';
+                                                        content = '⬜'; // Ship part
+                                                    }
+
+                                                    if (enemyGuesses[i][j] === 'hit') {
+                                                        cellClass = 'cell hit';
+                                                        content = '🔥'; // On fire!
+                                                    } else if (enemyGuesses[i][j] === 'miss') {
+                                                        cellClass = 'cell miss';
+                                                        content = '🌊';
+                                                    }
+
+                                                    return (
+                                                        <div
+                                                            key={`${i}-${j}`}
+                                                            className={cellClass}
+                                                            // No click on my own board
+                                                            style={{ cursor: 'default' }}
+                                                        >
+                                                            {content}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {gameState === 'SETUP' && (

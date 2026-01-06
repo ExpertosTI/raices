@@ -42,6 +42,35 @@ const getScore = (hand: Card[]) => {
 
 // --- Controllers ---
 
+export const getActiveTables = async (req: Request, res: Response) => {
+    try {
+        const tables = await prisma.blackjackTable.findMany({
+            where: { status: { in: ['WAITING'] } },
+            orderBy: { createdAt: 'desc' },
+            include: {
+                players: { select: { id: true, name: true, avatar: true } }
+            },
+            take: 20
+        });
+        res.json(tables);
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching tables' });
+    }
+};
+
+export const updateBet = async (req: Request, res: Response) => {
+    const { playerId, amount } = req.body;
+    try {
+        const player = await prisma.blackjackPlayer.update({
+            where: { id: playerId },
+            data: { currentBet: amount }
+        });
+        res.json({ success: true, bet: player.currentBet });
+    } catch (error) {
+        res.status(500).json({ error: 'Error updating bet' });
+    }
+};
+
 export const createTable = async (req: Request, res: Response) => {
     try {
         const deck = getDeck();
@@ -135,7 +164,8 @@ export const dealRound = async (req: Request, res: Response) => {
                         cards: hand,
                         bet: p.currentBet || 10,
                         status: 'PLAYING',
-                        canSplit: hand[0].value === hand[1].value
+                        // Allow split if points are same (e.g. 10 and J)
+                        canSplit: hand[0].points === hand[1].points
                     }])
                 }
             });
@@ -215,7 +245,9 @@ export const playerAction = async (req: Request, res: Response) => {
         }
         else if (action === 'split') {
             if (player.money < hand.bet) return res.status(400).json({ error: 'No funds' });
-            if (hand.cards.length !== 2 || hand.cards[0].value !== hand.cards[1].value) {
+
+            // Allow split if points are equal (e.g. 10 and K)
+            if (hand.cards.length !== 2 || hand.cards[0].points !== hand.cards[1].points) {
                 return res.status(400).json({ error: 'Cannot split' });
             }
 
