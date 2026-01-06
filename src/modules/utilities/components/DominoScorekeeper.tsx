@@ -457,15 +457,8 @@ export const DominoScorekeeper = () => {
                 </button>
             </div>
 
-            {/* Functional Calculator-style Numpad */}
+            {/* Calculator-style Numpad */}
             <div className="calculator-numpad">
-                <div className="calc-header">
-                    <span className="calc-title">🁩 DOMINÓ</span>
-                    <span className="selected-team-hint">
-                        Toca un equipo arriba para seleccionar
-                    </span>
-                </div>
-
                 {/* Display */}
                 <div
                     className="calc-display"
