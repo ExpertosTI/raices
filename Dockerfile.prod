@@ -33,6 +33,8 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/prisma ./prisma
 COPY server ./server
+COPY start.sh ./start.sh
+RUN chmod +x ./start.sh
 
 # Environment
 ENV NODE_ENV=production
@@ -40,5 +42,6 @@ ENV PORT=6789
 
 EXPOSE 6789
 
-# Start production server
-CMD ["npx", "tsx", "server/index.ts"]
+# Start with script that runs db push first
+CMD ["./start.sh"]
+
