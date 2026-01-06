@@ -53,7 +53,7 @@ export const BlackJackOnline = () => {
             const data = await res.json();
             setTableId(data.id);
             setTableNumber(data.tableNumber);
-            soundManager.playTone(800, 'sine', 0.1);
+            soundManager.playClick();
             // Auto join as Seat 0
             joinGame(data.id, 0);
         } catch (e) {
@@ -75,7 +75,7 @@ export const BlackJackOnline = () => {
                 setTableId(data.id);
                 setTableNumber(data.tableNumber);
                 setTableState(data);
-                soundManager.playTone(600, 'sine', 0.1);
+                soundManager.playClick();
             } else {
                 alert('Mesa no encontrada');
             }
@@ -105,7 +105,7 @@ export const BlackJackOnline = () => {
             });
             const data = await res.json();
             if (!isBot && !playerId) setPlayerId(data.id);
-            soundManager.playTone(500, 'sine', 0.08);
+            soundManager.playClick();
 
             // Refresh table state
             const tableRes = await fetch(`${API_URL}/blackjack/table/${tId}`);
@@ -123,7 +123,11 @@ export const BlackJackOnline = () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: playerId, action })
             });
-            soundManager.playTone(action === 'hit' ? 400 : 600, 'sine', 0.1);
+            // Play appropriate sound for action
+            if (action === 'hit') soundManager.playCard();
+            else if (action === 'stand') soundManager.playClick();
+            else if (action === 'double') { soundManager.playCard(); soundManager.playClick(); }
+            else if (action === 'split') soundManager.playClick();
         } catch (e) {
             console.error(e);
         }
@@ -132,7 +136,10 @@ export const BlackJackOnline = () => {
     const deal = async () => {
         if (!tableId) return;
         await fetch(`${API_URL}/blackjack/table/${tableId}/deal`, { method: 'POST' });
-        soundManager.playTone(700, 'square', 0.05);
+        // Play dealing sound sequence
+        soundManager.playCard();
+        setTimeout(() => soundManager.playCard(), 200);
+        setTimeout(() => soundManager.playCard(), 400);
     };
 
     const leaveTable = () => {

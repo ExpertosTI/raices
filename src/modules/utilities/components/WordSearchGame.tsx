@@ -202,8 +202,25 @@ export const WordSearchGame = () => {
                                 onMouseDown={() => handleStartSelect(r, c)}
                                 onMouseEnter={() => handleEnterSelect(r, c)}
                                 onMouseUp={handleEndSelect}
-                                // Simple touch support simulation
-                                onTouchStart={() => handleStartSelect(r, c)}
+                                onTouchStart={(e) => {
+                                    e.preventDefault();
+                                    handleStartSelect(r, c);
+                                }}
+                                onTouchMove={(e) => {
+                                    e.preventDefault();
+                                    const touch = e.touches[0];
+                                    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+                                    if (element?.classList.contains('grid-cell')) {
+                                        const row = parseInt(element.getAttribute('data-row') || '');
+                                        const col = parseInt(element.getAttribute('data-col') || '');
+                                        if (!isNaN(row) && !isNaN(col)) {
+                                            handleEnterSelect(row, col);
+                                        }
+                                    }
+                                }}
+                                onTouchEnd={handleEndSelect}
+                                data-row={r}
+                                data-col={c}
                             >
                                 {letter}
                             </div>

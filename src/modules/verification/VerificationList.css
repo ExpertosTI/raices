@@ -129,13 +129,16 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 8px;
+    padding: 10px 12px;
     border-radius: 8px;
     font-size: 0.9rem;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
     border: none;
+    position: relative;
+    z-index: 10;
+    touch-action: manipulation;
 }
 
 .reject-btn {

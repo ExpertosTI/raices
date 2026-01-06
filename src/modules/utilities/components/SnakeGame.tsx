@@ -153,8 +153,10 @@ export const SnakeGame = () => {
         const ctx = canvasRef.current?.getContext('2d');
         if (!ctx) return;
 
-        // Clear
-        // Equalizer / Level Visuals background
+        // IMPORTANT: Clear entire canvas first to avoid "infinite growth" visual bug
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(0, 0, 400, 400);
+
         // Draw grid lines faintly
         ctx.strokeStyle = '#334155';
         ctx.lineWidth = 0.5;
@@ -169,47 +171,79 @@ export const SnakeGame = () => {
             ctx.stroke();
         }
 
-        // Draw Food (Avatar)
+        // Draw Food (Avatar) - larger and more visible
         const fx = food.current.x * GRID_SIZE;
         const fy = food.current.y * GRID_SIZE;
+        const foodSize = GRID_SIZE * 1.2; // Slightly larger
+        const foodOffset = (foodSize - GRID_SIZE) / 2;
 
-        if (foodImageRef.current) {
+        if (foodImageRef.current && foodImageRef.current.complete) {
             ctx.save();
             ctx.beginPath();
-            ctx.arc(fx + GRID_SIZE / 2, fy + GRID_SIZE / 2, GRID_SIZE / 2, 0, Math.PI * 2);
+            ctx.arc(fx + GRID_SIZE / 2, fy + GRID_SIZE / 2, foodSize / 2, 0, Math.PI * 2);
             ctx.closePath();
             ctx.clip();
-            ctx.drawImage(foodImageRef.current, fx, fy, GRID_SIZE, GRID_SIZE);
+            ctx.drawImage(foodImageRef.current, fx - foodOffset, fy - foodOffset, foodSize, foodSize);
             ctx.restore();
-            // Border
+            // Gold border to make it stand out
             ctx.beginPath();
-            ctx.arc(fx + GRID_SIZE / 2, fy + GRID_SIZE / 2, GRID_SIZE / 2, 0, Math.PI * 2);
+            ctx.arc(fx + GRID_SIZE / 2, fy + GRID_SIZE / 2, foodSize / 2, 0, Math.PI * 2);
+            ctx.strokeStyle = '#D4AF37';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.closePath();
+        } else {
+            // Fallback - pulsing red circle
+            const pulse = 0.8 + Math.sin(Date.now() / 200) * 0.2;
+            ctx.beginPath();
+            ctx.arc(fx + GRID_SIZE / 2, fy + GRID_SIZE / 2, (GRID_SIZE / 2) * pulse, 0, Math.PI * 2);
+            ctx.fillStyle = '#ef4444';
+            ctx.fill();
             ctx.strokeStyle = '#fff';
             ctx.lineWidth = 2;
             ctx.stroke();
             ctx.closePath();
-        } else {
-            // Fallback red apple 🍎
-            ctx.beginPath();
-            ctx.arc(fx + GRID_SIZE / 2, fy + GRID_SIZE / 2, GRID_SIZE / 2 - 2, 0, Math.PI * 2);
-            ctx.fillStyle = '#ef4444';
-            ctx.fill();
-            ctx.closePath();
         }
 
-        // Draw Snake
-        ctx.fillStyle = '#22c55e';
+        // Draw Snake with gradient effect
         snake.current.forEach((segment, i) => {
-            // Head is different color
-            if (i === 0) ctx.fillStyle = '#4ade80';
-            else ctx.fillStyle = '#22c55e';
-
-            ctx.fillRect(
-                segment.x * GRID_SIZE + 1,
-                segment.y * GRID_SIZE + 1,
-                GRID_SIZE - 2,
-                GRID_SIZE - 2
-            );
+            const brightness = 1 - (i / snake.current.length) * 0.4;
+            if (i === 0) {
+                // Head - brighter with eyes
+                ctx.fillStyle = '#4ade80';
+                ctx.fillRect(
+                    segment.x * GRID_SIZE + 1,
+                    segment.y * GRID_SIZE + 1,
+                    GRID_SIZE - 2,
+                    GRID_SIZE - 2
+                );
+                // Eyes based on direction
+                ctx.fillStyle = '#000';
+                const eyeSize = 3;
+                const cx = segment.x * GRID_SIZE + GRID_SIZE / 2;
+                const cy = segment.y * GRID_SIZE + GRID_SIZE / 2;
+                if (velocity.current.x === 1) { // Right
+                    ctx.fillRect(cx + 4, cy - 4, eyeSize, eyeSize);
+                    ctx.fillRect(cx + 4, cy + 2, eyeSize, eyeSize);
+                } else if (velocity.current.x === -1) { // Left
+                    ctx.fillRect(cx - 6, cy - 4, eyeSize, eyeSize);
+                    ctx.fillRect(cx - 6, cy + 2, eyeSize, eyeSize);
+                } else if (velocity.current.y === -1) { // Up
+                    ctx.fillRect(cx - 4, cy - 6, eyeSize, eyeSize);
+                    ctx.fillRect(cx + 2, cy - 6, eyeSize, eyeSize);
+                } else { // Down
+                    ctx.fillRect(cx - 4, cy + 4, eyeSize, eyeSize);
+                    ctx.fillRect(cx + 2, cy + 4, eyeSize, eyeSize);
+                }
+            } else {
+                ctx.fillStyle = `rgba(34, 197, 94, ${brightness})`;
+                ctx.fillRect(
+                    segment.x * GRID_SIZE + 1,
+                    segment.y * GRID_SIZE + 1,
+                    GRID_SIZE - 2,
+                    GRID_SIZE - 2
+                );
+            }
         });
     };
 
