@@ -297,6 +297,25 @@
     height: 18px;
 }
 
+.email-auth-btn.primary {
+    background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+    border: none;
+    color: #1a1a2e;
+}
+
+.email-auth-btn.primary:hover {
+    box-shadow: 0 5px 20px rgba(212, 175, 55, 0.3);
+}
+
+.email-auth-btn.secondary {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.email-auth-btn.secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
 /* Responsive */
 @media (max-width: 400px) {
     .code-input {
