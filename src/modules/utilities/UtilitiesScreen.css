@@ -80,6 +80,124 @@
     font-size: 3rem;
     margin-bottom: 1rem;
     filter: drop-shadow(0 0 10px var(--accent-color));
+    display: inline-block;
+}
+
+/* Animación del gamepad - se mueve como jugando */
+.icon-gamepad {
+    animation: gamepadMove 2s ease-in-out infinite;
+}
+
+@keyframes gamepadMove {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    25% {
+        transform: translateY(-3px) rotate(-5deg);
+    }
+
+    50% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    75% {
+        transform: translateY(-3px) rotate(5deg);
+    }
+}
+
+/* Animación del dominó - cae y se pone en la mesa */
+.icon-domino {
+    animation: dominoFall 3s ease-in-out infinite;
+    transform-origin: bottom center;
+}
+
+@keyframes dominoFall {
+
+    0%,
+    60%,
+    100% {
+        transform: rotateX(0deg) translateY(0);
+    }
+
+    70% {
+        transform: rotateX(-20deg) translateY(-5px);
+    }
+
+    80% {
+        transform: rotateX(10deg) translateY(0);
+    }
+
+    90% {
+        transform: rotateX(-5deg) translateY(0);
+    }
+}
+
+/* Animación de la pelota de basket - bota y gira */
+.icon-basket {
+    animation: basketBounce 1.5s ease-in-out infinite;
+}
+
+@keyframes basketBounce {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-10px) rotate(180deg);
+    }
+}
+
+.utility-card:hover .icon-gamepad {
+    animation: gamepadMoveHover 0.3s ease-in-out infinite;
+}
+
+@keyframes gamepadMoveHover {
+
+    0%,
+    100% {
+        transform: rotate(-8deg);
+    }
+
+    50% {
+        transform: rotate(8deg);
+    }
+}
+
+.utility-card:hover .icon-basket {
+    animation: basketBounceHover 0.4s ease-in-out infinite;
+}
+
+@keyframes basketBounceHover {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(0deg) scale(1.1);
+    }
+
+    50% {
+        transform: translateY(-15px) rotate(360deg) scale(1.1);
+    }
+}
+
+.utility-card:hover .icon-domino {
+    animation: dominoHover 0.5s ease-in-out infinite;
+}
+
+@keyframes dominoHover {
+
+    0%,
+    100% {
+        transform: rotateY(0deg);
+    }
+
+    50% {
+        transform: rotateY(25deg);
+    }
 }
 
 .utility-card h3 {

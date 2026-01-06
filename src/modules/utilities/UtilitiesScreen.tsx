@@ -9,6 +9,7 @@ export const UtilitiesScreen = () => {
         {
             id: 'who-is-who',
             icon: '🎮',
+            iconClass: 'icon-gamepad',
             title: '¿Quién es Quién?',
             description: 'Adivina a tus familiares por su foto',
             color: '#8B5CF6',
@@ -17,6 +18,7 @@ export const UtilitiesScreen = () => {
         {
             id: 'domino',
             icon: '🁩',
+            iconClass: 'icon-domino',
             title: 'Dominó',
             description: 'Anota los puntos de la partida',
             color: '#059669',
@@ -25,6 +27,7 @@ export const UtilitiesScreen = () => {
         {
             id: 'basket',
             icon: '🏀',
+            iconClass: 'icon-basket',
             title: 'Basket',
             description: 'Marcador para partidos',
             color: '#EA580C',
@@ -49,7 +52,7 @@ export const UtilitiesScreen = () => {
                         style={{ '--accent-color': util.color } as React.CSSProperties}
                         onClick={() => navigate(util.path)}
                     >
-                        <div className="utility-icon">{util.icon}</div>
+                        <div className={`utility-icon ${util.iconClass}`}>{util.icon}</div>
                         <h3>{util.title}</h3>
                         <p>{util.description}</p>
                         <div className="utility-arrow">→</div>
