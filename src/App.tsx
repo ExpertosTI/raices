@@ -40,6 +40,11 @@ function App() {
           <Route path="/verify-email" element={<VerifyEmailScreen />} />
           <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
 
+          {/* Public Utilities - No login required */}
+          <Route path="/utilities" element={<UtilitiesScreen />} />
+          <Route path="/utilities/domino" element={<DominoScorekeeper />} />
+          <Route path="/utilities/basket" element={<BasketScorekeeper />} />
+
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="/app" element={<AppDashboard />} />
@@ -52,11 +57,8 @@ function App() {
             <Route path="/admin" element={<AdminScreen />} />
             <Route path="/onboarding" element={<OnboardingScreen />} />
             <Route path="/profile" element={<ProfileScreen />} />
-            {/* Utilities */}
-            <Route path="/utilities" element={<UtilitiesScreen />} />
+            {/* Who-is-Who needs photos from API */}
             <Route path="/utilities/who-is-who" element={<WhoIsWhoGame />} />
-            <Route path="/utilities/domino" element={<DominoScorekeeper />} />
-            <Route path="/utilities/basket" element={<BasketScorekeeper />} />
           </Route>
           {/* Redirect unknown routes to home */}
           <Route path="*" element={<Navigate to="/" replace />} />
