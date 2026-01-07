@@ -486,7 +486,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
             <AddChildModal
                 isOpen={showAddChildModal}
                 onClose={() => setShowAddChildModal(false)}
-                onSuccess={(message) => {
+                onSuccess={() => {
                     setShowAddChildModal(false);
                     onSuccess();
                 }}
