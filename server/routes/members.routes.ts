@@ -182,11 +182,12 @@ router.put('/:id', authenticateToken, canEditMember, upload.single('photo'), pro
 });
 
 
-// Add child to current user
-router.post('/child', authenticateToken, async (req: any, res: Response) => {
+// Add child to current user (with photo support)
+router.post('/child', authenticateToken, upload.single('photo'), processImage, async (req: any, res: Response) => {
     try {
         const userId = req.user?.id;
-        const { name, birthDate, gender } = req.body; // gender/relation
+        const { name, birthDate, gender } = req.body;
+        const photoUrl = req.body.imageUrl; // Set by processImage middleware
 
         // Get parent (current user)
         const parent = await prisma.familyMember.findUnique({
@@ -212,6 +213,7 @@ router.post('/child', authenticateToken, async (req: any, res: Response) => {
                 relation: childRelation as any,
                 birthDate: birthDate ? new Date(birthDate) : null,
                 parentId: parent.id,
+                photo: photoUrl || null,
                 user: undefined // No user account yet
             }
         });

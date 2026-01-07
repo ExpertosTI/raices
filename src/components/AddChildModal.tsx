@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, User, Calendar, Save } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { X, User, Calendar, Save, Camera } from 'lucide-react';
 import './AddChildModal.css';
 
 interface AddChildModalProps {
@@ -16,6 +16,22 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({ isOpen, onClose, o
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [photoFile, setPhotoFile] = useState<File | null>(null);
+    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setPhotoFile(file);
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                setPhotoPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -29,27 +45,33 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({ isOpen, onClose, o
 
         try {
             const token = localStorage.getItem('token');
+
+            // Use FormData to support photo upload
+            const data = new FormData();
+            data.append('name', formData.name.trim());
+            if (formData.birthDate) data.append('birthDate', formData.birthDate);
+            data.append('gender', formData.gender);
+            if (photoFile) data.append('photo', photoFile);
+
             const res = await fetch('/api/members/child', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
+                    'Authorization': `Bearer ${token}`
+                    // Don't set Content-Type for FormData
                 },
-                body: JSON.stringify({
-                    name: formData.name.trim(),
-                    birthDate: formData.birthDate || undefined,
-                    gender: formData.gender
-                })
+                body: data
             });
 
-            const data = await res.json();
+            const responseData = await res.json();
 
             if (res.ok) {
                 onSuccess(`✅ ${formData.name} agregado/a al árbol familiar`);
                 setFormData({ name: '', birthDate: '', gender: 'unknown' });
+                setPhotoFile(null);
+                setPhotoPreview(null);
                 onClose();
             } else {
-                setError(data.error || 'Error al agregar');
+                setError(responseData.error || 'Error al agregar');
             }
         } catch (err) {
             setError('Error de conexión');
@@ -76,6 +98,30 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({ isOpen, onClose, o
                 {error && <div className="error-message">{error}</div>}
 
                 <form onSubmit={handleSubmit}>
+                    {/* Photo Upload */}
+                    <div className="photo-upload-section">
+                        <div
+                            className="photo-preview"
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            {photoPreview ? (
+                                <img src={photoPreview} alt="Foto" />
+                            ) : (
+                                <div className="photo-placeholder">
+                                    <Camera size={32} />
+                                    <span>Agregar foto</span>
+                                </div>
+                            )}
+                        </div>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handlePhotoChange}
+                            style={{ display: 'none' }}
+                        />
+                    </div>
+
                     <div className="form-group">
                         <label htmlFor="childName">
                             <User size={16} /> Nombre Completo *
