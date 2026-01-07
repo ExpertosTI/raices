@@ -36,7 +36,7 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
 // Create new member (or register self)
 router.post('/', authenticateToken, validateMemberInput, async (req: any, res: Response) => {
     try {
-        const { name, branchId, relation, birthDate, parentId, preferredColor, expectedChildCount } = req.body;
+        const { name, branchId, relation, birthDate, parentId, preferredColor, expectedChildCount, isPatriarch } = req.body;
         const userId = req.user?.id;
 
         // Check if user already has a member profile
@@ -117,6 +117,7 @@ router.post('/', authenticateToken, validateMemberInput, async (req: any, res: R
                 parentId: null,
                 preferredColor: preferredColor || null,
                 expectedChildCount: expectedChildCount || 0,
+                isPatriarch: isPatriarch || false,
                 userId: existingMember ? undefined : userId
             }
         });
