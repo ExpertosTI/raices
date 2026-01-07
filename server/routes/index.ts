@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../db';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, AuthRequest } from '../middleware/auth';
 import { upload, processImage } from '../middleware/upload';
 
 // Import route modules
@@ -36,7 +36,7 @@ router.get('/health', async (req: Request, res: Response) => {
 });
 
 // ==================== REGISTRATION REQUEST ====================
-router.post('/registration-request', authenticateToken, upload.single('photo'), processImage, async (req: any, res: Response) => {
+router.post('/registration-request', authenticateToken, upload.single('photo'), processImage, async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user?.id;
         const { name, nickname, branchId, grandparentId, parentName, parentType, relation, birthDate, phone, whatsapp, bio, skills } = req.body;
