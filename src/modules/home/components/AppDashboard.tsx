@@ -67,7 +67,11 @@ export const AppDashboard: React.FC = () => {
         try {
             const res = await fetch(`/api/verification/${id}/reject`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({})
             });
             if (res.ok) fetchVerifications();
         } catch (e) { console.error(e); }
