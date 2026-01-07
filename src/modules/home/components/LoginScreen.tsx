@@ -242,7 +242,7 @@ export const LoginScreen = () => {
                     {isLoading ? (
                         <div className="login-loader">Verificando credenciales...</div>
                     ) : (
-                        isNative ? renderNativeLogin() : renderWebLogin()
+                        renderWebLogin()
                     )}
                 </div>
 
