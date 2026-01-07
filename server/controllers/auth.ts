@@ -87,6 +87,29 @@ export const registerWithEmail = async (req: Request, res: Response) => {
             getVerificationCodeTemplate(user.name || 'Usuario', code)
         );
 
+        // Notify admins (Patriarchs) about new registration
+        try {
+            const admins = await prisma.user.findMany({
+                where: { role: 'PATRIARCH' },
+                select: { email: true }
+            });
+
+            if (admins.length > 0) {
+                const adminEmails = admins.map(a => a.email);
+                await sendEmail(
+                    adminEmails[0], // Primary admin
+                    '🆕 Nuevo usuario registrado - Raíces App',
+                    `<h2>Nuevo registro</h2>
+                    <p><strong>Nombre:</strong> ${name || email.split('@')[0]}</p>
+                    <p><strong>Email:</strong> ${email}</p>
+                    <p>Este usuario aún no está vinculado al árbol familiar.</p>
+                    <p><a href="https://raices.renace.tech">Ir al Panel de Administración</a> para vincularlo.</p>`
+                );
+            }
+        } catch (notifyError) {
+            console.error('Failed to notify admins:', notifyError);
+        }
+
         res.json({
             success: true,
             message: 'Cuenta creada. Revisa tu email para el código de verificación.',

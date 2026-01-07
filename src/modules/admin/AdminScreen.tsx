@@ -70,6 +70,7 @@ export const AdminScreen = () => {
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState('');
+    const [branches, setBranches] = useState<any[]>([]);
 
     const token = localStorage.getItem('token');
 
@@ -98,8 +99,12 @@ export const AdminScreen = () => {
                 const res = await fetch('/api/verification/admin', { headers });
                 if (res.ok) setVerifications(await res.json());
             } else if (activeTab === 'users') {
-                const res = await fetch('/api/admin/users', { headers });
-                if (res.ok) setUsers(await res.json());
+                const [usersRes, branchesRes] = await Promise.all([
+                    fetch('/api/admin/users', { headers }),
+                    fetch('/api/branches', { headers })
+                ]);
+                if (usersRes.ok) setUsers(await usersRes.json());
+                if (branchesRes.ok) setBranches(await branchesRes.json());
             } else if (activeTab === 'members') {
                 const res = await fetch('/api/admin/members', { headers });
                 if (res.ok) setMembers(await res.json());
@@ -248,6 +253,54 @@ export const AdminScreen = () => {
                 fetchData();
             } else {
                 setMessage('❌ Error al desvincular');
+            }
+        } catch (err) {
+            setMessage('❌ Error de conexión');
+        }
+    };
+
+    const handleLinkUser = async (user: User) => {
+        // Prompt for member name
+        const memberName = prompt(`Nombre del miembro para vincular a ${user.name || user.email}:`, user.name || '');
+        if (!memberName) return;
+
+        // Prompt for branch
+        const branchOptions = branches.length > 0
+            ? branches.map((b, i) => `${i + 1}. ${b.name}`).join('\n')
+            : 'No hay ramas disponibles';
+        const branchIndex = prompt(`Selecciona la rama:\n${branchOptions}\n\nIngresa el número:`);
+
+        if (!branchIndex || isNaN(parseInt(branchIndex))) {
+            setMessage('❌ Selección de rama inválida');
+            return;
+        }
+
+        const selectedBranch = branches[parseInt(branchIndex) - 1];
+        if (!selectedBranch) {
+            setMessage('❌ Rama no encontrada');
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/admin/users/${user.id}/link`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    createNew: true,
+                    name: memberName,
+                    branchId: selectedBranch.id,
+                    relation: 'CHILD'
+                })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setMessage(data.message || '✅ Usuario vinculado');
+                fetchData();
+            } else {
+                setMessage(`❌ ${data.error || 'Error al vincular'}`);
             }
         } catch (err) {
             setMessage('❌ Error de conexión');
@@ -527,12 +580,19 @@ export const AdminScreen = () => {
                                             </div>
                                         </div>
                                         <div className="card-actions">
-                                            {user.familyMember && (
+                                            {user.familyMember ? (
                                                 <button
                                                     className="reject-btn"
                                                     onClick={() => handleUnclaimUser(user.familyMember!.id)}
                                                 >
                                                     🔗 Desvincular
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    className="role-btn promote"
+                                                    onClick={() => handleLinkUser(user)}
+                                                >
+                                                    🔗 Vincular a Familia
                                                 </button>
                                             )}
                                             {user.role === 'MEMBER' ? (

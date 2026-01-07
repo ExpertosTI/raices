@@ -309,3 +309,86 @@ export const getAllMembers = async (req: any, res: Response) => {
         res.status(500).json({ error: 'Failed to fetch members' });
     }
 };
+
+// Link a user to a family member (Admin only)
+export const linkUserToMember = async (req: any, res: Response) => {
+    const { id: userId } = req.params;
+    const { memberId, createNew, name, branchId, relation, parentId } = req.body;
+
+    try {
+        // Check user exists
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        // Check if user is already linked
+        const existingLink = await prisma.familyMember.findUnique({ where: { userId } });
+        if (existingLink) {
+            return res.status(400).json({
+                error: `Este usuario ya está vinculado a "${existingLink.name}". Primero desvincúlalo.`
+            });
+        }
+
+        let member;
+
+        if (createNew) {
+            // Create a new family member for this user
+            if (!name || !branchId) {
+                return res.status(400).json({ error: 'Nombre y rama son requeridos para crear un nuevo miembro' });
+            }
+
+            member = await prisma.familyMember.create({
+                data: {
+                    name,
+                    branchId,
+                    relation: relation || 'CHILD',
+                    parentId: parentId || null,
+                    userId
+                }
+            });
+        } else {
+            // Link to existing member
+            if (!memberId) {
+                return res.status(400).json({ error: 'Se requiere memberId para vincular a un miembro existente' });
+            }
+
+            const targetMember = await prisma.familyMember.findUnique({ where: { id: memberId } });
+            if (!targetMember) {
+                return res.status(404).json({ error: 'Miembro no encontrado' });
+            }
+
+            if (targetMember.userId) {
+                return res.status(400).json({ error: 'Este miembro ya está vinculado a otro usuario' });
+            }
+
+            member = await prisma.familyMember.update({
+                where: { id: memberId },
+                data: { userId }
+            });
+        }
+
+        // Send notification email to the user
+        try {
+            await sendEmail(
+                user.email,
+                '🔗 Tu cuenta ha sido vinculada - Raíces App',
+                `<h2>¡Hola ${user.name || 'Usuario'}!</h2>
+                <p>Un administrador te ha vinculado al perfil de <strong>${member.name}</strong> en el árbol familiar.</p>
+                <p>Ya puedes ver y editar tu perfil en la aplicación.</p>
+                <br><p>- El equipo de Raíces</p>`
+            );
+        } catch (emailError) {
+            console.error('Failed to send link notification email:', emailError);
+        }
+
+        res.json({
+            message: `✅ Usuario vinculado a "${member.name}" correctamente`,
+            member
+        });
+
+    } catch (error) {
+        console.error('Link User to Member Error:', error);
+        res.status(500).json({ error: 'Error al vincular usuario' });
+    }
+};

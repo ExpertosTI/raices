@@ -6,7 +6,7 @@ import { logAudit } from '../services/audit';
 import {
     getPendingClaims, approveClaim, rejectClaim,
     getRegistrationRequests, approveRegistration, rejectRegistration,
-    getAllUsers, updateUserRole, getAllMembers
+    getAllUsers, updateUserRole, getAllMembers, linkUserToMember
 } from '../controllers/admin';
 
 const router = Router();
@@ -73,6 +73,7 @@ router.post('/registrations/:id/reject', rejectRegistration);
 // ==================== USERS ====================
 router.get('/users', getAllUsers);
 router.put('/users/:id/role', updateUserRole);
+router.post('/users/:id/link', linkUserToMember);
 
 // ==================== MEMBERS (Admin) ====================
 router.get('/members', getAllMembers);
