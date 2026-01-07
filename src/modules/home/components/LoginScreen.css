@@ -1,5 +1,6 @@
 .login-screen {
-    height: 100vh;
+    min-height: 100vh;
+    height: auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -7,7 +8,48 @@
     background: radial-gradient(circle at center, #1a1a2e 0%, #0A0A0F 100%);
     color: white;
     position: relative;
-    overflow: hidden;
+    overflow-y: auto;
+    padding: 2rem 1rem;
+}
+
+/* Small Device Optimization (iPhone SE and similar) */
+@media (max-height: 700px) {
+    .login-card {
+        padding: 1.5rem 1rem;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .login-logo {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 0.5rem;
+    }
+
+    .login-card h1 {
+        font-size: 1.8rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .login-subtitle {
+        font-size: 0.85rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .auth-container {
+        gap: 1rem;
+    }
+
+    .public-utilities {
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+    }
+
+    .login-footer {
+        margin-top: 1.5rem;
+    }
+
+
 }
 
 /* Background Particles (Shared style concept) */
