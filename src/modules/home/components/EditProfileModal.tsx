@@ -309,6 +309,65 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
                         </small>
                     </div>
 
+                    {/* Add Child Section */}
+                    <div className="form-group add-child-section" style={{
+                        background: 'rgba(212,175,55,0.1)',
+                        border: '1px dashed rgba(212,175,55,0.4)',
+                        borderRadius: '12px',
+                        padding: '1rem'
+                    }}>
+                        <label style={{ color: '#D4AF37', marginBottom: '0.5rem', display: 'block' }}>
+                            👶 Agregar Hijos al Árbol
+                        </label>
+                        <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', margin: '0 0 1rem 0' }}>
+                            Crea perfiles para tus hijos. Cuando se registren, podrán reclamar su perfil.
+                        </p>
+                        <button
+                            type="button"
+                            className="btn-add-child"
+                            style={{
+                                background: 'linear-gradient(135deg, #D4AF37, #B8962E)',
+                                color: '#1a1a2e',
+                                border: 'none',
+                                padding: '0.75rem 1.5rem',
+                                borderRadius: '25px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                width: '100%',
+                                fontSize: '0.95rem'
+                            }}
+                            onClick={async () => {
+                                const childName = prompt('Nombre del hijo/a:');
+                                if (!childName || !childName.trim()) return;
+
+                                try {
+                                    const token = localStorage.getItem('token');
+                                    const res = await fetch('/api/members/child', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Authorization': `Bearer ${token}`,
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify({
+                                            name: childName.trim()
+                                        })
+                                    });
+                                    if (res.ok) {
+                                        alert(`✅ Hijo/a "${childName}" agregado al árbol`);
+                                        onSuccess();
+                                    } else {
+                                        const data = await res.json();
+                                        alert(`❌ Error: ${data.error || 'No se pudo agregar'}`);
+                                    }
+                                } catch (err) {
+                                    alert('❌ Error de conexión');
+                                }
+                            }}
+                        >
+                            ➕ Agregar Hijo/a
+                        </button>
+                    </div>
+
                     <div className="form-group">
                         <label htmlFor="birthDate">Fecha de Nacimiento</label>
                         <div className="input-wrapper">
