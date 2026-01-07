@@ -154,6 +154,23 @@ export const AppDashboard: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Unlinked User Banner */}
+                {user && !user.familyMember && (
+                    <div className="unlinked-banner">
+                        <div className="unlinked-icon">🔗</div>
+                        <div className="unlinked-content">
+                            <h3>¡Únete a tu familia!</h3>
+                            <p>Aún no estás vinculado al árbol familiar. Busca a tu padre, madre o abuelo y solicita ser agregado.</p>
+                        </div>
+                        <button
+                            className="unlinked-action"
+                            onClick={() => navigate('/directorio')}
+                        >
+                            Buscar Familiar
+                        </button>
+                    </div>
+                )}
+
                 {/* Family Banner */}
                 <div className="banner-section">
                     <img

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { EditProfileModal } from '../home/components/EditProfileModal';
 import { useConfirm } from '../../components/ConfirmDialog';
 import { FloatingDock } from '../../components/FloatingDock';
+import { LinkUserModal } from '../../components/LinkUserModal';
 import './AdminScreen.css';
 
 interface PendingClaim {
@@ -71,6 +72,7 @@ export const AdminScreen = () => {
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState('');
     const [branches, setBranches] = useState<any[]>([]);
+    const [linkModalUser, setLinkModalUser] = useState<User | null>(null);
 
     const token = localStorage.getItem('token');
 
@@ -260,51 +262,30 @@ export const AdminScreen = () => {
     };
 
     const handleLinkUser = async (user: User) => {
-        // Prompt for member name
-        const memberName = prompt(`Nombre del miembro para vincular a ${user.name || user.email}:`, user.name || '');
-        if (!memberName) return;
+        // Open modal instead of using prompts
+        setLinkModalUser(user);
+    };
 
-        // Prompt for branch
-        const branchOptions = branches.length > 0
-            ? branches.map((b, i) => `${i + 1}. ${b.name}`).join('\n')
-            : 'No hay ramas disponibles';
-        const branchIndex = prompt(`Selecciona la rama:\n${branchOptions}\n\nIngresa el número:`);
-
-        if (!branchIndex || isNaN(parseInt(branchIndex))) {
-            setMessage('❌ Selección de rama inválida');
-            return;
+    const handleLinkUserSubmit = async (userId: string, data: { name: string; branchId: string; relation: string }) => {
+        const res = await fetch(`/api/admin/users/${userId}/link`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                createNew: true,
+                name: data.name,
+                branchId: data.branchId,
+                relation: data.relation
+            })
+        });
+        const result = await res.json();
+        if (!res.ok) {
+            throw new Error(result.error || 'Error al vincular');
         }
-
-        const selectedBranch = branches[parseInt(branchIndex) - 1];
-        if (!selectedBranch) {
-            setMessage('❌ Rama no encontrada');
-            return;
-        }
-
-        try {
-            const res = await fetch(`/api/admin/users/${user.id}/link`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    createNew: true,
-                    name: memberName,
-                    branchId: selectedBranch.id,
-                    relation: 'CHILD'
-                })
-            });
-            const data = await res.json();
-            if (res.ok) {
-                setMessage(data.message || '✅ Usuario vinculado');
-                fetchData();
-            } else {
-                setMessage(`❌ ${data.error || 'Error al vincular'}`);
-            }
-        } catch (err) {
-            setMessage('❌ Error de conexión');
-        }
+        setMessage(result.message || '✅ Usuario vinculado');
+        fetchData();
     };
 
     return (
@@ -1128,6 +1109,16 @@ export const AdminScreen = () => {
                         fetchData();
                         setMessage('✅ Perfil actualizado');
                     }}
+                />
+            )}
+
+            {/* Link User Modal */}
+            {linkModalUser && (
+                <LinkUserModal
+                    user={linkModalUser}
+                    branches={branches}
+                    onClose={() => setLinkModalUser(null)}
+                    onLink={handleLinkUserSubmit}
                 />
             )}
 
