@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { prisma } from '../db';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_key';
 
@@ -16,6 +17,15 @@ export function authenticateToken(req: AuthRequest, res: Response, next: NextFun
     jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
         if (err) return res.sendStatus(403);
         req.user = user;
+
+        // Update lastSeen (fire and forget)
+        if (user?.id) {
+            prisma.user.update({
+                where: { id: user.id },
+                data: { lastSeen: new Date() }
+            }).catch(() => { }); // Ignore errors
+        }
+
         next();
     });
 }

@@ -41,6 +41,7 @@ interface User {
     name: string;
     role: string;
     image?: string;
+    lastSeen?: string;
     familyMember?: { id: string; name: string; relation: string };
 }
 
@@ -549,10 +550,30 @@ export const AdminScreen = () => {
                                         <div className="card-header">
                                             <img src={user.image || '/img/avatar.png'} alt="" className="card-avatar" />
                                             <div>
-                                                <h3>{user.name || user.email}</h3>
+                                                <h3>
+                                                    {user.name || user.email}
+                                                    {user.lastSeen && (
+                                                        <span
+                                                            style={{
+                                                                display: 'inline-block',
+                                                                width: '8px',
+                                                                height: '8px',
+                                                                borderRadius: '50%',
+                                                                marginLeft: '8px',
+                                                                backgroundColor: Date.now() - new Date(user.lastSeen).getTime() < 5 * 60 * 1000 ? '#22c55e' : '#6b7280'
+                                                            }}
+                                                            title={Date.now() - new Date(user.lastSeen).getTime() < 5 * 60 * 1000 ? 'En línea' : 'Desconectado'}
+                                                        />
+                                                    )}
+                                                </h3>
                                                 <p className={`role-badge ${user.role.toLowerCase()}`}>
                                                     {user.role}
                                                 </p>
+                                                {user.lastSeen && (
+                                                    <p style={{ fontSize: '0.75rem', color: '#9ca3af', margin: '2px 0' }}>
+                                                        Última vez: {new Date(user.lastSeen).toLocaleString('es-DO', { dateStyle: 'short', timeStyle: 'short' })}
+                                                    </p>
+                                                )}
                                                 {user.familyMember && (
                                                     <p className="linked-member">
                                                         Vinculado: {user.familyMember.name}
