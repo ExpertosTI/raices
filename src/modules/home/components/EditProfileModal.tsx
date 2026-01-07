@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, User, Phone, Calendar, MessageCircle } from 'lucide-react';
 import { ImageCropper } from '../../../components/ImageCropper';
+import { AddChildModal } from '../../../components/AddChildModal';
 import './EditProfileModal.css';
 
 interface FamilyMember {
@@ -109,6 +110,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
 
     const [showCropper, setShowCropper] = useState(false);
     const [tempImageSrc, setTempImageSrc] = useState<string | null>(null);
+    const [showAddChildModal, setShowAddChildModal] = useState(false);
 
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -336,33 +338,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
                                 width: '100%',
                                 fontSize: '0.95rem'
                             }}
-                            onClick={async () => {
-                                const childName = prompt('Nombre del hijo/a:');
-                                if (!childName || !childName.trim()) return;
-
-                                try {
-                                    const token = localStorage.getItem('token');
-                                    const res = await fetch('/api/members/child', {
-                                        method: 'POST',
-                                        headers: {
-                                            'Authorization': `Bearer ${token}`,
-                                            'Content-Type': 'application/json'
-                                        },
-                                        body: JSON.stringify({
-                                            name: childName.trim()
-                                        })
-                                    });
-                                    if (res.ok) {
-                                        alert(`✅ Hijo/a "${childName}" agregado al árbol`);
-                                        onSuccess();
-                                    } else {
-                                        const data = await res.json();
-                                        alert(`❌ Error: ${data.error || 'No se pudo agregar'}`);
-                                    }
-                                } catch (err) {
-                                    alert('❌ Error de conexión');
-                                }
-                            }}
+                            onClick={() => setShowAddChildModal(true)}
                         >
                             ➕ Agregar Hijo/a
                         </button>
@@ -506,6 +482,15 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
                     onCancel={handleCancelCrop}
                 />
             )}
+
+            <AddChildModal
+                isOpen={showAddChildModal}
+                onClose={() => setShowAddChildModal(false)}
+                onSuccess={(message) => {
+                    setShowAddChildModal(false);
+                    onSuccess();
+                }}
+            />
         </div>
     );
 };
