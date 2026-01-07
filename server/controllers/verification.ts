@@ -160,31 +160,30 @@ export const approveVerification = async (req: any, res: Response) => {
             where: { userId: verification.requesterId }
         });
 
-        if (existingMember) {
-            // Option: Update the existing member instead of creating new? 
-            // For now, let's just update the parent link if it's strictly better, 
-            // but safer to error out or handle merge.
-            // If they are strictly a new registration, they shouldn't exist.
-            // If they are claiming, they verify via Claim.
-            // Let's assume this flow implies updating the existing member to be a child of this parent.
+        let newMember;
 
-            // However, relation logic might break.
-            // Let's return a specific error for now to stop the 500.
-            return res.status(400).json({
-                error: 'El usuario ya tiene un perfil de miembro asociado. No se puede crear uno nuevo.'
+        if (existingMember) {
+            // Update the existing member to link to this parent
+            newMember = await prisma.familyMember.update({
+                where: { id: existingMember.id },
+                data: {
+                    parentId: parentMember.id,
+                    branchId: branchId || existingMember.branchId,
+                    relation: childRelation as any
+                }
+            });
+        } else {
+            // Create the new family member
+            newMember = await prisma.familyMember.create({
+                data: {
+                    name: verification.childName,
+                    branchId,
+                    relation: childRelation as any,
+                    parentId: parentMember.id,
+                    userId: verification.requesterId // Link to the requester's account
+                }
             });
         }
-
-        // Create the new family member
-        const newMember = await prisma.familyMember.create({
-            data: {
-                name: verification.childName,
-                branchId,
-                relation: childRelation as any,
-                parentId: parentMember.id,
-                userId: verification.requesterId // Link to the requester's account
-            }
-        });
 
         // Update verification status
         await prisma.familyVerification.update({
