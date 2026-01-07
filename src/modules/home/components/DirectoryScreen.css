@@ -76,10 +76,9 @@
     top: 0;
     z-index: 10;
     background: rgba(10, 10, 15, 0.95);
-    padding: 1rem 0;
-    margin: -1rem -1rem 1rem -1rem;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding: 1rem;
+    margin-left: 0;
+    margin-right: 0;
     backdrop-filter: blur(10px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
