@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
-import { Capacitor } from '@capacitor/core';
 import { GrowingRoots } from './GrowingRoots';
 import './LoginScreen.css';
 import './EmailAuthScreen.css';
@@ -25,7 +24,6 @@ export const LoginScreen = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [fbReady, setFbReady] = useState(false);
-    const isNative = Capacitor.isNativePlatform();
 
     // Initialize Facebook SDK
     useEffect(() => {
@@ -138,36 +136,8 @@ export const LoginScreen = () => {
         }, { scope: 'email,public_profile' });
     }, [navigate]);
 
-    // For native apps, we'll use email login primarily
-    // Google Sign-In on native requires SHA-1 fingerprint configuration
-    const renderNativeLogin = () => (
-        <>
-            <button
-                className="email-auth-btn primary"
-                onClick={() => navigate('/login-email')}
-            >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="2" y="4" width="20" height="16" rx="2" />
-                    <path d="M22 7l-10 6L2 7" />
-                </svg>
-                Iniciar con Email
-            </button>
-
-            <div className="auth-divider">
-                <span>o</span>
-            </div>
-
-            <button
-                className="email-auth-btn secondary"
-                onClick={() => navigate('/register-email')}
-            >
-                Crear cuenta nueva
-            </button>
-        </>
-    );
-
-    // For web, use Google OAuth + Facebook + Email option
-    const renderWebLogin = () => (
+    // Unified Authentication Options (Google + Facebook + Email)
+    const renderAuthOptions = () => (
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
             <div className="google-btn-wrapper">
                 <GoogleLogin
@@ -242,7 +212,7 @@ export const LoginScreen = () => {
                     {isLoading ? (
                         <div className="login-loader">Verificando credenciales...</div>
                     ) : (
-                        renderWebLogin()
+                        renderAuthOptions()
                     )}
                 </div>
 
@@ -272,4 +242,3 @@ export const LoginScreen = () => {
         </div>
     );
 };
-
