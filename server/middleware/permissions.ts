@@ -35,8 +35,8 @@ export const canEditMember = async (req: any, res: Response, next: NextFunction)
             include: { familyMember: true }
         });
 
-        // 1. Admin/Patriarch global can edit anyone
-        if (user?.role === 'PATRIARCH') return next();
+        // 1. Admin/SuperAdmin can edit anyone
+        if (user?.role === 'ADMIN' || user?.role === 'SUPERADMIN' || user?.role === 'PATRIARCH') return next();
 
         // 2. Regular user can UPDATE THEMSELVES (if linked)
         if (user?.familyMember?.id === targetMemberId) return next();
