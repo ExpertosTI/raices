@@ -217,8 +217,23 @@ export const LoginScreen = () => {
                 <div className="login-footer">
                     <button
                         onClick={() => navigate('/utilities')}
-                        className="text-link-btn"
-                        style={{ background: 'none', border: 'none', color: '#D4AF37', textDecoration: 'underline', marginBottom: '10px', cursor: 'pointer', fontSize: '0.9rem' }}
+                        className="explore-btn"
+                        style={{
+                            background: 'rgba(212, 175, 55, 0.1)',
+                            border: '1px solid #D4AF37',
+                            color: '#D4AF37',
+                            padding: '10px 20px',
+                            borderRadius: '25px',
+                            cursor: 'pointer',
+                            fontSize: '0.9rem',
+                            marginBottom: '15px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            justifyContent: 'center',
+                            width: '100%',
+                            maxWidth: '250px'
+                        }}
                     >
                         🎮 Solo quiero explorar / jugar
                     </button>
