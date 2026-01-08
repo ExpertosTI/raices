@@ -1,5 +1,5 @@
 // Raíces App - Database Schema
-// Familia Henríquez Cruz - Árbol Genealógico
+// Multi-Tenant SaaS - Each Family is a Tenant
 
 generator client {
   provider = "prisma-client-js"
@@ -16,51 +16,58 @@ model User {
   id            String    @id @default(cuid())
   email         String    @unique
   emailVerified DateTime?
-  password      String?   // Hash bcrypt, null si usa OAuth
+  password      String? // Hash bcrypt, null si usa OAuth
   name          String?
   image         String?
   role          UserRole  @default(MEMBER)
   lastSeen      DateTime? // Track last activity
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  
+
+  // Multi-Tenant: User belongs to a Family
+  familyId String?
+  family   Family? @relation(fields: [familyId], references: [id])
+
   // Relations
-  familyMember  FamilyMember?
-  posts         Post[]
-  votes         Vote[]
-  comments      Comment[]
-  pendingClaims PendingClaim[]
-  registrationRequests RegistrationRequest[]
-  auditLogs     AuditLog[]
-  familyVerifications FamilyVerification[]
+  familyMember           FamilyMember?
+  posts                  Post[]
+  votes                  Vote[]
+  comments               Comment[]
+  pendingClaims          PendingClaim[]
+  registrationRequests   RegistrationRequest[]
+  auditLogs              AuditLog[]
+  familyVerifications    FamilyVerification[]
   exchangeParticipations ExchangeParticipant[]
-  
+
   // OAuth
-  accounts      Account[]
-  sessions      Session[]
-  
+  accounts Account[]
+  sessions Session[]
+
   // Games
   blackjackPlayers BlackjackPlayer[]
+
+  @@index([familyId])
 }
 
 enum UserRole {
-  MEMBER      // Can register and edit own data
-  PATRIARCH   // Can edit anyone's data (admin)
+  MEMBER // Can view and edit own data
+  ADMIN // Admin of their Family (was PATRIARCH)
+  SUPERADMIN // Platform admin (Renace Tech)
 }
 
 // ============= AUDIT LOG =============
 
 model AuditLog {
-  id          String   @id @default(cuid())
-  userId      String
-  action      String   // e.g., "DELETE_MEMBER", "APPROVE_CLAIM"
-  targetType  String   // e.g., "FamilyMember", "User"
-  targetId    String   // ID of affected entity
-  details     String?  @db.Text // JSON with extra info
-  createdAt   DateTime @default(now())
-  
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id         String   @id @default(cuid())
+  userId     String
+  action     String // e.g., "DELETE_MEMBER", "APPROVE_CLAIM"
+  targetType String // e.g., "FamilyMember", "User"
+  targetId   String // ID of affected entity
+  details    String?  @db.Text // JSON with extra info
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([action])
   @@index([createdAt])
@@ -101,73 +108,125 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// ============= FAMILY MODELS =============
+// ============= TENANT (FAMILY) MODELS =============
+
+// Family is the root multi-tenant entity. Each family is isolated.
+model Family {
+  id          String   @id @default(cuid())
+  name        String // e.g., "Familia Pérez"
+  slug        String   @unique // e.g., "familia-perez" for URLs
+  description String?  @db.Text
+  logo        String? // URL to family logo/crest
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  users     User[]
+  members   FamilyMember[]
+  branches  Branch[]
+  posts     Post[]
+  events    Event[]
+  invites   FamilyInvite[]
+  exchanges GameExchange[]
+
+  @@index([slug])
+}
+
+// Invite tokens for joining a family
+model FamilyInvite {
+  id        String    @id @default(cuid())
+  token     String    @unique @default(cuid())
+  familyId  String
+  email     String? // Optional: restrict to specific email
+  role      UserRole  @default(MEMBER) // Role to assign upon joining
+  usedBy    String? // userId who used this invite
+  usedAt    DateTime?
+  expiresAt DateTime
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([familyId])
+}
+
+// ============= FAMILY STRUCTURE MODELS =============
 
 model Branch {
-  id        String   @id @default(cuid())
-  name      String   // "Lorenza Antonia", "Carmen Josefa", etc.
-  birthDate DateTime
-  color     String   // "#DC2626"
-  order     Int      // Order 1-12
-  isAlive   Boolean  @default(true)
-  
-  members   FamilyMember[]
+  id        String    @id @default(cuid())
+  familyId  String // Branch belongs to a Family
+  name      String // e.g., "Rama de Juan", "Rama de María"
+  birthDate DateTime?
+  color     String // "#DC2626"
+  order     Int? // Optional ordering
+  isAlive   Boolean   @default(true)
+
+  family               Family                @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  members              FamilyMember[]
   registrationRequests RegistrationRequest[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([familyId])
 }
 
 model FamilyMember {
-  id           String        @id @default(cuid())
-  userId       String?       @unique // If registered user
-  branchId     String?       // Optional for Patriarchs
-  name         String
-  birthDate    DateTime?
-  deathDate    DateTime?
-  photo        String?       // URL or base64
-  relation     MemberRelation
-  isPatriarch  Boolean       @default(false)
-  bio          String?       @db.Text
-  preferredColor String?     // Color personalizado elegido por el miembro
-  
-  // New Social Fields
-  nickname     String?       // Apodo
-  skills       String[]      // Habilidades / Fortalezas
-  
+  id             String         @id @default(cuid())
+  familyId       String // Member belongs to a Family (tenant)
+  userId         String?        @unique // If registered user
+  branchId       String? // Optional branch assignment
+  name           String
+  birthDate      DateTime?
+  deathDate      DateTime?
+  photo          String? // URL or base64
+  relation       MemberRelation
+  isFounder      Boolean        @default(false) // Was isPatriarch, now "Founder" of family tree
+  bio            String?        @db.Text
+  preferredColor String? // User-chosen color
+
+  // Social Fields
+  nickname String? // Apodo
+  skills   String[] // Habilidades / Fortalezas
+
   // Contact info (optional)
-  phone        String?
-  whatsapp     String?
-  
+  phone    String?
+  whatsapp String?
+
   // Recursion for Tree
-  parentId     String?
-  parent       FamilyMember? @relation("ParentChild", fields: [parentId], references: [id])
-  children     FamilyMember[] @relation("ParentChild")
-  
+  parentId String?
+  parent   FamilyMember?  @relation("ParentChild", fields: [parentId], references: [id])
+  children FamilyMember[] @relation("ParentChild")
+
   // Expected number of children (for verification system)
-  expectedChildCount Int?     @default(0)
-  
-  user         User?         @relation(fields: [userId], references: [id])
-  branch       Branch?       @relation(fields: [branchId], references: [id])
-  pendingClaims PendingClaim[]
+  expectedChildCount Int? @default(0)
+
+  family             Family               @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  user               User?                @relation(fields: [userId], references: [id])
+  branch             Branch?              @relation(fields: [branchId], references: [id])
+  pendingClaims      PendingClaim[]
   childVerifications FamilyVerification[] @relation("VerificationParent")
-  
+
   // Angelito
   angelitoParticipations ExchangeParticipant[] @relation("AngelitoMember")
-  angelitoTargets       ExchangeParticipant[] @relation("AngelitoTarget")
-  
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  angelitoTargets        ExchangeParticipant[] @relation("AngelitoTarget")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([familyId])
 }
 
 enum MemberRelation {
-  PATRIARCH   // The original parents
-  SIBLING     // One of the 12 siblings
-  CHILD       // Hijo/a
-  GRANDCHILD  // Nieto/a
+  FOUNDER // The founding ancestor(s) of the family tree
+  CHILD // Hijo/a
+  GRANDCHILD // Nieto/a
   GREAT_GRANDCHILD // Bisnieto/a
-  SPOUSE      // Cónyuge
-  NEPHEW      // Sobrino/a
+  SPOUSE // Cónyuge
+  SIBLING // Hermano/a
+  COUSIN // Primo/a
+  NEPHEW // Sobrino/a
   OTHER
 }
 
@@ -175,30 +234,30 @@ enum MemberRelation {
 // Parent-child verification system for community-driven tree growth
 
 model FamilyVerification {
-  id            String             @id @default(cuid())
-  requesterId   String             // User requesting to be linked as child
-  parentMemberId String            // Parent family member to verify against
-  childName     String             // Name to appear in tree if approved
-  message       String?            @db.Text // Optional message from requester
-  status        VerificationStatus @default(PENDING)
-  reviewedAt    DateTime?
-  reviewNote    String?            // Note from parent or admin
-  
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-  
-  requester     User               @relation(fields: [requesterId], references: [id], onDelete: Cascade)
-  parentMember  FamilyMember       @relation("VerificationParent", fields: [parentMemberId], references: [id])
-  
+  id             String             @id @default(cuid())
+  requesterId    String // User requesting to be linked as child
+  parentMemberId String // Parent family member to verify against
+  childName      String // Name to appear in tree if approved
+  message        String?            @db.Text // Optional message from requester
+  status         VerificationStatus @default(PENDING)
+  reviewedAt     DateTime?
+  reviewNote     String? // Note from parent or admin
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  requester    User         @relation(fields: [requesterId], references: [id], onDelete: Cascade)
+  parentMember FamilyMember @relation("VerificationParent", fields: [parentMemberId], references: [id])
+
   @@index([requesterId])
   @@index([parentMemberId])
   @@index([status])
 }
 
 enum VerificationStatus {
-  PENDING      // Waiting for parent to respond
-  APPROVED     // Parent confirmed the relationship
-  REJECTED     // Parent denied the relationship
+  PENDING // Waiting for parent to respond
+  APPROVED // Parent confirmed the relationship
+  REJECTED // Parent denied the relationship
   ADMIN_REVIEW // Sent to admin for manual review
 }
 
@@ -206,6 +265,7 @@ enum VerificationStatus {
 
 model Event {
   id          String    @id @default(cuid())
+  familyId    String // Event belongs to a Family
   title       String
   description String?   @db.Text
   date        DateTime
@@ -214,59 +274,66 @@ model Event {
   location    String?
   imageUrl    String?
   isRecurring Boolean   @default(false) // For annual events like anniversaries
-  createdBy   String?   // Admin who created it
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
+  createdBy   String? // Admin who created it
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([familyId])
   @@index([date])
   @@index([type])
 }
 
 enum EventType {
-  REUNION      // Reunión familiar
-  ANNIVERSARY  // Aniversario
-  BIRTHDAY     // Cumpleaños especial (manual)
-  MEMORIAL     // En memoria de
-  CELEBRATION  // Celebración general
+  REUNION // Reunión familiar
+  ANNIVERSARY // Aniversario
+  BIRTHDAY // Cumpleaños especial (manual)
+  MEMORIAL // En memoria de
+  CELEBRATION // Celebración general
   OTHER
 }
 
 // ============= SOCIAL MODELS =============
 
 model Post {
-  id        String   @id @default(cuid())
-  userId    String
-  content   String   @db.Text
-  imageUrl  String?
-  likes     Int      @default(0)
-  
-  user      User     @relation(fields: [userId], references: [id])
-  comments  Comment[]
-  
+  id       String  @id @default(cuid())
+  familyId String // Post belongs to a Family
+  userId   String
+  content  String  @db.Text
+  imageUrl String?
+  likes    Int     @default(0)
+
+  family   Family    @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id])
+  comments Comment[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([familyId])
 }
 
 model Comment {
-  id        String   @id @default(cuid())
-  postId    String
-  userId    String
-  content   String   @db.Text
-  
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id      String @id @default(cuid())
+  postId  String
+  userId  String
+  content String @db.Text
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
 }
 
 model Vote {
-  id        String   @id @default(cuid())
+  id        String @id @default(cuid())
   userId    String
-  sportName String   
-  
-  user      User     @relation(fields: [userId], references: [id])
-  
+  sportName String
+
+  user User @relation(fields: [userId], references: [id])
+
   createdAt DateTime @default(now())
 
   @@unique([userId, sportName])
@@ -275,16 +342,16 @@ model Vote {
 // ============= APPROVAL WORKFLOW MODELS =============
 
 model PendingClaim {
-  id          String     @id @default(cuid())
-  userId      String
-  memberId    String
-  status      ClaimStatus @default(PENDING)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  member      FamilyMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  
+  id        String      @id @default(cuid())
+  userId    String
+  memberId  String
+  status    ClaimStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  member FamilyMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
   @@unique([userId, memberId])
 }
 
@@ -298,24 +365,24 @@ model RegistrationRequest {
   id             String        @id @default(cuid())
   userId         String
   name           String
-  nickname       String?       // Apodo
+  nickname       String? // Apodo
   birthDate      DateTime?
   branchId       String
-  grandparentId  String?       // Which of the 12 siblings is grandparent
-  parentName     String?       // Parent name (text, not linked)
-  parentType     String?       // FATHER or MOTHER
+  grandparentId  String? // Which of the 12 siblings is grandparent
+  parentName     String? // Parent name (text, not linked)
+  parentType     String? // FATHER or MOTHER
   relation       String
   phone          String?
   whatsapp       String?
   bio            String?       @db.Text
-  skills         String[]      // Fortalezas / Habilidades
+  skills         String[] // Fortalezas / Habilidades
   preferredColor String?
   status         RequestStatus @default(PENDING)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
-  
-  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  branch         Branch        @relation(fields: [branchId], references: [id])
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch Branch @relation(fields: [branchId], references: [id])
 }
 
 enum RequestStatus {
@@ -327,38 +394,42 @@ enum RequestStatus {
 // ============= ANGELITO GAME (SECRET SANTA) =============
 
 model GameExchange {
-  id          String      @id @default(cuid())
+  id          String         @id @default(cuid())
+  familyId    String // Exchange belongs to a Family
   year        Int
-  title       String      // "Angelito 2025"
-  description String?     @db.Text
+  title       String // "Angelito 2025"
+  description String?        @db.Text
   status      ExchangeStatus @default(REGISTRATION_OPEN)
-  budget      String?     // "RD$ 1,500 - 2,000"
-  
+  budget      String? // "RD$ 1,500 - 2,000"
+
+  family       Family                @relation(fields: [familyId], references: [id], onDelete: Cascade)
   participants ExchangeParticipant[]
-  
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([familyId])
 }
 
 model ExchangeParticipant {
-  id              String            @id @default(cuid())
-  exchangeId      String
-  userId          String?           // Registered user (optional if playing for child)
-  memberId        String            // The actual person participating
-  
-  assignedMemberId String?          // Who they have to give a gift to (The "Child")
-  
-  status          ParticipantStatus @default(CONFIRMED)
-  wishes          String?           // "Me gustan los libros", etc.
-  
-  exchange        GameExchange      @relation(fields: [exchangeId], references: [id], onDelete: Cascade)
-  member          FamilyMember      @relation("AngelitoMember", fields: [memberId], references: [id])
-  assignedMember  FamilyMember?     @relation("AngelitoTarget", fields: [assignedMemberId], references: [id])
-  user            User?             @relation(fields: [userId], references: [id])
-  
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  
+  id         String  @id @default(cuid())
+  exchangeId String
+  userId     String? // Registered user (optional if playing for child)
+  memberId   String // The actual person participating
+
+  assignedMemberId String? // Who they have to give a gift to (The "Child")
+
+  status ParticipantStatus @default(CONFIRMED)
+  wishes String? // "Me gustan los libros", etc.
+
+  exchange       GameExchange  @relation(fields: [exchangeId], references: [id], onDelete: Cascade)
+  member         FamilyMember  @relation("AngelitoMember", fields: [memberId], references: [id])
+  assignedMember FamilyMember? @relation("AngelitoTarget", fields: [assignedMemberId], references: [id])
+  user           User?         @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@unique([exchangeId, memberId])
 }
 
@@ -377,33 +448,33 @@ enum ParticipantStatus {
 // ============= BLACKJACK ONLINE =============
 
 model BlackjackTable {
-  id          String   @id @default(cuid())
-  tableNumber Int      @unique @default(autoincrement())
-  status      String   @default("WAITING") // WAITING, BETTING, DEALING, PLAYING, DEALER_TURN, FINISHED
-  deck        String   @db.Text // JSON string of Card[]
-  dealerHand  String   @db.Text // JSON string of Card[]
-  turnIndex   Int      @default(0) // Whose turn is it?
-  
-  players     BlackjackPlayer[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id          String @id @default(cuid())
+  tableNumber Int    @unique @default(autoincrement())
+  status      String @default("WAITING") // WAITING, BETTING, DEALING, PLAYING, DEALER_TURN, FINISHED
+  deck        String @db.Text // JSON string of Card[]
+  dealerHand  String @db.Text // JSON string of Card[]
+  turnIndex   Int    @default(0) // Whose turn is it?
+
+  players BlackjackPlayer[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model BlackjackPlayer {
-  id          String   @id @default(cuid())
-  tableId     String
-  userId      String?  // Null if Bot
-  name        String   // Display name
-  avatar      String?  // Photo URL
-  isBot       Boolean  @default(false)
-  seatIndex   Int
-  
+  id        String  @id @default(cuid())
+  tableId   String
+  userId    String? // Null if Bot
+  name      String // Display name
+  avatar    String? // Photo URL
+  isBot     Boolean @default(false)
+  seatIndex Int
+
   // Game State
-  hands       String   @db.Text // JSON: array of { cards: Card[], bet: number, status: 'PLAYING'|'BUST'|'STAND', canSplit: bool }
-  money       Int      @default(1000)
-  currentBet  Int      @default(0)
-  
-  table       BlackjackTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
-  user        User?    @relation(fields: [userId], references: [id])
+  hands      String @db.Text // JSON: array of { cards: Card[], bet: number, status: 'PLAYING'|'BUST'|'STAND', canSplit: bool }
+  money      Int    @default(1000)
+  currentBet Int    @default(0)
+
+  table BlackjackTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  user  User?          @relation(fields: [userId], references: [id])
 }
