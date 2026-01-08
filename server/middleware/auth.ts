@@ -42,14 +42,16 @@ export function authenticateToken(req: AuthRequest, res: Response, next: NextFun
 }
 
 export function requireAdmin(req: AuthRequest, res: Response, next: NextFunction) {
-    if (!req.user || req.user.role !== 'PATRIARCH') {
+    const role = req.user?.role;
+    if (!req.user || (role !== 'ADMIN' && role !== 'SUPERADMIN' && role !== 'PATRIARCH')) {
         return res.status(403).json({ error: 'Acceso denegado. Se requiere rol de administrador.' });
     }
     next();
 }
 
 export function requirePatriarch(req: AuthRequest, res: Response, next: NextFunction) {
-    if (!req.user || req.user.role !== 'PATRIARCH') {
+    const role = req.user?.role;
+    if (!req.user || (role !== 'ADMIN' && role !== 'SUPERADMIN' && role !== 'PATRIARCH')) {
         return res.status(403).json({ error: 'Acceso denegado. Se requiere rol de patriarca.' });
     }
     next();

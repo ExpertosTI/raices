@@ -11,14 +11,14 @@ export const requirePatriarch = async (req: any, res: Response, next: NextFuncti
             include: { familyMember: true }
         });
 
-        // Strategy 1: User Role PATRIARCH
-        if (user?.role === 'PATRIARCH') {
+        // Strategy 1: User Role ADMIN, SUPERADMIN or PATRIARCH
+        if (user?.role === 'ADMIN' || user?.role === 'SUPERADMIN' || user?.role === 'PATRIARCH') {
             return next();
         }
 
         // Strategy 2: If modifying their own branch (Advanced)
         // For now, simple check:
-        res.status(403).json({ error: 'Requires Patriarch Privileges' });
+        res.status(403).json({ error: 'Requires Admin Privileges' });
 
     } catch (error) {
         res.sendStatus(500);
