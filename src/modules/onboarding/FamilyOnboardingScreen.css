@@ -1,0 +1,306 @@
+/* Family Onboarding Screen - SaaS Multi-Tenant */
+
+.family-onboarding {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle at center, #1a1a2e 0%, #0A0A0F 100%);
+    padding: 1rem;
+}
+
+.onboarding-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(15px);
+    border-radius: 24px;
+    border: 1px solid rgba(212, 175, 55, 0.1);
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 420px;
+    color: white;
+}
+
+.onboarding-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.onboarding-step.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.welcome-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.onboarding-step h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+    color: #D4AF37;
+}
+
+.onboarding-step .subtitle {
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+/* Choice Buttons */
+.choice-buttons {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.choice-btn {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.2rem 1.5rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+}
+
+.choice-btn:hover {
+    background: rgba(212, 175, 55, 0.1);
+    border-color: rgba(212, 175, 55, 0.3);
+    transform: translateY(-2px);
+}
+
+.choice-btn .btn-icon {
+    font-size: 2rem;
+}
+
+.choice-btn .btn-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.choice-btn .btn-text strong {
+    font-size: 1.1rem;
+}
+
+.choice-btn .btn-text small {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.85rem;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Back Button */
+.back-btn {
+    align-self: flex-start;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    padding: 0.5rem 0;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.back-btn:hover {
+    color: #D4AF37;
+}
+
+/* Form Groups */
+.form-group {
+    width: 100%;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+}
+
+.text-input {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.3);
+    color: white;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.text-input:focus {
+    outline: none;
+    border-color: #D4AF37;
+}
+
+.text-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+textarea.text-input {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.token-input {
+    font-family: monospace;
+    letter-spacing: 1px;
+}
+
+/* Invite Preview */
+.invite-preview {
+    width: 100%;
+    padding: 1rem;
+    background: rgba(212, 175, 55, 0.1);
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.invite-preview p {
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.family-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.family-preview .family-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.family-preview strong {
+    color: #D4AF37;
+    font-size: 1.2rem;
+}
+
+/* Submit Button */
+.submit-btn {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+    color: #0A0A0F;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.submit-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+}
+
+.submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Error Message */
+.error-msg {
+    width: 100%;
+    padding: 0.75rem;
+    background: rgba(220, 38, 38, 0.1);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-radius: 8px;
+    color: #EF4444;
+    text-align: center;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+/* Success Step */
+.success-step .success-icon {
+    font-size: 5rem;
+    margin-bottom: 1rem;
+}
+
+.next-steps {
+    width: 100%;
+    text-align: left;
+    background: rgba(212, 175, 55, 0.1);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.next-steps p {
+    margin-bottom: 0.75rem;
+    color: #D4AF37;
+    font-weight: 600;
+}
+
+.next-steps ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.next-steps li {
+    padding: 0.4rem 0;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.next-steps li::before {
+    content: '✓ ';
+    color: #D4AF37;
+}
+
+/* Responsive */
+@media (max-height: 700px) {
+    .onboarding-card {
+        padding: 1.5rem;
+    }
+
+    .welcome-icon {
+        font-size: 3rem;
+    }
+
+    .onboarding-step h1 {
+        font-size: 1.5rem;
+    }
+}

@@ -16,6 +16,7 @@ import { SportsScreen } from './modules/home/components/SportsScreen';
 import { DirectoryScreen } from './modules/home/components/DirectoryScreen';
 import { AdminScreen } from './modules/admin/AdminScreen';
 import { OnboardingScreen } from './modules/onboarding/OnboardingScreen';
+import { FamilyOnboardingScreen } from './modules/onboarding/FamilyOnboardingScreen';
 import { ProfileScreen } from './modules/profile/ProfileScreen';
 import { ProtectedRoute } from './modules/auth/components/ProtectedRoute';
 import { ConfirmDialogProvider } from './components/ConfirmDialog';
@@ -57,6 +58,10 @@ function App() {
           <Route path="/login-email" element={<EmailLoginScreen />} />
           <Route path="/verify-email" element={<VerifyEmailScreen />} />
           <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
+
+          {/* Family Setup and Invite Join Routes */}
+          <Route path="/family-setup" element={<FamilyOnboardingScreen />} />
+          <Route path="/join/:token" element={<FamilyOnboardingScreen />} />
 
           {/* Public Utilities - No login required */}
           <Route path="/utilities" element={<UtilitiesScreen />} />
