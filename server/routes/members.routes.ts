@@ -155,6 +155,11 @@ router.put('/:id', authenticateToken, canEditMember, upload.single('photo'), pro
             updateData.parentId = data.parentId === '' ? null : data.parentId;
         }
 
+        // Update relation if provided (admin can change this)
+        if (data.relation) {
+            updateData.relation = data.relation;
+        }
+
         // Update expected child count if provided
         if (data.expectedChildCount !== undefined) {
             updateData.expectedChildCount = parseInt(data.expectedChildCount) || 0;

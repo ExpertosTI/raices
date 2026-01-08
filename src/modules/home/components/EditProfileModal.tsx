@@ -57,7 +57,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
         skills: '', // Comma separated string
         preferredColor: '#D4AF37',
         parentId: '',
-        expectedChildCount: 0
+        expectedChildCount: 0,
+        relation: ''
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -100,7 +101,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
                     : (typeof member.skills === 'string' ? member.skills : ''),
                 preferredColor: member.preferredColor || member.branch?.color || '#D4AF37',
                 parentId: member.parentId || '',
-                expectedChildCount: member.expectedChildCount || 0
+                expectedChildCount: member.expectedChildCount || 0,
+                relation: member.relation || ''
             });
             if (member.photo) {
                 setPhotoPreview(member.photo);
@@ -167,6 +169,11 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
 
             // Add expected child count
             data.append('expectedChildCount', String(formData.expectedChildCount || 0));
+
+            // Add relation if set
+            if (formData.relation) {
+                data.append('relation', formData.relation);
+            }
 
             if (photoFile) data.append('photo', photoFile);
 
@@ -288,6 +295,35 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
                                         {p.name} ({getRelationLabel(p.relation)})
                                     </option>
                                 ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="relation">Relación en Árbol</label>
+                        <div className="input-wrapper">
+                            <select
+                                id="relation"
+                                value={formData.relation}
+                                onChange={e => setFormData({ ...formData, relation: e.target.value })}
+                                style={{
+                                    width: '100%',
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: 'white',
+                                    padding: '0.5rem',
+                                    outline: 'none',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                <option value="" style={{ color: 'black' }}>-- Seleccionar --</option>
+                                <option value="FOUNDER" style={{ color: 'black' }}>👴 Fundador (Patriarca Mayor)</option>
+                                <option value="SIBLING" style={{ color: 'black' }}>👨‍👩‍👧‍👦 Hermano/a (Los 12)</option>
+                                <option value="CHILD" style={{ color: 'black' }}>👶 Hijo/a</option>
+                                <option value="GRANDCHILD" style={{ color: 'black' }}>🧒 Nieto/a</option>
+                                <option value="GREAT_GRANDCHILD" style={{ color: 'black' }}>👶 Bisnieto/a</option>
+                                <option value="SPOUSE" style={{ color: 'black' }}>💕 Cónyuge</option>
+                                <option value="OTHER" style={{ color: 'black' }}>📌 Otro</option>
                             </select>
                         </div>
                     </div>

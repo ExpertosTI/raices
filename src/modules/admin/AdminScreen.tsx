@@ -607,16 +607,16 @@ export const AdminScreen = () => {
                                             {user.role === 'MEMBER' ? (
                                                 <button
                                                     className="role-btn promote"
-                                                    onClick={() => handleChangeRole(user.id, 'PATRIARCH')}
+                                                    onClick={() => handleChangeRole(user.id, 'ADMIN')}
                                                 >
-                                                    Promover a Patriarca
+                                                    👑 Promover a Admin
                                                 </button>
                                             ) : (
                                                 <button
                                                     className="role-btn demote"
                                                     onClick={() => handleChangeRole(user.id, 'MEMBER')}
                                                 >
-                                                    Degradar a Miembro
+                                                    👤 Degradar a Miembro
                                                 </button>
                                             )}
                                         </div>
@@ -628,21 +628,49 @@ export const AdminScreen = () => {
                         {/* Members Tab (Audit) */}
                         {activeTab === 'members' && (
                             <div className="admin-list">
+                                {members.length === 0 && <p style={{ color: '#888', textAlign: 'center' }}>No hay miembros registrados</p>}
                                 {members.map(member => (
                                     <div key={member.id} className="admin-card">
                                         <div className="card-header">
-                                            <div className="branch-badge" style={{ backgroundColor: member.branch?.color }}>
-                                                {member.branch?.name.charAt(0)}
+                                            <div className="branch-badge" style={{ backgroundColor: member.branch?.color || '#666' }}>
+                                                {member.branch?.name?.charAt(0) || '?'}
                                             </div>
-                                            <div>
+                                            <div style={{ flex: 1 }}>
                                                 <h3>{member.name}</h3>
-                                                <p>Rama: <strong>{member.branch?.name}</strong></p>
+                                                <p>Rama: <strong>{member.branch?.name || 'Sin rama'}</strong></p>
                                                 <p style={{ fontSize: '0.8rem', color: '#888' }}>
-                                                    {member.isPatriarch ? '👑 Patriarca' : '👤 Miembro'}
+                                                    {member.relation === 'FOUNDER' && '👴 Fundador'}
+                                                    {member.relation === 'PATRIARCH' && '👑 Patriarca'}
+                                                    {member.relation === 'CHILD' && '👶 Hijo/a'}
+                                                    {member.relation === 'GRANDCHILD' && '🧒 Nieto/a'}
+                                                    {member.relation === 'SIBLING' && '👨‍👩‍👧‍👦 Hermano/a'}
+                                                    {!['FOUNDER', 'PATRIARCH', 'CHILD', 'GRANDCHILD', 'SIBLING'].includes(member.relation) && `📌 ${member.relation}`}
                                                 </p>
+                                                {member.user && (
+                                                    <p style={{ fontSize: '0.75rem', color: '#D4AF37' }}>
+                                                        🔗 {member.user.email}
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
-                                        <div className="card-actions">
+                                        <div className="card-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                            <button
+                                                className="approve-btn"
+                                                onClick={() => {
+                                                    setEditingMember(member);
+                                                    setShowEditModal(true);
+                                                }}
+                                            >
+                                                ✏️ Editar
+                                            </button>
+                                            {member.userId && (
+                                                <button
+                                                    className="role-btn demote"
+                                                    onClick={() => handleUnclaimUser(member.id)}
+                                                >
+                                                    🔓 Desvincular
+                                                </button>
+                                            )}
                                             <button className="reject-btn" onClick={() => handleDeleteMember(member.id)}>
                                                 🗑️
                                             </button>
