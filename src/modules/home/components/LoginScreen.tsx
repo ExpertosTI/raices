@@ -231,35 +231,6 @@ export const LoginScreen = () => {
                     <button
                         onClick={() => navigate('/utilities')}
                         className="explore-btn"
-                        style={{
-                            background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.05))',
-                            border: '2px solid rgba(212, 175, 55, 0.6)',
-                            color: '#D4AF37',
-                            padding: '12px 24px',
-                            borderRadius: '30px',
-                            cursor: 'pointer',
-                            fontSize: '1rem',
-                            fontWeight: '600',
-                            marginBottom: '15px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            justifyContent: 'center',
-                            width: '100%',
-                            maxWidth: '280px',
-                            transition: 'all 0.3s ease',
-                            boxShadow: '0 4px 15px rgba(212, 175, 55, 0.15)'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(212, 175, 55, 0.4), rgba(212, 175, 55, 0.2))';
-                            e.currentTarget.style.transform = 'translateY(-2px)';
-                            e.currentTarget.style.boxShadow = '0 6px 20px rgba(212, 175, 55, 0.3)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.05))';
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = '0 4px 15px rgba(212, 175, 55, 0.15)';
-                        }}
                     >
                         🎮 Solo quiero jugar
                     </button>

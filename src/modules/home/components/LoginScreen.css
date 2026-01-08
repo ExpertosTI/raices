@@ -395,3 +395,57 @@
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+/* Explore Button */
+.explore-btn {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.05));
+    border: 2px solid rgba(212, 175, 55, 0.6);
+    color: #D4AF37;
+    padding: 10px 20px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+    width: auto;
+    min-width: 200px;
+    max-width: 280px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.15);
+}
+
+.explore-btn:hover {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.4), rgba(212, 175, 55, 0.2));
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
+}
+
+.explore-btn:active {
+    transform: translateY(0);
+}
+
+/* Auth Container Adjustments */
+.auth-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+    width: 100%;
+    max-width: 300px;
+}
+
+.google-btn-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.facebook-login-btn {
+    width: 250px;
+    /* Match Google button default width */
+    max-width: 100%;
+}

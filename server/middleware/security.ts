@@ -28,7 +28,7 @@ export const securityHeaders = (req: Request, res: Response, next: NextFunction)
         "font-src 'self' https://fonts.gstatic.com; " +
         "img-src 'self' data: https: blob: https://platform-lookaside.fbsbx.com; " +
         "connect-src 'self' https://accounts.google.com https://*.googleapis.com https://graph.facebook.com https://connect.facebook.net https://*.facebook.com https://*.facebook.net; " +
-        "frame-src 'self' https://accounts.google.com https://www.facebook.com https://web.facebook.com https://staticxx.facebook.com https://*.facebook.com; " +
+        "frame-src 'self' https://accounts.google.com https://www.facebook.com https://web.facebook.com https://staticxx.facebook.com https://*.facebook.com https://content.googleapis.com; " +
         "worker-src 'self' blob:; " +
         "object-src 'none'; " +
         "base-uri 'self';"
