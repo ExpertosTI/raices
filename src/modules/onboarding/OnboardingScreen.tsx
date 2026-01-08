@@ -157,6 +157,38 @@ export const OnboardingScreen = () => {
         setLoading(false);
     };
 
+    const handleClaimProfile = async (memberId: string, memberName: string) => {
+        if (!window.confirm(`¿Estás seguro que "${memberName}" es tu perfil?`)) return;
+
+        setLoading(true);
+        try {
+            const res = await fetch('/api/members/claim', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ memberId })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.error || 'Error al reclamar perfil');
+
+            if (data.linked) {
+                alert('✅ ¡Perfil vinculado exitosamente! Bienvenido de vuelta.');
+                window.location.reload(); // Reload to refresh user context
+            } else {
+                setStep(4); // Success screen (pending approval)
+                setMessage('Solicitud de reclamo enviada.');
+            }
+
+        } catch (err: any) {
+            alert(err.message);
+        }
+        setLoading(false);
+    };
+
     const filteredMembers = members.filter(m =>
         m.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -220,18 +252,33 @@ export const OnboardingScreen = () => {
                         <button className="next-btn" onClick={() => setStep(2)}>
                             Continuar →
                         </button>
+
+                        <div style={{ marginTop: '2rem', borderTop: '1px solid #333', paddingTop: '1rem' }}>
+                            <p style={{ fontSize: '0.9rem', color: '#aaa' }}>¿Ya tienes un perfil en el árbol?</p>
+                            <button
+                                className="link-btn"
+                                onClick={() => { setStep(0); setSearchTerm(user?.name || ''); }}
+                                style={{ color: '#eb5e28' }}
+                            >
+                                ⚠️ Reclamar mi perfil existente
+                            </button>
+                        </div>
                     </div>
                 )}
 
-                {/* Step 2: Parent Selection */}
-                {step === 2 && (
+                {/* Step 2: Parent Selection (OR Step 0: Claim Mode) */}
+                {(step === 2 || step === 0) && (
                     <div className="onboarding-step">
                         <button className="back-link" onClick={() => setStep(1)}>← Atrás</button>
 
                         {!manualMode ? (
                             <>
-                                <h1>¿Quién es tu padre o madre?</h1>
-                                <p className="step-desc">Busca a tu papá o mamá en la lista.</p>
+                                <h1>{step === 0 ? 'Encuentra tu perfil' : '¿Quién es tu padre o madre?'}</h1>
+                                <p className="step-desc">
+                                    {step === 0
+                                        ? 'Busca tu nombre en la lista para reclamarlo.'
+                                        : 'Busca a tu papá o mamá en la lista.'}
+                                </p>
 
                                 <input
                                     type="text"
@@ -242,177 +289,190 @@ export const OnboardingScreen = () => {
                                     autoFocus
                                 />
 
-                                <div className="members-list">
-                                    {filteredMembers.slice(0, 10).map(member => (
-                                        <div
-                                            key={member.id}
-                                            className={`member-option ${formData.parentMemberId === member.id ? 'selected' : ''}`}
-                                            onClick={() => setFormData({
+                                {filteredMembers.slice(0, 10).map(member => (
+                                    <div
+                                        key={member.id}
+                                        className={`member-option ${formData.parentMemberId === member.id ? 'selected' : ''}`}
+                                        onClick={() => {
+                                            if (manualMode) return; // Should not happen
+
+                                            // CLAIM MODE LOGIC
+                                            if (step === 0) { // Using Step 0 as "Claim Mode"
+                                                handleClaimProfile(member.id, member.name);
+                                                return;
+                                            }
+
+                                            setFormData({
                                                 ...formData,
                                                 parentMemberId: member.id,
                                                 parentMemberName: member.name
-                                            })}
-                                            style={{ borderLeftColor: member.branch?.color || '#ccc' }}
-                                        >
-                                            <div className="member-info">
-                                                <strong>{member.name}</strong>
-                                                <span>Rama: {member.branch?.name}</span>
-                                            </div>
-                                            {formData.parentMemberId === member.id && <span className="check-icon">✓</span>}
+                                            })
+                                        }}
+                                        style={{ borderLeftColor: member.branch?.color || '#ccc' }}
+                                    >
+                                        <div className="member-info">
+                                            <strong>{member.name}</strong>
+                                            <span>Rama: {member.branch?.name}</span>
                                         </div>
-                                    ))}
-                                    {searchTerm && filteredMembers.length === 0 && (
-                                        <p className="no-results">No se encontraron miembros</p>
-                                    )}
-                                </div>
-
-                                <div className="toggle-mode">
-                                    <p>¿No encuentras a tu padre/madre?</p>
-                                    <button className="link-btn" onClick={() => setManualMode(true)}>
-                                        Ingresar manualmente
-                                    </button>
-                                </div>
-
-                                <button
-                                    className="next-btn"
-                                    disabled={!formData.parentMemberId}
-                                    onClick={() => setStep(3)}
-                                >
-                                    Continuar →
-                                </button>
-                            </>
-                        ) : (
-                            <>
-                                <h1>Ingreso Manual</h1>
-                                <p className="step-desc">¿A qué rama de la familia perteneces?</p>
-
-                                <div className="branches-grid mini-grid">
-                                    {branches.map(branch => (
-                                        <button
-                                            key={branch.id}
-                                            className={`branch-card ${formData.branchId === branch.id ? 'selected' : ''}`}
-                                            style={{
-                                                borderColor: formData.branchId === branch.id ? branch.color : 'transparent',
-                                                backgroundColor: formData.branchId === branch.id ? `${branch.color}20` : undefined
-                                            }}
-                                            onClick={() => setFormData({ ...formData, branchId: branch.id })}
-                                        >
-                                            <span className="branch-initial" style={{ backgroundColor: branch.color }}>
-                                                {branch.name.charAt(0)}
-                                            </span>
-                                            <span className="branch-name">{branch.name.split(' ')[0]}</span>
-                                        </button>
-                                    ))}
-                                </div>
-
-                                {formData.branchId && (
-                                    <div className="manual-inputs fade-in">
-                                        <div className="form-group">
-                                            <label>Nombre de tu padre/madre</label>
-                                            <input
-                                                type="text"
-                                                className="text-input"
-                                                placeholder="Nombre completo"
-                                                value={formData.parentName}
-                                                onChange={e => setFormData({ ...formData, parentName: e.target.value })}
-                                            />
-                                        </div>
-
-                                        <div className="relation-options">
-                                            <button
-                                                className={`relation-btn ${formData.parentType === 'MOTHER' ? 'active' : ''}`}
-                                                onClick={() => setFormData({ ...formData, parentType: 'MOTHER' })}
-                                            >👩 Madre</button>
-                                            <button
-                                                className={`relation-btn ${formData.parentType === 'FATHER' ? 'active' : ''}`}
-                                                onClick={() => setFormData({ ...formData, parentType: 'FATHER' })}
-                                            >👨 Padre</button>
-                                        </div>
+                                        {/* Show CHECK if selected parent, or BUTTON if Claim Mode */}
+                                        {step === 0 ? (
+                                            <button className="claim-btn-small">Este soy yo</button>
+                                        ) : (
+                                            formData.parentMemberId === member.id && <span className="check-icon">✓</span>
+                                        )}
                                     </div>
+                                ))}
+                                {searchTerm && filteredMembers.length === 0 && (
+                                    <p className="no-results">No se encontraron miembros</p>
                                 )}
-
-                                <div className="toggle-mode">
-                                    <button className="link-btn" onClick={() => setManualMode(false)}>
-                                        Volver a buscar
-                                    </button>
-                                </div>
-
-                                <button
-                                    className="next-btn"
-                                    disabled={!formData.branchId || !formData.parentName}
-                                    onClick={() => setStep(3)}
-                                >
-                                    Continuar →
-                                </button>
-                            </>
-                        )}
-                    </div>
-                )}
-
-                {/* Step 3: Confirmation */}
-                {step === 3 && (
-                    <div className="onboarding-step">
-                        <button className="back-link" onClick={() => setStep(2)}>← Atrás</button>
-
-                        <h1>Todo listo para enviar</h1>
-                        <p className="step-desc">Revisa que la información sea correcta.</p>
-
-                        <div className="summary-card">
-                            <div className="summary-row">
-                                <span>Nombre:</span>
-                                <strong>{user?.name} {formData.nickname && `(${formData.nickname})`}</strong>
                             </div>
-                            <div className="summary-row">
-                                <span>Padre/Madre:</span>
-                                <strong>
-                                    {formData.parentMemberId ? formData.parentMemberName : formData.parentName}
-                                </strong>
-                            </div>
-                            <div className="summary-row">
-                                <span>Método:</span>
-                                <span>{formData.parentMemberId ? 'Enlace Directo' : 'Solicitud Manual'}</span>
-                            </div>
+
+                        <div className="toggle-mode">
+                            <p>¿No encuentras a tu padre/madre?</p>
+                            <button className="link-btn" onClick={() => setManualMode(true)}>
+                                Ingresar manualmente
+                            </button>
                         </div>
-
-                        <div className="form-group">
-                            <label>Mensaje (Opcional)</label>
-                            <textarea
-                                className="text-input"
-                                placeholder="Algún detalle adicional..."
-                                value={formData.bio}
-                                onChange={e => setFormData({ ...formData, bio: e.target.value })}
-                                rows={3}
-                            />
-                        </div>
-
-                        {message && <p className="error-msg">{message}</p>}
 
                         <button
-                            className="submit-btn"
-                            onClick={handleSubmit}
-                            disabled={loading}
+                            className="next-btn"
+                            disabled={!formData.parentMemberId}
+                            onClick={() => setStep(3)}
                         >
-                            {loading ? 'Enviando...' : '✅ Enviar Solicitud'}
+                            Continuar →
+                        </button>
+                    </>
+                ) : (
+                <>
+                    <h1>Ingreso Manual</h1>
+                    <p className="step-desc">¿A qué rama de la familia perteneces?</p>
+
+                    <div className="branches-grid mini-grid">
+                        {branches.map(branch => (
+                            <button
+                                key={branch.id}
+                                className={`branch-card ${formData.branchId === branch.id ? 'selected' : ''}`}
+                                style={{
+                                    borderColor: formData.branchId === branch.id ? branch.color : 'transparent',
+                                    backgroundColor: formData.branchId === branch.id ? `${branch.color}20` : undefined
+                                }}
+                                onClick={() => setFormData({ ...formData, branchId: branch.id })}
+                            >
+                                <span className="branch-initial" style={{ backgroundColor: branch.color }}>
+                                    {branch.name.charAt(0)}
+                                </span>
+                                <span className="branch-name">{branch.name.split(' ')[0]}</span>
+                            </button>
+                        ))}
+                    </div>
+
+                    {formData.branchId && (
+                        <div className="manual-inputs fade-in">
+                            <div className="form-group">
+                                <label>Nombre de tu padre/madre</label>
+                                <input
+                                    type="text"
+                                    className="text-input"
+                                    placeholder="Nombre completo"
+                                    value={formData.parentName}
+                                    onChange={e => setFormData({ ...formData, parentName: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="relation-options">
+                                <button
+                                    className={`relation-btn ${formData.parentType === 'MOTHER' ? 'active' : ''}`}
+                                    onClick={() => setFormData({ ...formData, parentType: 'MOTHER' })}
+                                >👩 Madre</button>
+                                <button
+                                    className={`relation-btn ${formData.parentType === 'FATHER' ? 'active' : ''}`}
+                                    onClick={() => setFormData({ ...formData, parentType: 'FATHER' })}
+                                >👨 Padre</button>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="toggle-mode">
+                        <button className="link-btn" onClick={() => setManualMode(false)}>
+                            Volver a buscar
                         </button>
                     </div>
-                )}
 
-                {/* Step 4: Success */}
-                {step === 4 && (
-                    <div className="onboarding-step success-step">
-                        <div className="success-icon">🎉</div>
-                        <h1>¡Solicitud Enviada!</h1>
-                        <p className="step-desc">
-                            Hemos notificado a tu padre/madre.
-                            Cuando aprueben tu solicitud, podrás acceder a todas las funciones.
-                        </p>
-                        <button className="next-btn" onClick={() => navigate('/app')}>
-                            Ir al Inicio →
-                        </button>
-                    </div>
-                )}
-
+                    <button
+                        className="next-btn"
+                        disabled={!formData.branchId || !formData.parentName}
+                        onClick={() => setStep(3)}
+                    >
+                        Continuar →
+                    </button>
+                </>
+                        )}
             </div>
+                )}
+
+            {/* Step 3: Confirmation */}
+            {step === 3 && (
+                <div className="onboarding-step">
+                    <button className="back-link" onClick={() => setStep(2)}>← Atrás</button>
+
+                    <h1>Todo listo para enviar</h1>
+                    <p className="step-desc">Revisa que la información sea correcta.</p>
+
+                    <div className="summary-card">
+                        <div className="summary-row">
+                            <span>Nombre:</span>
+                            <strong>{user?.name} {formData.nickname && `(${formData.nickname})`}</strong>
+                        </div>
+                        <div className="summary-row">
+                            <span>Padre/Madre:</span>
+                            <strong>
+                                {formData.parentMemberId ? formData.parentMemberName : formData.parentName}
+                            </strong>
+                        </div>
+                        <div className="summary-row">
+                            <span>Método:</span>
+                            <span>{formData.parentMemberId ? 'Enlace Directo' : 'Solicitud Manual'}</span>
+                        </div>
+                    </div>
+
+                    <div className="form-group">
+                        <label>Mensaje (Opcional)</label>
+                        <textarea
+                            className="text-input"
+                            placeholder="Algún detalle adicional..."
+                            value={formData.bio}
+                            onChange={e => setFormData({ ...formData, bio: e.target.value })}
+                            rows={3}
+                        />
+                    </div>
+
+                    {message && <p className="error-msg">{message}</p>}
+
+                    <button
+                        className="submit-btn"
+                        onClick={handleSubmit}
+                        disabled={loading}
+                    >
+                        {loading ? 'Enviando...' : '✅ Enviar Solicitud'}
+                    </button>
+                </div>
+            )}
+
+            {/* Step 4: Success */}
+            {step === 4 && (
+                <div className="onboarding-step success-step">
+                    <div className="success-icon">🎉</div>
+                    <h1>¡Solicitud Enviada!</h1>
+                    <p className="step-desc">
+                        Hemos notificado a tu padre/madre.
+                        Cuando aprueben tu solicitud, podrás acceder a todas las funciones.
+                    </p>
+                    <button className="next-btn" onClick={() => navigate('/app')}>
+                        Ir al Inicio →
+                    </button>
+                </div>
+            )}
+
         </div>
     );
 };

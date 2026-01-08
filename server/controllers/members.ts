@@ -40,8 +40,27 @@ export const claimProfile = async (req: any, res: Response) => {
             data: { userId, memberId }
         });
 
-        // 4. Get user info for email
+        // 4. Get user info
         const user = await prisma.user.findUnique({ where: { id: userId } });
+
+        // AUTO-LINK Check (Migration Fix): If names match exactly, approve instantly
+        if (user?.name && member.name.toLowerCase().trim() === user.name.toLowerCase().trim()) {
+            await prisma.familyMember.update({
+                where: { id: memberId },
+                data: { userId: user.id }
+            });
+
+            await prisma.pendingClaim.update({
+                where: { id: claim.id },
+                data: { status: 'APPROVED' }
+            });
+
+            return res.json({
+                message: '✅ Perfil verificado y vinculado automáticamente.',
+                claim: { ...claim, status: 'APPROVED' },
+                linked: true
+            });
+        }
 
         // 5. Send email to Admin
         const adminEmail = process.env.ADMIN_EMAIL;
@@ -52,8 +71,9 @@ export const claimProfile = async (req: any, res: Response) => {
                     `🔔 Nueva solicitud de reclamo - ${member.name}`,
                     `<h2>Nueva Solicitud de Reclamo</h2>
                     <p><strong>${user?.name || user?.email}</strong> quiere reclamar el perfil de <strong>${member.name}</strong>.</p>
-                    <p><strong>Rama:</strong> ${member.branch.name}</p>
+                    <p><strong>Rama:</strong> ${member.branch?.name}</p>
                     <p><strong>Email del solicitante:</strong> ${user?.email}</p>
+                    <p><em>(Si los nombres coinciden, se debería haber vinculado automáticamente)</em></p>
                     <br>
                     <p>Ingresa al panel de administración para aprobar o rechazar esta solicitud.</p>
                     <p><a href="https://raices.renace.tech/admin">Ir al Panel de Administración</a></p>`
