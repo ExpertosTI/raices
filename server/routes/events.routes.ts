@@ -1,25 +1,32 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../db';
-import { authenticateToken, requireAdmin, requirePatriarch } from '../middleware/auth';
+import { authenticateToken, AuthRequest } from '../middleware/auth';
+import { requireFamily, requireFamilyAdmin } from '../middleware/family';
 import { upload, processImage } from '../middleware/upload';
 
 const router = Router();
 
-// GET all events (public - includes birthdays + manual events)
-router.get('/', async (req: Request, res: Response) => {
+// GET all events (filtered by user's family)
+router.get('/', authenticateToken, requireFamily, async (req: AuthRequest, res: Response) => {
     try {
-        // Get manual events
+        const familyId = req.familyId!;
+
+        // Get manual events for this family
         const manualEvents = await prisma.event.findMany({
             where: {
+                familyId, // Multi-tenant filter
                 date: { gte: new Date() }
             },
             orderBy: { date: 'asc' },
             take: 50
         });
 
-        // Get birthdays from members
+        // Get birthdays from family members
         const members = await prisma.familyMember.findMany({
-            where: { birthDate: { not: null } },
+            where: {
+                familyId, // Multi-tenant filter
+                birthDate: { not: null }
+            },
             select: { id: true, name: true, birthDate: true, photo: true, branchId: true }
         });
 
@@ -59,11 +66,14 @@ router.get('/', async (req: Request, res: Response) => {
     }
 });
 
-// GET single event
-router.get('/:id', async (req: Request, res: Response) => {
+// GET single event (verify family ownership)
+router.get('/:id', authenticateToken, requireFamily, async (req: AuthRequest, res: Response) => {
     try {
-        const event = await prisma.event.findUnique({
-            where: { id: req.params.id }
+        const event = await prisma.event.findFirst({
+            where: {
+                id: req.params.id,
+                familyId: req.familyId // Verify event belongs to user's family
+            }
         });
         if (!event) return res.status(404).json({ error: 'Event not found' });
         res.json(event);
@@ -72,11 +82,12 @@ router.get('/:id', async (req: Request, res: Response) => {
     }
 });
 
-// CREATE event (admin only)
-router.post('/', authenticateToken, requirePatriarch, upload.single('image'), processImage, async (req: any, res: Response) => {
+// CREATE event (family admin only)
+router.post('/', authenticateToken, requireFamilyAdmin, upload.single('image'), processImage, async (req: AuthRequest, res: Response) => {
     try {
         const { title, description, date, endDate, type, location, isRecurring } = req.body;
-        const imageUrl = req.body.imageUrl;
+        const imageUrl = (req as any).body.imageUrl;
+        const familyId = req.familyId!;
 
         if (!title || !date) {
             return res.status(400).json({ error: 'Title and date are required' });
@@ -84,6 +95,7 @@ router.post('/', authenticateToken, requirePatriarch, upload.single('image'), pr
 
         const event = await prisma.event.create({
             data: {
+                familyId, // Multi-tenant
                 title,
                 description: description || null,
                 date: new Date(date),
@@ -103,11 +115,20 @@ router.post('/', authenticateToken, requirePatriarch, upload.single('image'), pr
     }
 });
 
-// UPDATE event (admin only)
-router.put('/:id', authenticateToken, requirePatriarch, upload.single('image'), processImage, async (req: any, res: Response) => {
+// UPDATE event (family admin only)
+router.put('/:id', authenticateToken, requireFamilyAdmin, upload.single('image'), processImage, async (req: AuthRequest, res: Response) => {
     try {
+        const familyId = req.familyId!;
         const { title, description, date, endDate, type, location, isRecurring } = req.body;
-        const imageUrl = req.body.imageUrl;
+        const imageUrl = (req as any).body.imageUrl;
+
+        // Verify event belongs to user's family
+        const existingEvent = await prisma.event.findFirst({
+            where: { id: req.params.id, familyId }
+        });
+        if (!existingEvent) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
 
         const updateData: any = {};
         if (title) updateData.title = title;
@@ -131,9 +152,19 @@ router.put('/:id', authenticateToken, requirePatriarch, upload.single('image'), 
     }
 });
 
-// DELETE event (admin only)
-router.delete('/:id', authenticateToken, requirePatriarch, async (req: Request, res: Response) => {
+// DELETE event (family admin only)
+router.delete('/:id', authenticateToken, requireFamilyAdmin, async (req: AuthRequest, res: Response) => {
     try {
+        const familyId = req.familyId!;
+
+        // Verify event belongs to user's family
+        const existingEvent = await prisma.event.findFirst({
+            where: { id: req.params.id, familyId }
+        });
+        if (!existingEvent) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
         await prisma.event.delete({
             where: { id: req.params.id }
         });

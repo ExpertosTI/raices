@@ -1,10 +1,25 @@
 import { Request, Response } from 'express';
 import { prisma } from '../db';
+import { AuthRequest } from '../middleware/auth';
 
-// Get all posts (feed)
-export const getFeed = async (req: Request, res: Response) => {
+// Get all posts (feed) - filtered by user's family
+export const getFeed = async (req: AuthRequest, res: Response) => {
     try {
+        const userId = req.user?.id;
+
+        // Get user's familyId
+        const user = userId ? await prisma.user.findUnique({
+            where: { id: userId },
+            select: { familyId: true }
+        }) : null;
+
+        // If user has no family, return empty feed
+        if (!user?.familyId) {
+            return res.json([]);
+        }
+
         const posts = await prisma.post.findMany({
+            where: { familyId: user.familyId }, // Filter by family
             include: {
                 user: { select: { name: true, image: true, id: true } },
                 comments: {
@@ -22,18 +37,30 @@ export const getFeed = async (req: Request, res: Response) => {
     }
 };
 
-// Create a post
+// Create a post - assigns user's familyId
 export const createPost = async (req: any, res: Response) => {
     const { content, imageUrl } = req.body;
+    const userId = req.user?.id;
 
     if (!content) return res.status(400).json({ error: 'Content required' });
 
     try {
+        // Get user's familyId
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { familyId: true }
+        });
+
+        if (!user?.familyId) {
+            return res.status(403).json({ error: 'Debes pertenecer a una familia' });
+        }
+
         const post = await prisma.post.create({
             data: {
                 content,
                 imageUrl,
-                userId: req.user.id
+                userId,
+                familyId: user.familyId // Multi-tenant
             }
         });
         res.json(post);
