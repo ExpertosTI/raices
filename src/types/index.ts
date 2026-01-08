@@ -14,7 +14,7 @@ export interface FamilyMember {
     birthDate?: string;
     deathDate?: string;
     photo?: string;
-    relation: 'PATRIARCH' | 'SIBLING' | 'CHILD' | 'GRANDCHILD' | 'GREAT_GRANDCHILD' | 'SPOUSE' | 'NEPHEW' | 'OTHER';
+    relation: 'FOUNDER' | 'PATRIARCH' | 'SIBLING' | 'CHILD' | 'GRANDCHILD' | 'GREAT_GRANDCHILD' | 'SPOUSE' | 'NEPHEW' | 'OTHER';
     isPatriarch: boolean;
     bio?: string;
     parentId?: string;
