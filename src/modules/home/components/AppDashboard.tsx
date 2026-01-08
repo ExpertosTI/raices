@@ -139,33 +139,41 @@ export const AppDashboard: React.FC = () => {
                         </div>
                     </button>
 
-                    <div className="header-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <div className="header-actions" style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                         <NotificationBell
                             count={verifications.incoming.length}
                             onClick={() => setShowNotifications(true)}
                         />
                         <button
-                            className="settings-btn"
                             onClick={() => navigate('/settings')}
                             style={{
-                                background: 'rgba(212, 175, 55, 0.2)',
-                                border: '1px solid #D4AF37',
-                                borderRadius: '8px',
-                                padding: '8px 12px',
+                                background: 'none',
+                                border: 'none',
                                 color: '#D4AF37',
                                 cursor: 'pointer',
-                                fontSize: '1rem'
+                                fontSize: '1.3rem',
+                                padding: '6px'
                             }}
                             title="Ajustes"
                         >
                             ⚙️
                         </button>
-                        <button className="logout-btn" onClick={() => {
+                        <button onClick={() => {
                             localStorage.removeItem('token');
                             localStorage.removeItem('user');
                             navigate('/login');
-                        }}>
-                            🚪 Salir
+                        }}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#999',
+                                cursor: 'pointer',
+                                fontSize: '1.3rem',
+                                padding: '6px'
+                            }}
+                            title="Cerrar sesión"
+                        >
+                            🚪
                         </button>
                     </div>
                 </div>

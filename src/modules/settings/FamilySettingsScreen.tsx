@@ -132,7 +132,8 @@ export const FamilySettingsScreen = () => {
                         <div className="info-row">
                             <span>Rol:</span>
                             <span className={`role-badge ${user?.role?.toLowerCase()}`}>
-                                {user?.role === 'ADMIN' ? '👑 Admin' : '👤 Miembro'}
+                                {user?.role === 'SUPERADMIN' ? '⭐ Super Admin' :
+                                    user?.role === 'ADMIN' ? '👑 Admin' : '👤 Miembro'}
                             </span>
                         </div>
                     </div>
@@ -210,6 +211,32 @@ export const FamilySettingsScreen = () => {
                         )}
 
                         {error && <p className="error-msg">{error}</p>}
+                    </section>
+                )}
+
+                {/* Admin Panel (Admin/SuperAdmin Only) */}
+                {(user?.role === 'ADMIN' || user?.role === 'SUPERADMIN') && (
+                    <section className="settings-section">
+                        <h2>🛠️ Administración</h2>
+                        <p className="section-desc">
+                            Gestiona solicitudes, usuarios, miembros y más.
+                        </p>
+                        <div className="admin-actions">
+                            <button
+                                className="admin-btn"
+                                onClick={() => navigate('/admin')}
+                            >
+                                👥 Panel de Admin
+                                <span>Solicitudes, usuarios, editar miembros</span>
+                            </button>
+                            <button
+                                className="admin-btn"
+                                onClick={() => navigate('/directory')}
+                            >
+                                📋 Directorio
+                                <span>Ver todos los miembros</span>
+                            </button>
+                        </div>
                     </section>
                 )}
 
