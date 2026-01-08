@@ -198,6 +198,19 @@ export const LoginScreen = () => {
                             strokeLinejoin="round"
                         />
                     </svg>
+                    <h1 className="app-title" style={{
+                        fontSize: '2.5rem',
+                        fontWeight: '700',
+                        color: '#D4AF37',
+                        margin: '0.5rem 0 0.25rem 0',
+                        textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                    }}>Raíces</h1>
+                    <p className="app-slogan" style={{
+                        color: 'rgba(255,255,255,0.7)',
+                        fontSize: '0.95rem',
+                        margin: '0 0 1rem 0',
+                        fontStyle: 'italic'
+                    }}>Conectando generaciones, preservando memorias</p>
                 </div>
 
                 {error && (
@@ -219,23 +232,36 @@ export const LoginScreen = () => {
                         onClick={() => navigate('/utilities')}
                         className="explore-btn"
                         style={{
-                            background: 'rgba(212, 175, 55, 0.1)',
-                            border: '1px solid #D4AF37',
+                            background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.05))',
+                            border: '2px solid rgba(212, 175, 55, 0.6)',
                             color: '#D4AF37',
-                            padding: '10px 20px',
-                            borderRadius: '25px',
+                            padding: '12px 24px',
+                            borderRadius: '30px',
                             cursor: 'pointer',
-                            fontSize: '0.9rem',
+                            fontSize: '1rem',
+                            fontWeight: '600',
                             marginBottom: '15px',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '8px',
+                            gap: '10px',
                             justifyContent: 'center',
                             width: '100%',
-                            maxWidth: '250px'
+                            maxWidth: '280px',
+                            transition: 'all 0.3s ease',
+                            boxShadow: '0 4px 15px rgba(212, 175, 55, 0.15)'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(212, 175, 55, 0.4), rgba(212, 175, 55, 0.2))';
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = '0 6px 20px rgba(212, 175, 55, 0.3)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.05))';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = '0 4px 15px rgba(212, 175, 55, 0.15)';
                         }}
                     >
-                        🎮 Solo quiero explorar / jugar
+                        🎮 Solo quiero jugar
                     </button>
                     <div className="legal-links">
                         <a href="/privacy">Privacidad</a>
