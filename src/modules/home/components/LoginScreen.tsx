@@ -98,38 +98,42 @@ export const LoginScreen = () => {
         setIsLoading(true);
         setError('');
 
-        window.FB.login(async (response: any) => {
+        window.FB.login((response: any) => {
             if (response.authResponse) {
-                try {
-                    const res = await fetch('/api/auth/facebook', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            accessToken: response.authResponse.accessToken,
-                            userID: response.authResponse.userID
-                        }),
-                    });
+                // Handle async logic inside a separate function
+                const handleFbResponse = async () => {
+                    try {
+                        const res = await fetch('/api/auth/facebook', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                accessToken: response.authResponse.accessToken,
+                                userID: response.authResponse.userID
+                            }),
+                        });
 
-                    if (res.ok) {
-                        const data = await res.json();
-                        localStorage.setItem('token', data.token);
-                        localStorage.setItem('user', JSON.stringify(data.user));
+                        if (res.ok) {
+                            const data = await res.json();
+                            localStorage.setItem('token', data.token);
+                            localStorage.setItem('user', JSON.stringify(data.user));
 
-                        if (!data.user.familyMember) {
-                            navigate('/onboarding');
+                            if (!data.user.familyMember) {
+                                navigate('/onboarding');
+                            } else {
+                                navigate('/app');
+                            }
                         } else {
-                            navigate('/app');
+                            const errData = await res.json();
+                            setError(errData.error || 'Error al verificar con Facebook.');
+                            setIsLoading(false);
                         }
-                    } else {
-                        const errData = await res.json();
-                        setError(errData.error || 'Error al verificar con Facebook.');
+                    } catch (error) {
+                        console.error('Error with Facebook login:', error);
+                        setError('Error de conexión.');
                         setIsLoading(false);
                     }
-                } catch (error) {
-                    console.error('Error with Facebook login:', error);
-                    setError('Error de conexión.');
-                    setIsLoading(false);
-                }
+                };
+                handleFbResponse();
             } else {
                 setIsLoading(false);
             }
