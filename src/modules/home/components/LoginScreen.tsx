@@ -200,12 +200,6 @@ export const LoginScreen = () => {
                     </svg>
                 </div>
 
-                <h1>Bienvenido</h1>
-                <p className="login-subtitle">
-                    Inicia sesión para reconectar con tus raíces<br />
-                    y descubrir la historia de la Familia Henríquez Cruz.
-                </p>
-
                 {error && (
                     <div className="login-error">
                         <span>⚠️</span> {error}
@@ -218,21 +212,6 @@ export const LoginScreen = () => {
                     ) : (
                         renderAuthOptions()
                     )}
-                </div>
-
-                {/* Utilidades públicas - sin login */}
-                <div className="public-utilities">
-                    <p>Explora sin iniciar sesión:</p>
-                    <div className="utilities-buttons">
-                        <button onClick={() => navigate('/utilities/domino')} className="utility-mini-btn">
-                            <span>🁩</span>
-                            <span>Dominó</span>
-                        </button>
-                        <button onClick={() => navigate('/utilities/basket')} className="utility-mini-btn">
-                            <span>🏀</span>
-                            <span>Basket</span>
-                        </button>
-                    </div>
                 </div>
 
                 <div className="login-footer">
