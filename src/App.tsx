@@ -17,6 +17,7 @@ import { AdminScreen } from './modules/admin/AdminScreen';
 import { OnboardingScreen } from './modules/onboarding/OnboardingScreen';
 import { FamilyOnboardingScreen } from './modules/onboarding/FamilyOnboardingScreen';
 import { ProfileScreen } from './modules/profile/ProfileScreen';
+import { FamilySettingsScreen } from './modules/settings/FamilySettingsScreen';
 import { ProtectedRoute } from './modules/auth/components/ProtectedRoute';
 import { ConfirmDialogProvider } from './components/ConfirmDialog';
 // Legal Pages
@@ -87,6 +88,7 @@ function App() {
             <Route path="/admin" element={<AdminScreen />} />
             <Route path="/onboarding" element={<OnboardingScreen />} />
             <Route path="/profile" element={<ProfileScreen />} />
+            <Route path="/settings" element={<FamilySettingsScreen />} />
             {/* Who-is-Who needs photos from API */}
             <Route path="/utilities/who-is-who" element={<WhoIsWhoGame />} />
             <Route path="/utilities/angelito" element={<AngelitoGame />} />

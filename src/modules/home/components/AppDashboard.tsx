@@ -144,6 +144,22 @@ export const AppDashboard: React.FC = () => {
                             count={verifications.incoming.length}
                             onClick={() => setShowNotifications(true)}
                         />
+                        <button
+                            className="settings-btn"
+                            onClick={() => navigate('/settings')}
+                            style={{
+                                background: 'rgba(212, 175, 55, 0.2)',
+                                border: '1px solid #D4AF37',
+                                borderRadius: '8px',
+                                padding: '8px 12px',
+                                color: '#D4AF37',
+                                cursor: 'pointer',
+                                fontSize: '1rem'
+                            }}
+                            title="Ajustes"
+                        >
+                            ⚙️
+                        </button>
                         <button className="logout-btn" onClick={() => {
                             localStorage.removeItem('token');
                             localStorage.removeItem('user');
