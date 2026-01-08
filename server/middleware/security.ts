@@ -23,12 +23,12 @@ export const securityHeaders = (req: Request, res: Response, next: NextFunction)
     // Content Security Policy (updated for Facebook & Three.js)
     res.setHeader('Content-Security-Policy',
         "default-src 'self'; " +
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://connect.facebook.net https://graph.facebook.com blob:; " +
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://connect.facebook.net https://graph.facebook.com https://*.facebook.net blob:; " +
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com; " +
         "font-src 'self' https://fonts.gstatic.com; " +
         "img-src 'self' data: https: blob: https://platform-lookaside.fbsbx.com; " +
-        "connect-src 'self' https://accounts.google.com https://*.googleapis.com https://graph.facebook.com; " +
-        "frame-src 'self' https://accounts.google.com https://www.facebook.com https://web.facebook.com https://staticxx.facebook.com; " +
+        "connect-src 'self' https://accounts.google.com https://*.googleapis.com https://graph.facebook.com https://connect.facebook.net https://*.facebook.com https://*.facebook.net; " +
+        "frame-src 'self' https://accounts.google.com https://www.facebook.com https://web.facebook.com https://staticxx.facebook.com https://*.facebook.com; " +
         "worker-src 'self' blob:; " +
         "object-src 'none'; " +
         "base-uri 'self';"

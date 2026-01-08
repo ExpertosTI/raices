@@ -61,14 +61,37 @@ export const FamilyOnboardingScreen = () => {
             setFbReady(true);
         }
 
-        // Redirect if not logged in
-        if (!token) {
-            navigate('/login');
-            return;
+        // REFRESH USER DATA (Fix for stale localStorage after migration)
+        if (token) {
+            fetch('/api/auth/me', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+                .then(res => {
+                    if (res.ok) return res.json();
+                    // If 401, token is invalid.
+                    if (res.status === 401) {
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                        window.location.reload();
+                    }
+                    throw new Error('Failed to create refresh');
+                })
+                .then(userData => {
+                    console.log('User data refreshed:', userData);
+                    // Update local storage
+                    localStorage.setItem('user', JSON.stringify(userData));
+                    // Redirect if family exists
+                    if (userData.familyId) {
+                        navigate('/app');
+                    }
+                })
+                .catch(err => console.error('Auto-refresh failed', err));
+        } else {
+            // Not logged in, stay here (UI shows login buttons)
         }
 
-        // If user already has a family, go to app
-        if (user?.familyId) {
+        // If local storage already has familyId (fast path)
+        if (token && user?.familyId) {
             navigate('/app');
             return;
         }
@@ -100,6 +123,10 @@ export const FamilyOnboardingScreen = () => {
     };
 
     const handleCreateFamily = async () => {
+        if (!token) {
+            setError('Debes iniciar sesión primero');
+            return;
+        }
         if (!familyName.trim()) {
             setError('El nombre de la familia es requerido');
             return;
@@ -141,6 +168,10 @@ export const FamilyOnboardingScreen = () => {
     };
 
     const handleJoinFamily = async () => {
+        if (!token) {
+            setError('Debes iniciar sesión primero');
+            return;
+        }
         if (!inviteToken.trim()) {
             setError('El código de invitación es requerido');
             return;
@@ -244,6 +275,13 @@ export const FamilyOnboardingScreen = () => {
         }, { scope: 'email,public_profile' });
     };
 
+    // Helper for Logout (Switch Account)
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.reload();
+    };
+
     return (
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
             <div className="family-onboarding">
@@ -254,62 +292,101 @@ export const FamilyOnboardingScreen = () => {
                         <div className="onboarding-step fade-in">
                             <div className="welcome-icon">🌳</div>
                             <h1>¡Bienvenido a Raíces!</h1>
-                            <p className="subtitle">
-                                Inicia sesión para continuar con tu familia<br />
-                                o crea una nueva si eres el primero.
-                            </p>
 
-                            <div className="choice-buttons">
-                                {/* Google Login */}
-                                <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '10px' }}>
-                                    <GoogleLogin
-                                        onSuccess={handleGoogleSuccess}
-                                        onError={() => setError('Falló Google Login')}
-                                        theme="filled_black"
-                                        shape="pill"
-                                        text="continue_with"
-                                        width="280"
-                                    />
-                                </div>
+                            {!token ? (
+                                <>
+                                    <p className="subtitle">
+                                        Inicia sesión para continuar.
+                                    </p>
+                                    <div className="choice-buttons">
+                                        <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '10px' }}>
+                                            <GoogleLogin
+                                                onSuccess={handleGoogleSuccess}
+                                                onError={() => setError('Falló Google Login')}
+                                                theme="filled_black"
+                                                shape="pill"
+                                                text="continue_with"
+                                                width="280"
+                                            />
+                                        </div>
 
-                                {/* Facebook Login */}
-                                <button
-                                    className="choice-btn"
-                                    onClick={handleFacebookLogin}
-                                    style={{ justifyContent: 'center', textAlign: 'center', background: '#1877F2', borderColor: '#1877F2' }}
-                                    disabled={!fbReady || loading}
-                                >
-                                    <span className="btn-text" style={{ flexDirection: 'row', gap: '10px', alignItems: 'center' }}>
-                                        <strong style={{ fontSize: '1rem' }}>Continuar con Facebook</strong>
-                                    </span>
-                                </button>
+                                        <button
+                                            className="choice-btn"
+                                            onClick={handleFacebookLogin}
+                                            style={{ justifyContent: 'center', textAlign: 'center', background: '#1877F2', borderColor: '#1877F2' }}
+                                            disabled={!fbReady || loading}
+                                        >
+                                            <span className="btn-text" style={{ flexDirection: 'row', gap: '10px', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                                                <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>f</span>
+                                                <strong style={{ fontSize: '1rem' }}>Continuar con Facebook</strong>
+                                            </span>
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="subtitle">
+                                        Hola <strong>{user?.name || 'Usuario'}</strong>.<br />
+                                        Estás conectado. Para empezar, crea o únete a una familia.
+                                    </p>
 
-                                <div className="divider">
-                                    <span>o si eres nuevo</span>
-                                </div>
+                                    <div className="choice-buttons">
+                                        <button
+                                            className="choice-btn create"
+                                            onClick={() => setMode('create')}
+                                        >
+                                            <span className="btn-icon">🏠</span>
+                                            <span className="btn-text">
+                                                <strong>Crear Mi Familia</strong>
+                                                <small>Soy el primero en unirme</small>
+                                            </span>
+                                        </button>
 
-                                <button
-                                    className="choice-btn create"
-                                    onClick={() => setMode('create')}
-                                >
-                                    <span className="btn-icon">🏠</span>
-                                    <span className="btn-text">
-                                        <strong>Crear Mi Familia</strong>
-                                        <small>Soy el primero en unirme</small>
-                                    </span>
-                                </button>
+                                        <button
+                                            className="choice-btn join"
+                                            onClick={() => setMode('join')}
+                                        >
+                                            <span className="btn-icon">🔗</span>
+                                            <span className="btn-text">
+                                                <strong>Tengo una Invitación</strong>
+                                                <small>Me invitaron a una familia</small>
+                                            </span>
+                                        </button>
 
-                                <button
-                                    className="choice-btn join"
-                                    onClick={() => setMode('join')}
-                                >
-                                    <span className="btn-icon">🔗</span>
-                                    <span className="btn-text">
-                                        <strong>Tengo una Invitación</strong>
-                                        <small>Me invitaron a una familia</small>
-                                    </span>
-                                </button>
-                            </div>
+                                        <button
+                                            onClick={handleLogout}
+                                            className="text-link-btn"
+                                            style={{
+                                                marginTop: '1rem',
+                                                background: 'none',
+                                                border: 'none',
+                                                color: 'rgba(255,255,255,0.5)',
+                                                textDecoration: 'underline',
+                                                cursor: 'pointer',
+                                                fontSize: '0.9rem'
+                                            }}
+                                        >
+                                            ¿No eres tú? Cambiar cuenta
+                                        </button>
+
+                                        <button
+                                            onClick={() => navigate('/utilities')}
+                                            className="text-link-btn"
+                                            style={{
+                                                marginTop: '0.5rem',
+                                                background: 'none',
+                                                border: 'none',
+                                                color: '#4CAF50',
+                                                textDecoration: 'underline',
+                                                cursor: 'pointer',
+                                                fontSize: '0.9rem'
+                                            }}
+                                        >
+                                            🎮 Ir a Juegos / Utilidades
+                                        </button>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     )}
 

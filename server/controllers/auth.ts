@@ -174,6 +174,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
                 email: user.email,
                 name: user.name,
                 role: user.role,
+                familyId: user.familyId,
                 familyMember: user.familyMember
             }
         });
@@ -280,6 +281,7 @@ export const loginWithEmail = async (req: Request, res: Response) => {
                 name: user.name,
                 image: user.image,
                 role: user.role,
+                familyId: user.familyId,
                 familyMember: user.familyMember
             }
         });
@@ -459,6 +461,7 @@ export const googleLogin = async (req: Request, res: Response) => {
                 name: user.name,
                 image: user.image,
                 role: user.role,
+                familyId: user.familyId,
                 familyMember: user.familyMember
             }
         });
@@ -588,6 +591,7 @@ export const facebookLogin = async (req: Request, res: Response) => {
                 name: user.name,
                 image: user.image,
                 role: user.role,
+                familyId: user.familyId,
                 familyMember: user.familyMember
             }
         });
@@ -661,6 +665,7 @@ export const me = async (req: any, res: Response) => {
             email: user.email,
             name: user.name,
             role: user.role,
+            familyId: user.familyId,
             familyMember: user.familyMember,
             image: user.image,
             emailVerified: !!user.emailVerified

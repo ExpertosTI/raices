@@ -215,11 +215,20 @@ export const LoginScreen = () => {
                 </div>
 
                 <div className="login-footer">
-                    <a href="/privacy">Privacidad</a>
-                    <span>•</span>
-                    <a href="/terms">Términos</a>
-                    <span>•</span>
-                    <a href="/help">Ayuda</a>
+                    <button
+                        onClick={() => navigate('/utilities')}
+                        className="text-link-btn"
+                        style={{ background: 'none', border: 'none', color: '#D4AF37', textDecoration: 'underline', marginBottom: '10px', cursor: 'pointer', fontSize: '0.9rem' }}
+                    >
+                        🎮 Solo quiero explorar / jugar
+                    </button>
+                    <div className="legal-links">
+                        <a href="/privacy">Privacidad</a>
+                        <span>•</span>
+                        <a href="/terms">Términos</a>
+                        <span>•</span>
+                        <a href="/help">Ayuda</a>
+                    </div>
                 </div>
             </div>
         </div>
