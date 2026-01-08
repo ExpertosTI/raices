@@ -155,7 +155,7 @@ model FamilyInvite {
 
 model Branch {
   id        String    @id @default(cuid())
-  familyId  String // Branch belongs to a Family
+  familyId  String? // Branch belongs to a Family
   name      String // e.g., "Rama de Juan", "Rama de María"
   birthDate DateTime?
   color     String // "#DC2626"
@@ -174,7 +174,7 @@ model Branch {
 
 model FamilyMember {
   id             String         @id @default(cuid())
-  familyId       String // Member belongs to a Family (tenant)
+  familyId       String? // Member belongs to a Family (tenant)
   userId         String?        @unique // If registered user
   branchId       String? // Optional branch assignment
   name           String
@@ -265,7 +265,7 @@ enum VerificationStatus {
 
 model Event {
   id          String    @id @default(cuid())
-  familyId    String // Event belongs to a Family
+  familyId    String? // Event belongs to a Family
   title       String
   description String?   @db.Text
   date        DateTime
@@ -299,7 +299,7 @@ enum EventType {
 
 model Post {
   id       String  @id @default(cuid())
-  familyId String // Post belongs to a Family
+  familyId String? // Post belongs to a Family
   userId   String
   content  String  @db.Text
   imageUrl String?
@@ -395,7 +395,7 @@ enum RequestStatus {
 
 model GameExchange {
   id          String         @id @default(cuid())
-  familyId    String // Exchange belongs to a Family
+  familyId    String? // Exchange belongs to a Family
   year        Int
   title       String // "Angelito 2025"
   description String?        @db.Text
