@@ -25,8 +25,13 @@ if [ -n "$CONTAINER_ID" ]; then
     docker exec $CONTAINER_ID npx prisma generate
     # Agregamos migrate deploy por seguridad ya que hubo cambios en la DB
     docker exec $CONTAINER_ID npx prisma db push
+    
+    # 5. Migración multi-tenant (asigna datos existentes a familia "Los 12 Patriarcas")
+    echo "🔄 Ejecutando migración multi-tenant..."
+    docker exec $CONTAINER_ID npm run migrate:multitenant || echo "   (Migración ya aplicada o skip)"
 else
     echo "⚠️ No se encontró el contenedor para ejecutar comandos de Prisma."
 fi
 
 echo "✅ Despliegue completado."
+
