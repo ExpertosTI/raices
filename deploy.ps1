@@ -39,6 +39,13 @@ Start-Sleep -Seconds 15
 Write-Host "🗄️ Running database migrations..." -ForegroundColor Yellow
 docker exec raices_app_prod npx prisma migrate deploy
 
+Write-Host "🔄 Running multi-tenant migration (assigning existing data to family)..." -ForegroundColor Yellow
+try {
+    docker exec raices_app_prod npm run migrate:multitenant
+} catch {
+    Write-Host "   (Multi-tenant migration already applied or skipped)" -ForegroundColor Gray
+}
+
 Write-Host "🌱 Running database seed (if first deploy)..." -ForegroundColor Yellow
 try {
     docker exec raices_app_prod npx prisma db seed
