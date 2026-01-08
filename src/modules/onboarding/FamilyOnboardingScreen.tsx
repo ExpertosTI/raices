@@ -1,6 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import './FamilyOnboardingScreen.css';
+
+// Google Client ID
+const GOOGLE_CLIENT_ID = '609647959676-2jdrb9ursfnqi3uu6gmk2i6gj6ker42b.apps.googleusercontent.com';
+// Facebook App ID
+const FACEBOOK_APP_ID = '1216780823884014';
+
+declare global {
+    interface Window {
+        FB: any;
+        fbAsyncInit: () => void;
+    }
+}
 
 type OnboardingMode = 'choice' | 'create' | 'join' | 'success';
 
@@ -10,6 +23,7 @@ export const FamilyOnboardingScreen = () => {
     const [mode, setMode] = useState<OnboardingMode>('choice');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [fbReady, setFbReady] = useState(false);
 
     // Create Family Form
     const [familyName, setFamilyName] = useState('');
@@ -27,6 +41,26 @@ export const FamilyOnboardingScreen = () => {
     const user = storedUser ? JSON.parse(storedUser) : null;
 
     useEffect(() => {
+        // Facebook Init
+        if (!window.FB) {
+            window.fbAsyncInit = function () {
+                window.FB.init({
+                    appId: FACEBOOK_APP_ID,
+                    cookie: true,
+                    xfbml: true,
+                    version: 'v18.0'
+                });
+                setFbReady(true);
+            };
+            const script = document.createElement('script');
+            script.src = 'https://connect.facebook.net/es_LA/sdk.js';
+            script.async = true;
+            script.defer = true;
+            document.body.appendChild(script);
+        } else {
+            setFbReady(true);
+        }
+
         // Redirect if not logged in
         if (!token) {
             navigate('/login');
@@ -144,197 +178,280 @@ export const FamilyOnboardingScreen = () => {
         setLoading(false);
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        navigate('/login');
+    // Auth Handlers
+    const handleGoogleSuccess = async (credentialResponse: any) => {
+        setLoading(true);
+        setError('');
+        try {
+            const res = await fetch('/api/auth/google', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ credential: credentialResponse.credential }),
+            });
+            if (res.ok) {
+                const data = await res.json();
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                if (data.user.familyId) {
+                    navigate('/app');
+                } else {
+                    window.location.reload();
+                }
+            } else {
+                setError('No pudimos verificar tu cuenta.');
+            }
+        } catch (error) {
+            setError('Error de conexión.');
+        }
+        setLoading(false);
+    };
+
+    const handleFacebookLogin = () => {
+        if (!window.FB) {
+            setError('Facebook SDK no cargado.');
+            return;
+        }
+        setLoading(true);
+        window.FB.login((response: any) => {
+            if (response.authResponse) {
+                fetch('/api/auth/facebook', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        accessToken: response.authResponse.accessToken,
+                        userID: response.authResponse.userID
+                    }),
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.token) {
+                            localStorage.setItem('token', data.token);
+                            localStorage.setItem('user', JSON.stringify(data.user));
+                            if (data.user.familyId) {
+                                navigate('/app');
+                            } else {
+                                window.location.reload();
+                            }
+                        } else {
+                            setError('Error al verificar con Facebook.');
+                        }
+                    })
+                    .catch(() => setError('Error de conexión.'))
+                    .finally(() => setLoading(false));
+            } else {
+                setLoading(false);
+            }
+        }, { scope: 'email,public_profile' });
     };
 
     return (
-        <div className="family-onboarding">
-            <button className="logout-btn-top" onClick={handleLogout} title="Cerrar Sesión">
-                <span className="icon">🚪</span>
-                <span className="text">Salir</span>
-            </button>
-            <div className="onboarding-card">
+        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+            <div className="family-onboarding">
+                <div className="onboarding-card">
 
-                {/* Choice Mode */}
-                {mode === 'choice' && (
-                    <div className="onboarding-step fade-in">
-                        <div className="welcome-icon">🌳</div>
-                        <h1>¡Bienvenido a Raíces!</h1>
-                        <p className="subtitle">
-                            Conecta con tu familia y preserva tu historia.
-                        </p>
+                    {/* Choice Mode */}
+                    {mode === 'choice' && (
+                        <div className="onboarding-step fade-in">
+                            <div className="welcome-icon">🌳</div>
+                            <h1>¡Bienvenido a Raíces!</h1>
+                            <p className="subtitle">
+                                Inicia sesión para continuar con tu familia<br />
+                                o crea una nueva si eres el primero.
+                            </p>
 
-                        <div className="choice-buttons">
-                            <button
-                                className="choice-btn create"
-                                onClick={() => setMode('create')}
-                            >
-                                <span className="btn-icon">🏠</span>
-                                <span className="btn-text">
-                                    <strong>Crear Mi Familia</strong>
-                                    <small>Soy el primero en unirme</small>
-                                </span>
-                            </button>
-
-                            <div className="divider">
-                                <span>o</span>
-                            </div>
-
-                            <button
-                                className="choice-btn join"
-                                onClick={() => setMode('join')}
-                            >
-                                <span className="btn-icon">🔗</span>
-                                <span className="btn-text">
-                                    <strong>Tengo una Invitación</strong>
-                                    <small>Me invitaron a una familia</small>
-                                </span>
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* Create Family Mode */}
-                {mode === 'create' && (
-                    <div className="onboarding-step fade-in">
-                        <button className="back-btn" onClick={() => setMode('choice')}>
-                            ← Volver
-                        </button>
-
-                        <div className="welcome-icon">🏠</div>
-                        <h1>Crea Tu Familia</h1>
-                        <p className="subtitle">
-                            Serás el administrador de tu árbol genealógico.
-                        </p>
-
-                        <div className="form-group">
-                            <label>Nombre de la Familia *</label>
-                            <input
-                                type="text"
-                                className="text-input"
-                                placeholder="Ej: Familia Pérez, Los García..."
-                                value={familyName}
-                                onChange={(e) => setFamilyName(e.target.value)}
-                                autoFocus
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label>Descripción (Opcional)</label>
-                            <textarea
-                                className="text-input"
-                                placeholder="Una breve descripción de tu familia..."
-                                value={familyDescription}
-                                onChange={(e) => setFamilyDescription(e.target.value)}
-                                rows={3}
-                            />
-                        </div>
-
-                        {error && <p className="error-msg">{error}</p>}
-
-                        <button
-                            className="submit-btn"
-                            onClick={handleCreateFamily}
-                            disabled={loading || !familyName.trim()}
-                        >
-                            {loading ? 'Creando...' : '✨ Crear Familia'}
-                        </button>
-                    </div>
-                )}
-
-                {/* Join Family Mode */}
-                {mode === 'join' && (
-                    <div className="onboarding-step fade-in">
-                        <button className="back-btn" onClick={() => { setMode('choice'); setInviteToken(''); setInviteInfo(null); setError(''); }}>
-                            ← Volver
-                        </button>
-
-                        <div className="welcome-icon">🔗</div>
-                        <h1>Únete a una Familia</h1>
-                        <p className="subtitle">
-                            Ingresa el código de invitación que te compartieron.
-                        </p>
-
-                        <div className="form-group">
-                            <label>Código de Invitación</label>
-                            <input
-                                type="text"
-                                className="text-input token-input"
-                                placeholder="Pega tu código aquí..."
-                                value={inviteToken}
-                                onChange={(e) => {
-                                    setInviteToken(e.target.value);
-                                    if (e.target.value.length > 20) {
-                                        validateToken(e.target.value);
-                                    }
-                                }}
-                                autoFocus
-                            />
-                        </div>
-
-                        {inviteInfo && (
-                            <div className="invite-preview">
-                                <p>Te unirás a:</p>
-                                <div className="family-preview">
-                                    {inviteInfo.family.logo && (
-                                        <img src={inviteInfo.family.logo} alt="" className="family-logo" />
-                                    )}
-                                    <strong>{inviteInfo.family.name}</strong>
+                            <div className="choice-buttons">
+                                {/* Google Login */}
+                                <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '10px' }}>
+                                    <GoogleLogin
+                                        onSuccess={handleGoogleSuccess}
+                                        onError={() => setError('Falló Google Login')}
+                                        theme="filled_black"
+                                        shape="pill"
+                                        text="continue_with"
+                                        width="280"
+                                    />
                                 </div>
+
+                                {/* Facebook Login */}
+                                <button
+                                    className="choice-btn"
+                                    onClick={handleFacebookLogin}
+                                    style={{ justifyContent: 'center', textAlign: 'center', background: '#1877F2', borderColor: '#1877F2' }}
+                                    disabled={!fbReady || loading}
+                                >
+                                    <span className="btn-text" style={{ flexDirection: 'row', gap: '10px', alignItems: 'center' }}>
+                                        <strong style={{ fontSize: '1rem' }}>Continuar con Facebook</strong>
+                                    </span>
+                                </button>
+
+                                <div className="divider">
+                                    <span>o si eres nuevo</span>
+                                </div>
+
+                                <button
+                                    className="choice-btn create"
+                                    onClick={() => setMode('create')}
+                                >
+                                    <span className="btn-icon">🏠</span>
+                                    <span className="btn-text">
+                                        <strong>Crear Mi Familia</strong>
+                                        <small>Soy el primero en unirme</small>
+                                    </span>
+                                </button>
+
+                                <button
+                                    className="choice-btn join"
+                                    onClick={() => setMode('join')}
+                                >
+                                    <span className="btn-icon">🔗</span>
+                                    <span className="btn-text">
+                                        <strong>Tengo una Invitación</strong>
+                                        <small>Me invitaron a una familia</small>
+                                    </span>
+                                </button>
                             </div>
-                        )}
+                        </div>
+                    )}
 
-                        {error && <p className="error-msg">{error}</p>}
+                    {/* Create Family Mode */}
+                    {mode === 'create' && (
+                        <div className="onboarding-step fade-in">
+                            <button className="back-btn" onClick={() => setMode('choice')}>
+                                ← Volver
+                            </button>
 
-                        <button
-                            className="submit-btn"
-                            onClick={handleJoinFamily}
-                            disabled={loading || !inviteToken.trim()}
-                        >
-                            {loading ? 'Uniéndote...' : '🎉 Unirse a la Familia'}
-                        </button>
-                    </div>
-                )}
+                            <div className="welcome-icon">🏠</div>
+                            <h1>Crea Tu Familia</h1>
+                            <p className="subtitle">
+                                Serás el administrador de tu árbol genealógico.
+                            </p>
 
-                {/* Success Mode */}
-                {mode === 'success' && successData && (
-                    <div className="onboarding-step fade-in success-step">
-                        <div className="success-icon">🎉</div>
-                        <h1>
-                            {successData.isCreator
-                                ? '¡Familia Creada!'
-                                : '¡Te has unido!'}
-                        </h1>
-                        <p className="subtitle">
-                            {successData.isCreator
-                                ? `Ahora eres el administrador de "${successData.familyName}".`
-                                : `Bienvenido a "${successData.familyName}".`}
-                        </p>
-
-                        {successData.isCreator && (
-                            <div className="next-steps">
-                                <p>📋 Próximos pasos:</p>
-                                <ul>
-                                    <li>Construye tu árbol genealógico</li>
-                                    <li>Invita a tus familiares</li>
-                                    <li>Comparte historias y fotos</li>
-                                </ul>
+                            <div className="form-group">
+                                <label>Nombre de la Familia *</label>
+                                <input
+                                    type="text"
+                                    className="text-input"
+                                    placeholder="Ej: Familia Pérez, Los García..."
+                                    value={familyName}
+                                    onChange={(e) => setFamilyName(e.target.value)}
+                                    autoFocus
+                                />
                             </div>
-                        )}
 
-                        <button
-                            className="submit-btn"
-                            onClick={() => navigate('/onboarding')}
-                        >
-                            Continuar con Mi Perfil →
-                        </button>
-                    </div>
-                )}
+                            <div className="form-group">
+                                <label>Descripción (Opcional)</label>
+                                <textarea
+                                    className="text-input"
+                                    placeholder="Una breve descripción de tu familia..."
+                                    value={familyDescription}
+                                    onChange={(e) => setFamilyDescription(e.target.value)}
+                                    rows={3}
+                                />
+                            </div>
 
+                            {error && <p className="error-msg">{error}</p>}
+
+                            <button
+                                className="submit-btn"
+                                onClick={handleCreateFamily}
+                                disabled={loading || !familyName.trim()}
+                            >
+                                {loading ? 'Creando...' : '✨ Crear Familia'}
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Join Family Mode */}
+                    {mode === 'join' && (
+                        <div className="onboarding-step fade-in">
+                            <button className="back-btn" onClick={() => { setMode('choice'); setInviteToken(''); setInviteInfo(null); setError(''); }}>
+                                ← Volver
+                            </button>
+
+                            <div className="welcome-icon">🔗</div>
+                            <h1>Únete a una Familia</h1>
+                            <p className="subtitle">
+                                Ingresa el código de invitación que te compartieron.
+                            </p>
+
+                            <div className="form-group">
+                                <label>Código de Invitación</label>
+                                <input
+                                    type="text"
+                                    className="text-input token-input"
+                                    placeholder="Pega tu código aquí..."
+                                    value={inviteToken}
+                                    onChange={(e) => {
+                                        setInviteToken(e.target.value);
+                                        if (e.target.value.length > 20) {
+                                            validateToken(e.target.value);
+                                        }
+                                    }}
+                                    autoFocus
+                                />
+                            </div>
+
+                            {inviteInfo && (
+                                <div className="invite-preview">
+                                    <p>Te unirás a:</p>
+                                    <div className="family-preview">
+                                        {inviteInfo.family.logo && (
+                                            <img src={inviteInfo.family.logo} alt="" className="family-logo" />
+                                        )}
+                                        <strong>{inviteInfo.family.name}</strong>
+                                    </div>
+                                </div>
+                            )}
+
+                            {error && <p className="error-msg">{error}</p>}
+
+                            <button
+                                className="submit-btn"
+                                onClick={handleJoinFamily}
+                                disabled={loading || !inviteToken.trim()}
+                            >
+                                {loading ? 'Uniéndote...' : '🎉 Unirse a la Familia'}
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Success Mode */}
+                    {mode === 'success' && successData && (
+                        <div className="onboarding-step fade-in success-step">
+                            <div className="success-icon">🎉</div>
+                            <h1>
+                                {successData.isCreator
+                                    ? '¡Familia Creada!'
+                                    : '¡Te has unido!'}
+                            </h1>
+                            <p className="subtitle">
+                                {successData.isCreator
+                                    ? `Ahora eres el administrador de "${successData.familyName}".`
+                                    : `Bienvenido a "${successData.familyName}".`}
+                            </p>
+
+                            {successData.isCreator && (
+                                <div className="next-steps">
+                                    <p>📋 Próximos pasos:</p>
+                                    <ul>
+                                        <li>Construye tu árbol genealógico</li>
+                                        <li>Invita a tus familiares</li>
+                                        <li>Comparte historias y fotos</li>
+                                    </ul>
+                                </div>
+                            )}
+
+                            <button
+                                className="submit-btn"
+                                onClick={() => navigate('/onboarding')}
+                            >
+                                Continuar con Mi Perfil →
+                            </button>
+                        </div>
+                    )}
+
+                </div>
             </div>
-        </div>
+        </GoogleOAuthProvider>
     );
 };
