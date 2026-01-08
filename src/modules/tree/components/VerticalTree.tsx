@@ -21,8 +21,13 @@ const isFounder = (m: FamilyMember) => {
 
 // Build a hierarchical tree structure
 const buildTree = (members: FamilyMember[]) => {
-    // Root Patriarchs are those marked as patriarch but NOT in the founders list
-    const patriarchs = members.filter(m => m.isPatriarch && !isFounder(m));
+    // Helper to check if member is a root patriarch (FOUNDER relation or isPatriarch flag)
+    const isRootPatriarch = (m: FamilyMember) => {
+        return m.relation === 'FOUNDER' || m.isPatriarch;
+    };
+
+    // Root Patriarchs are those with FOUNDER relation OR isPatriarch flag, but NOT in the founders list
+    const patriarchs = members.filter(m => isRootPatriarch(m) && !isFounder(m));
     const byParent = new Map<string, FamilyMember[]>();
 
     // Group members by their parentId
@@ -37,7 +42,7 @@ const buildTree = (members: FamilyMember[]) => {
     // Also group by branchId for descendants without direct parentId
     const byBranch = new Map<string, FamilyMember[]>();
     members.forEach(m => {
-        if (m.branchId && !m.isPatriarch) {
+        if (m.branchId && !isRootPatriarch(m)) {
             const branchMembers = byBranch.get(m.branchId) || [];
             branchMembers.push(m);
             byBranch.set(m.branchId, branchMembers);

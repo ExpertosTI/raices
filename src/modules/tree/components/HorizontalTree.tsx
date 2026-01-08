@@ -11,6 +11,7 @@ interface TreeProps {
 // Translation function for relation types
 const getRelationLabel = (relation: string) => {
     const labels: Record<string, string> = {
+        'FOUNDER': 'Patriarca',
         'PATRIARCH': 'Patriarca',
         'SIBLING': 'Hermano/a',
         'CHILD': 'Hijo/a',
@@ -24,7 +25,7 @@ const getRelationLabel = (relation: string) => {
 };
 
 export const HorizontalTree: React.FC<TreeProps> = ({ members, onMemberClick }) => {
-    // Helper to identify the 12 Branch Founders
+    // Helper to identify the 12 Branch Founders (Los Hermanos)
     const isFounder = (m: FamilyMember) => {
         const mName = m.name.toLowerCase().trim();
         const firstWord = mName.split(' ')[0];
@@ -35,18 +36,23 @@ export const HorizontalTree: React.FC<TreeProps> = ({ members, onMemberClick }) 
         });
     };
 
+    // Helper to check if member is a root patriarch (FOUNDER relation or isPatriarch flag)
+    const isRootPatriarch = (m: FamilyMember) => {
+        return m.relation === 'FOUNDER' || m.isPatriarch;
+    };
+
     // The 12 Siblings (Founders) - Filter by name match from constants
-    const siblings = members.filter(m => isFounder(m)).sort((a, b) => {
+    const siblings = members.filter(m => isFounder(m) && !isRootPatriarch(m)).sort((a, b) => {
         const branchA = FAMILY_BRANCHES.find(br => a.name.includes(br.name) || br.name === a.name);
         const branchB = FAMILY_BRANCHES.find(br => b.name.includes(br.name) || br.name === b.name);
         return (branchA?.order || 0) - (branchB?.order || 0);
     });
 
-    // Root Patriarchs are those marked as patriarch but NOT in the founders list
-    const rootPatriarchs = members.filter(m => m.isPatriarch && !isFounder(m));
+    // Root Patriarchs are those with FOUNDER relation OR isPatriarch flag, but NOT in the founders list (12 siblings)
+    const rootPatriarchs = members.filter(m => isRootPatriarch(m) && !isFounder(m));
 
-    // Descendants are everyone else
-    const descendants = members.filter(m => !m.isPatriarch && !isFounder(m));
+    // Descendants are everyone else (not patriarch, not sibling)
+    const descendants = members.filter(m => !isRootPatriarch(m) && !isFounder(m));
 
     const getEmoji = (name: string) => {
         const femaleNames = ['Lorenza', 'Carmen', 'Andrea', 'Mercedes', 'Xiomara', 'Bernarda'];
