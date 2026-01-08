@@ -144,8 +144,18 @@ export const FamilyOnboardingScreen = () => {
         setLoading(false);
     };
 
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+    };
+
     return (
         <div className="family-onboarding">
+            <button className="logout-btn-top" onClick={handleLogout} title="Cerrar Sesión">
+                <span className="icon">🚪</span>
+                <span className="text">Salir</span>
+            </button>
             <div className="onboarding-card">
 
                 {/* Choice Mode */}

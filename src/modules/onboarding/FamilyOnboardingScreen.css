@@ -7,6 +7,40 @@
     align-items: center;
     background: radial-gradient(circle at center, #1a1a2e 0%, #0A0A0F 100%);
     padding: 1rem;
+    position: relative;
+}
+
+.logout-btn-top {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 1.2rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50px;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 100;
+}
+
+.logout-btn-top:hover {
+    background: rgba(220, 38, 38, 0.15);
+    border-color: rgba(220, 38, 38, 0.4);
+    color: #F87171;
+    transform: translateY(-2px);
+}
+
+.logout-btn-top .icon {
+    font-size: 1.2rem;
+}
+
+.logout-btn-top .text {
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
 .onboarding-card {

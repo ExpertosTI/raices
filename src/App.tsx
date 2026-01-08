@@ -1,6 +1,5 @@
 
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { SplashScreen } from './modules/home/components/SplashScreen';
 import { SelectionScreen } from './modules/family/components/SelectionScreen';
 import { AppDashboard } from './modules/home/components/AppDashboard';
 import { TreeScreen } from './modules/tree/components/TreeScreen';
@@ -44,7 +43,7 @@ function App() {
     <ConfirmDialogProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<SplashScreen />} />
+          <Route path="/" element={<LoginScreen />} />
           <Route path="/select" element={<SelectionScreen />} />
           <Route path="/login" element={<LoginScreen />} />
 
