@@ -8,12 +8,13 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_key';
 export interface UserPayload extends JwtPayload {
     id: string;
     email: string;
-    role: 'MEMBER' | 'PATRIARCH';
+    role: 'MEMBER' | 'ADMIN' | 'SUPERADMIN' | 'PATRIARCH'; // PATRIARCH for legacy support
     name?: string;
 }
 
 export interface AuthRequest extends Request {
     user?: UserPayload;
+    familyId?: string; // Attached by requireFamily middleware
 }
 
 export function authenticateToken(req: AuthRequest, res: Response, next: NextFunction) {

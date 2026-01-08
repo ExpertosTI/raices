@@ -4,6 +4,7 @@ import { EditProfileModal } from '../home/components/EditProfileModal';
 import { useConfirm } from '../../components/ConfirmDialog';
 import { FloatingDock } from '../../components/FloatingDock';
 import { LinkUserModal } from '../../components/LinkUserModal';
+import { InvitePanel } from './components/InvitePanel';
 import './AdminScreen.css';
 
 interface PendingClaim {
@@ -48,7 +49,7 @@ interface User {
 export const AdminScreen = () => {
     const navigate = useNavigate();
     const confirm = useConfirm();
-    const [activeTab, setActiveTab] = useState<'claims' | 'registrations' | 'verifications' | 'users' | 'members' | 'stats' | 'settings' | 'events'>('stats');
+    const [activeTab, setActiveTab] = useState<'claims' | 'registrations' | 'verifications' | 'users' | 'members' | 'stats' | 'settings' | 'events' | 'invites'>('stats');
     const [founders, setFounders] = useState<any[]>([]);
     const [patriarchs, setPatriarchs] = useState<any[]>([]);
     const [inputModal, setInputModal] = useState<{
@@ -347,6 +348,12 @@ export const AdminScreen = () => {
                     onClick={() => setActiveTab('events')}
                 >
                     📅 Eventos
+                </button>
+                <button
+                    className={`tab-btn ${activeTab === 'invites' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('invites')}
+                >
+                    🔗 Invitaciones
                 </button>
             </div>
 
@@ -1083,6 +1090,11 @@ export const AdminScreen = () => {
                                     </div>
                                 )}
                             </div>
+                        )}
+
+                        {/* Invites Tab */}
+                        {activeTab === 'invites' && (
+                            <InvitePanel />
                         )}
                     </>
                 )}

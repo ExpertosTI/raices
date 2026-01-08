@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../db';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, AuthRequest } from '../middleware/auth';
+import { requireFamily } from '../middleware/family';
 import { canEditMember } from '../middleware/permissions';
 import { validateMemberInput } from '../middleware/validation';
 import { upload, processImage } from '../middleware/upload';
@@ -11,12 +12,13 @@ const router = Router();
 // Claim a profile (for founding members)
 router.post('/claim', authenticateToken, claimProfile);
 
-// Get all members
-// Get all members
-router.get('/', authenticateToken, async (req: Request, res: Response) => {
+// Get all members (filtered by family)
+router.get('/', authenticateToken, requireFamily, async (req: AuthRequest, res: Response) => {
     try {
         const { branchId, relation } = req.query;
-        const where: any = {};
+        const familyId = req.familyId; // Injected by requireFamily middleware
+
+        const where: any = { familyId }; // Always filter by family
 
         if (branchId) where.branchId = String(branchId);
         if (relation) where.relation = String(relation);
