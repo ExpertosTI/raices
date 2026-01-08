@@ -162,7 +162,7 @@ model Branch {
   order     Int? // Optional ordering
   isAlive   Boolean   @default(true)
 
-  family               Family                @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  family               Family?               @relation(fields: [familyId], references: [id], onDelete: Cascade)
   members              FamilyMember[]
   registrationRequests RegistrationRequest[]
 
@@ -202,7 +202,7 @@ model FamilyMember {
   // Expected number of children (for verification system)
   expectedChildCount Int? @default(0)
 
-  family             Family               @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  family             Family?              @relation(fields: [familyId], references: [id], onDelete: Cascade)
   user               User?                @relation(fields: [userId], references: [id])
   branch             Branch?              @relation(fields: [branchId], references: [id])
   pendingClaims      PendingClaim[]
@@ -276,7 +276,7 @@ model Event {
   isRecurring Boolean   @default(false) // For annual events like anniversaries
   createdBy   String? // Admin who created it
 
-  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  family Family? @relation(fields: [familyId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -305,7 +305,7 @@ model Post {
   imageUrl String?
   likes    Int     @default(0)
 
-  family   Family    @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  family   Family?    @relation(fields: [familyId], references: [id], onDelete: Cascade)
   user     User      @relation(fields: [userId], references: [id])
   comments Comment[]
 
@@ -402,7 +402,7 @@ model GameExchange {
   status      ExchangeStatus @default(REGISTRATION_OPEN)
   budget      String? // "RD$ 1,500 - 2,000"
 
-  family       Family                @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  family       Family?               @relation(fields: [familyId], references: [id], onDelete: Cascade)
   participants ExchangeParticipant[]
 
   createdAt DateTime @default(now())
