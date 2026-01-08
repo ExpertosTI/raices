@@ -52,6 +52,7 @@ model User {
 enum UserRole {
   MEMBER // Can view and edit own data
   ADMIN // Admin of their Family (was PATRIARCH)
+  PATRIARCH // @deprecated - Kept for migration safety
   SUPERADMIN // Platform admin (Renace Tech)
 }
 
@@ -182,7 +183,7 @@ model FamilyMember {
   deathDate      DateTime?
   photo          String? // URL or base64
   relation       MemberRelation
-  isFounder      Boolean        @default(false) // Was isPatriarch, now "Founder" of family tree
+  isFounder      Boolean        @default(false) @map("isPatriarch") // Mapped to old column to save data
   bio            String?        @db.Text
   preferredColor String? // User-chosen color
 
@@ -227,6 +228,7 @@ enum MemberRelation {
   SIBLING // Hermano/a
   COUSIN // Primo/a
   NEPHEW // Sobrino/a
+  PATRIARCH // @deprecated - Kept for migration safety
   OTHER
 }
 
