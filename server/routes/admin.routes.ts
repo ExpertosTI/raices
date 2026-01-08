@@ -11,9 +11,10 @@ import {
 
 const router = Router();
 
-// Middleware: Require PATRIARCH role
+// Middleware: Require ADMIN or SUPERADMIN role
 const requireAdmin = (req: any, res: Response, next: any) => {
-    if (req.user?.role !== 'PATRIARCH') {
+    const role = req.user?.role;
+    if (role !== 'ADMIN' && role !== 'SUPERADMIN' && role !== 'PATRIARCH') {
         return res.status(403).json({ error: 'Admin access required' });
     }
     next();

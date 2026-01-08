@@ -44,11 +44,7 @@ export const approveClaim = async (req: any, res: Response) => {
             data: { userId: claim.userId }
         });
 
-        // Update user role to PATRIARCH
-        await prisma.user.update({
-            where: { id: claim.userId },
-            data: { role: 'PATRIARCH' }
-        });
+        // Note: We don't change user role here - admin assigns roles manually
 
         // Update claim status
         await prisma.pendingClaim.update({
@@ -255,10 +251,12 @@ export const rejectRegistration = async (req: any, res: Response) => {
     }
 };
 
-// Get all users (Admin only)
+// Get all users (Admin only) - filtered by family
 export const getAllUsers = async (req: any, res: Response) => {
     try {
+        const familyId = req.user?.familyId;
         const users = await prisma.user.findMany({
+            where: familyId ? { familyId } : {},
             include: {
                 familyMember: { select: { id: true, name: true, relation: true } }
             },
@@ -276,8 +274,8 @@ export const updateUserRole = async (req: any, res: Response) => {
     const { id } = req.params;
     const { role } = req.body;
 
-    if (!['MEMBER', 'PATRIARCH'].includes(role)) {
-        return res.status(400).json({ error: 'Invalid role' });
+    if (!['MEMBER', 'ADMIN', 'SUPERADMIN'].includes(role)) {
+        return res.status(400).json({ error: 'Invalid role. Valid roles: MEMBER, ADMIN, SUPERADMIN' });
     }
 
     try {
@@ -294,14 +292,17 @@ export const updateUserRole = async (req: any, res: Response) => {
     }
 };
 
-// Get all family members (Admin Audit)
+// Get all family members (Admin Audit) - filtered by family
 export const getAllMembers = async (req: any, res: Response) => {
     try {
+        const familyId = req.user?.familyId;
         const members = await prisma.familyMember.findMany({
+            where: familyId ? { familyId } : {},
             include: {
-                branch: { select: { name: true, color: true } }
+                branch: { select: { name: true, color: true } },
+                user: { select: { id: true, email: true, name: true } }
             },
-            orderBy: { createdAt: 'desc' }
+            orderBy: { name: 'asc' }
         });
         res.json(members);
     } catch (error) {
