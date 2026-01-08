@@ -86,7 +86,9 @@ export const AppDashboard: React.FC = () => {
 
         Promise.all([
             fetch('/api/branches').then(r => r.json()),
-            fetch('/api/events').then(r => r.json()),
+            fetch('/api/events', {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            }).then(r => r.json()),
             // Refresh user data (me) to get latest link status
             fetch('/api/auth/me', {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }

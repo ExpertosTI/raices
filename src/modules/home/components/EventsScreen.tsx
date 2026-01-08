@@ -108,12 +108,17 @@ export const EventsScreen: React.FC = () => {
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
     useEffect(() => {
-        fetch('/api/events')
+        const token = localStorage.getItem('token');
+        fetch('/api/events', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
             .then(res => res.json())
             .then(data => {
                 // Backend returns sorted list with manual + birthdays
                 // Need to compute daysUntil for sorting locally if needed
-                const processed = data.map((e: any) => {
+                const processed = (Array.isArray(data) ? data : []).map((e: any) => {
                     const eventDate = new Date(e.date);
                     const now = new Date();
                     const diff = eventDate.getTime() - now.getTime();
@@ -126,7 +131,7 @@ export const EventsScreen: React.FC = () => {
                         name: e.type === 'BIRTHDAY' ? e.title.replace('Cumpleaños de ', '') : e.title
                     };
                 });
-                setEvents(Array.isArray(processed) ? processed : []);
+                setEvents(processed);
                 setLoading(false);
             })
             .catch(() => setLoading(false));
