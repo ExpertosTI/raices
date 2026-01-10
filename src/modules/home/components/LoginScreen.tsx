@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import { GrowingRoots } from './GrowingRoots';
+import { ShinyText } from '../../../components/react-bits/ShinyText';
+import { BlurText } from '../../../components/react-bits/BlurText';
+import { AnimatedBackground } from '../../../components/react-bits/AnimatedBackground';
 import './LoginScreen.css';
 import './EmailAuthScreen.css';
 
@@ -185,6 +188,7 @@ export const LoginScreen = () => {
 
     return (
         <div className="login-screen">
+            <AnimatedBackground />
             <GrowingRoots />
 
             <div className="login-card">
@@ -198,19 +202,18 @@ export const LoginScreen = () => {
                             strokeLinejoin="round"
                         />
                     </svg>
-                    <h1 className="app-title" style={{
-                        fontSize: '2.5rem',
-                        fontWeight: '700',
-                        color: '#D4AF37',
-                        margin: '0.5rem 0 0.25rem 0',
-                        textShadow: '0 2px 4px rgba(0,0,0,0.3)'
-                    }}>Raíces</h1>
-                    <p className="app-slogan" style={{
-                        color: 'rgba(255,255,255,0.7)',
-                        fontSize: '0.95rem',
-                        margin: '0 0 1rem 0',
-                        fontStyle: 'italic'
-                    }}>Conectando generaciones, preservando memorias</p>
+                    <ShinyText
+                        text="Raíces"
+                        speed={3}
+                        className="app-title-shiny"
+                    />
+                    <BlurText
+                        text="Conectando generaciones, preservando memorias"
+                        delay={50}
+                        animateBy="words"
+                        direction="top"
+                        className="app-slogan-blur"
+                    />
                 </div>
 
                 {error && (
