@@ -7,26 +7,21 @@ interface BlurTextProps {
     className?: string;
     animateBy?: 'words' | 'letters';
     direction?: 'top' | 'bottom';
-    threshold?: number;
-    rootMargin?: string;
     animationFrom?: any;
     animationTo?: any;
     easing?: any;
-    onAnimationComplete?: () => void;
 }
 
+// Removed unused props to fix build
 export const BlurText: React.FC<BlurTextProps> = ({
     text,
     delay = 200,
     className = '',
     animateBy = 'words',
     direction = 'top',
-    threshold = 0.1,
-    rootMargin = '0px',
     animationFrom,
     animationTo,
     easing = "easeOut",
-    onAnimationComplete,
 }) => {
     const elements = animateBy === 'words' ? text.split(' ') : text.split('');
 
