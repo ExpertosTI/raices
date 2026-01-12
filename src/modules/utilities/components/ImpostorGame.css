@@ -72,42 +72,126 @@
     cursor: not-allowed;
 }
 
-.role-card {
-    margin-top: 1rem;
+
+.player-reveal-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.player-photo-wrapper {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid #D4AF37;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+}
+
+.player-photo-large {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.player-initial-large {
+    width: 100%;
+    height: 100%;
+    background: #3b82f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-weight: bold;
+    color: white;
+}
+
+.role-card-revealed {
+    width: 100%;
     padding: 2rem;
-    border-radius: 12px;
-    animation: fadeIn 0.3s ease;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid transparent;
 }
 
-.role-card.impostor {
-    background: rgba(239, 68, 68, 0.2);
-    border: 2px solid #ef4444;
+.role-card-revealed.impostor,
+.role-card-revealed.asesino {
+    border-color: #ef4444;
+    background: linear-gradient(to bottom right, rgba(239, 68, 68, 0.2), rgba(0, 0, 0, 0.9));
 }
 
-.role-card.tripulante {
-    background: rgba(34, 197, 94, 0.2);
-    border: 2px solid #22c55e;
+.role-card-revealed.tripulante,
+.role-card-revealed.pueblo {
+    border-color: #22c55e;
+    background: linear-gradient(to bottom right, rgba(34, 197, 94, 0.2), rgba(0, 0, 0, 0.9));
+}
+
+.role-card-revealed.detective {
+    border-color: #3b82f6;
+}
+
+.role-card-revealed.doctor {
+    border-color: #22c55e;
+}
+
+.animate-pop {
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.next-btn {
+    width: 100%;
+    background: #D4AF37;
+    color: black;
+    font-weight: bold;
+    padding: 1rem;
+    border: none;
+    border-radius: 8px;
+    margin-top: 1.5rem;
+    cursor: pointer;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    transition: transform 0.1s;
+}
+
+.next-btn:active {
+    transform: scale(0.98);
 }
 
 .reveal-btn {
+    width: 100%;
     background: #3b82f6;
-    padding: 1rem 2rem;
-    border: none;
+    padding: 1.5rem;
     border-radius: 12px;
     color: white;
-    font-size: 1.1rem;
+    font-size: 1.3rem;
+    border: none;
     cursor: pointer;
-    margin-top: 1rem;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+    transition: all 0.2s;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
-    }
+.reveal-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+}
 
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+.reveal-phase b,
+.reveal-phase strong {
+    color: #D4AF37;
+    font-size: 1.1em;
 }

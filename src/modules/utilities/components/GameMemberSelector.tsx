@@ -9,7 +9,7 @@ interface FamilyMember {
 }
 
 interface GameMemberSelectorProps {
-    onStart: (selectedNames: string[]) => void;
+    onStart: (selectedMembers: FamilyMember[]) => void;
     minPlayers: number;
     gameTitle?: string;
 }
@@ -65,16 +65,14 @@ export const GameMemberSelector = ({ onStart, minPlayers, gameTitle }: GameMembe
         soundManager.playSuccess();
     };
 
-    const getSelectedNames = () => {
-        return members
-            .filter(m => selectedIds.includes(m.id))
-            .map(m => m.name);
+    const getSelectedMembers = () => {
+        return members.filter(m => selectedIds.includes(m.id));
     };
 
     const handleStart = () => {
-        const names = getSelectedNames();
-        if (names.length >= minPlayers) {
-            onStart(names);
+        const selected = getSelectedMembers();
+        if (selected.length >= minPlayers) {
+            onStart(selected);
         } else {
             soundManager.playError();
         }

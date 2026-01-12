@@ -7,23 +7,26 @@ import './ImpostorGame.css'; // Reuse styles for now as layout is identical
 
 type Role = 'Asesino' | 'Detective' | 'Doctor' | 'Pueblo';
 
+interface FamilyMember {
+    id: string;
+    name: string;
+    photo?: string;
+}
+
 export const MafiaGame = () => {
     const navigate = useNavigate();
-    const [players, setPlayers] = useState<string[]>([]);
+    const [players, setPlayers] = useState<FamilyMember[]>([]);
     const [gameState, setGameState] = useState<'setup' | 'reveal' | 'finished'>('setup');
     const [roles, setRoles] = useState<Role[]>([]);
     const [currentRevealIndex, setCurrentRevealIndex] = useState(0);
     const [showRole, setShowRole] = useState(false);
 
-    const startGame = (selectedNames: string[]) => {
-        setPlayers(selectedNames);
+    const startGame = (selectedMembers: FamilyMember[]) => {
+        setPlayers(selectedMembers);
 
         // Roles distribution logic
-        // 1 Asesino per 4-5 players? Or fixed 1 Asesino, 1 Detective, 1 Doctor usually.
-        // Let's go simple: 1 Asesino, 1 Detective, 1 Doctor (if > 5), Rest Pueblo.
-
-        const newRoles: Role[] = Array(selectedNames.length).fill('Pueblo');
-        const indices = Array.from({ length: selectedNames.length }, (_, i) => i);
+        const newRoles: Role[] = Array(selectedMembers.length).fill('Pueblo');
+        const indices = Array.from({ length: selectedMembers.length }, (_, i) => i);
         const shuffledIndices = indices.sort(() => Math.random() - 0.5);
 
         // Assign Asesino
@@ -31,7 +34,7 @@ export const MafiaGame = () => {
         // Assign Detective
         newRoles[shuffledIndices[1]] = 'Detective';
         // Assign Doctor (if enough players)
-        if (selectedNames.length >= 5) {
+        if (selectedMembers.length >= 5) {
             newRoles[shuffledIndices[2]] = 'Doctor';
         }
 
@@ -70,37 +73,56 @@ export const MafiaGame = () => {
                     <GameMemberSelector
                         onStart={startGame}
                         minPlayers={4}
+                        gameTitle="El Asesino"
                     />
                 </div>
             )}
 
             {gameState === 'reveal' && (
                 <div className="reveal-phase">
-                    <h2>Turno de: {players[currentRevealIndex]}</h2>
-                    <p>Pasa el dispositivo a {players[currentRevealIndex]} y presiona "Ver Rol".</p>
-
-                    {!showRole ? (
-                        <button className="reveal-btn" onClick={() => setShowRole(true)}>
-                            👁️ Ver Rol
-                        </button>
-                    ) : (
-                        <div className={`role - card ${roles[currentRevealIndex].toLowerCase()} `} style={{
-                            borderColor: roles[currentRevealIndex] === 'Asesino' ? '#ef4444' :
-                                roles[currentRevealIndex] === 'Detective' ? '#3b82f6' :
-                                    roles[currentRevealIndex] === 'Doctor' ? '#22c55e' : '#D4AF37'
-                        }}>
-                            <h3>Eres: {roles[currentRevealIndex]}</h3>
-                            <p>
-                                {roles[currentRevealIndex] === 'Asesino' && '🔪 Elimina a un jugador cada noche.'}
-                                {roles[currentRevealIndex] === 'Detective' && '🔍 Investiga a un jugador cada noche.'}
-                                {roles[currentRevealIndex] === 'Doctor' && '💊 Protege a un jugador cada noche.'}
-                                {roles[currentRevealIndex] === 'Pueblo' && '🏘️ Duerme y trata de sobrevivir y votar al culpable.'}
-                            </p>
-                            <button className="next-btn" onClick={nextPlayer}>
-                                {currentRevealIndex < players.length - 1 ? 'Siguiente Jugador' : 'Finalizar Asignación'}
-                            </button>
+                    <div className="player-reveal-card">
+                        <div className="player-photo-wrapper">
+                            {players[currentRevealIndex].photo ? (
+                                <img
+                                    src={players[currentRevealIndex].photo}
+                                    alt={players[currentRevealIndex].name}
+                                    className="player-photo-large"
+                                />
+                            ) : (
+                                <div className="player-initial-large">
+                                    {players[currentRevealIndex].name[0]}
+                                </div>
+                            )}
                         </div>
-                    )}
+
+                        <h2>Turno de: {players[currentRevealIndex].name}</h2>
+
+                        {!showRole ? (
+                            <>
+                                <p>Pasa el dispositivo a <strong>{players[currentRevealIndex].name}</strong> <br /> y presiona "Ver Rol".</p>
+                                <button className="reveal-btn" onClick={() => setShowRole(true)}>
+                                    👁️ Ver Rol
+                                </button>
+                            </>
+                        ) : (
+                            <div className={`role-card-revealed ${roles[currentRevealIndex].toLowerCase()} animate-pop`} style={{
+                                borderColor: roles[currentRevealIndex] === 'Asesino' ? '#ef4444' :
+                                    roles[currentRevealIndex] === 'Detective' ? '#3b82f6' :
+                                        roles[currentRevealIndex] === 'Doctor' ? '#22c55e' : '#D4AF37'
+                            }}>
+                                <h3>Eres: {roles[currentRevealIndex]}</h3>
+                                <p>
+                                    {roles[currentRevealIndex] === 'Asesino' && '🔪 Elimina a un jugador cada noche.'}
+                                    {roles[currentRevealIndex] === 'Detective' && '🔍 Investiga a un jugador cada noche.'}
+                                    {roles[currentRevealIndex] === 'Doctor' && '💊 Protege a un jugador cada noche.'}
+                                    {roles[currentRevealIndex] === 'Pueblo' && '🏘️ Duerme y trata de sobrevivir y votar al culpable.'}
+                                </p>
+                                <button className="next-btn" onClick={nextPlayer}>
+                                    {currentRevealIndex < players.length - 1 ? 'Siguiente Jugador' : 'Finalizar Asignación'}
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
 

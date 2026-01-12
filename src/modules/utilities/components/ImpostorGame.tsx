@@ -6,26 +6,32 @@ import './ImpostorGame.css';
 
 type Role = 'Impostor' | 'Tripulante';
 
+interface FamilyMember {
+    id: string;
+    name: string;
+    photo?: string;
+}
+
 export const ImpostorGame = () => {
     const navigate = useNavigate();
-    const [players, setPlayers] = useState<string[]>([]);
+    const [players, setPlayers] = useState<FamilyMember[]>([]);
     const [impostorCount, setImpostorCount] = useState(1);
     const [gameState, setGameState] = useState<'setup' | 'reveal' | 'finished'>('setup');
     const [roles, setRoles] = useState<Role[]>([]);
     const [currentRevealIndex, setCurrentRevealIndex] = useState(0);
     const [showRole, setShowRole] = useState(false);
 
-    const startGame = (selectedNames: string[]) => {
-        setPlayers(selectedNames);
+    const startGame = (selectedMembers: FamilyMember[]) => {
+        setPlayers(selectedMembers);
 
         // Assign roles
-        const newRoles: Role[] = Array(selectedNames.length).fill('Tripulante');
+        const newRoles: Role[] = Array(selectedMembers.length).fill('Tripulante');
 
         // Assign impostors
         let assigned = 0;
         let attempts = 0;
         while (assigned < impostorCount && attempts < 100) {
-            const idx = Math.floor(Math.random() * selectedNames.length);
+            const idx = Math.floor(Math.random() * selectedMembers.length);
             if (newRoles[idx] !== 'Impostor') {
                 newRoles[idx] = 'Impostor';
                 assigned++;
@@ -81,28 +87,51 @@ export const ImpostorGame = () => {
                     <GameMemberSelector
                         onStart={startGame}
                         minPlayers={3}
+                        gameTitle="El Impostor"
                     />
                 </div>
             )}
 
             {gameState === 'reveal' && (
                 <div className="reveal-phase">
-                    <h2>Turno de: {players[currentRevealIndex]}</h2>
-                    <p>Pasa el dispositivo a {players[currentRevealIndex]} y presiona "Ver Rol".</p>
-
-                    {!showRole ? (
-                        <button className="reveal-btn" onClick={() => setShowRole(true)}>
-                            👁️ Ver Rol
-                        </button>
-                    ) : (
-                        <div className={`role-card ${roles[currentRevealIndex].toLowerCase()}`}>
-                            <h3>Eres: {roles[currentRevealIndex]}</h3>
-                            <p>{roles[currentRevealIndex] === 'Impostor' ? '🤫 Elimina a todos sin que te descubran.' : '🔍 Completa tareas y descubre al impostor.'}</p>
-                            <button className="next-btn" onClick={nextPlayer}>
-                                {currentRevealIndex < players.length - 1 ? 'Siguiente Jugador' : 'Finalizar Asignación'}
-                            </button>
+                    <div className="player-reveal-card">
+                        <div className="player-photo-wrapper">
+                            {players[currentRevealIndex].photo ? (
+                                <img
+                                    src={players[currentRevealIndex].photo}
+                                    alt={players[currentRevealIndex].name}
+                                    className="player-photo-large"
+                                />
+                            ) : (
+                                <div className="player-initial-large">
+                                    {players[currentRevealIndex].name[0]}
+                                </div>
+                            )}
                         </div>
-                    )}
+
+                        <h2>Turno de: {players[currentRevealIndex].name}</h2>
+
+                        {!showRole ? (
+                            <>
+                                <p>Pasa el dispositivo a <strong>{players[currentRevealIndex].name}</strong> <br /> y presiona "Ver Rol".</p>
+                                <button className="reveal-btn" onClick={() => setShowRole(true)}>
+                                    👁️ Ver Rol
+                                </button>
+                            </>
+                        ) : (
+                            <div className={`role-card-revealed ${roles[currentRevealIndex].toLowerCase()} animate-pop`}>
+                                <h3>Eres: {roles[currentRevealIndex]}</h3>
+                                <p>
+                                    {roles[currentRevealIndex] === 'Impostor'
+                                        ? '🤫 Elimina a todos sin que te descubran.'
+                                        : '🔍 Completa tareas y descubre al impostor.'}
+                                </p>
+                                <button className="next-btn" onClick={nextPlayer}>
+                                    {currentRevealIndex < players.length - 1 ? 'Siguiente Jugador' : 'Finalizar Asignación'}
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
 
