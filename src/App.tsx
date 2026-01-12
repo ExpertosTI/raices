@@ -38,6 +38,9 @@ import { WordSearchGame } from './modules/utilities/components/WordSearchGame';
 import { CompassGame } from './modules/utilities/components/CompassGame';
 import { BlackJackOnline } from './modules/utilities/components/BlackJackOnline';
 import { AngelitoGame } from './modules/utilities/components/AngelitoGame';
+import { ImpostorGame } from './modules/utilities/components/ImpostorGame';
+import { MafiaGame } from './modules/utilities/components/MafiaGame';
+import { BastaGame } from './modules/utilities/components/BastaGame';
 
 function App() {
   return (
@@ -92,6 +95,9 @@ function App() {
             {/* Who-is-Who needs photos from API */}
             <Route path="/utilities/who-is-who" element={<WhoIsWhoGame />} />
             <Route path="/utilities/angelito" element={<AngelitoGame />} />
+            <Route path="/utilities/impostor" element={<ImpostorGame />} />
+            <Route path="/utilities/mafia" element={<MafiaGame />} />
+            <Route path="/utilities/basta" element={<BastaGame />} />
           </Route>
           {/* Redirect unknown routes to home */}
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -200,6 +200,36 @@ export const UtilitiesScreen = () => {
             path: '/utilities/angelito',
             category: 'family',
             requiresAuth: true
+        },
+        {
+            id: 'impostor',
+            icon: '🕵️',
+            iconClass: 'icon-spy',
+            title: 'El Impostor',
+            description: 'Descubre al intruso.',
+            color: '#ef4444',
+            path: '/utilities/impostor',
+            category: 'arcade'
+        },
+        {
+            id: 'mafia',
+            icon: '🔪',
+            iconClass: 'icon-knife',
+            title: 'El Asesino',
+            description: 'Juego de roles ocultos.',
+            color: '#111827',
+            path: '/utilities/mafia',
+            category: 'arcade'
+        },
+        {
+            id: 'basta',
+            icon: '🛑',
+            iconClass: 'icon-hand',
+            title: '¡Basta!',
+            description: 'Juego de palabras rápido.',
+            color: '#ec4899',
+            path: '/utilities/basta',
+            category: 'board'
         }
     ];
 

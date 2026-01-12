@@ -202,6 +202,21 @@ class SoundManagerClass {
         ], 0.1);
     }
 
+    public playGameStart(): void {
+        this.playSequence([
+            { freq: 440, type: 'triangle', dur: 0.1 },
+            { freq: 554, type: 'triangle', dur: 0.1 },
+            { freq: 659, type: 'triangle', dur: 0.2 },
+        ], 0.05);
+    }
+
+    public playNotification(): void {
+        this.playSequence([
+            { freq: 880, type: 'sine', dur: 0.1 },
+            { freq: 1108, type: 'sine', dur: 0.15 }
+        ], 0.05);
+    }
+
     // Haptic feedback (if available)
     public vibrate(pattern: number | number[] = 50): void {
         if ('vibrate' in navigator) {
