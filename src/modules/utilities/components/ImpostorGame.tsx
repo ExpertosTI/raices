@@ -64,7 +64,7 @@ export const ImpostorGame = () => {
     return (
         <div className="impostor-game">
             <header className="game-header">
-                <button onClick={() => navigate('/utilities')}>← Salir</button>
+                <button className="exit-btn" onClick={() => navigate('/utilities')}>← Salir</button>
                 <h1>🕵️ El Impostor</h1>
             </header>
 
@@ -139,7 +139,7 @@ export const ImpostorGame = () => {
                 <div className="finished-phase">
                     <h2>¡Roles Asignados!</h2>
                     <p>Que comience el juego. Nadie sabe quién es quién.</p>
-                    <button onClick={resetGame}>Nueva Partida</button>
+                    <button className="new-game-btn" onClick={resetGame}>Nueva Partida</button>
                 </div>
             )}
         </div>

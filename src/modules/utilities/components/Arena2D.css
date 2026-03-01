@@ -1,0 +1,125 @@
+.arena2d {
+    margin: 1rem auto 1.5rem;
+    max-width: 980px;
+    width: 100%;
+    padding: 0 1.5rem;
+    color: #fff;
+}
+
+.arena2d-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.arena2d-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.arena2d-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 0.35rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.arena2d-label {
+    font-size: 0.75rem;
+    opacity: 0.85;
+}
+
+.arena2d-select {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.8rem;
+    outline: none;
+}
+
+.arena2d-select option {
+    color: #111827;
+}
+
+.arena2d-canvas-wrap {
+    position: relative;
+    width: 100%;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 16px 30px rgba(0, 0, 0, 0.35);
+}
+
+.arena2d-canvas {
+    display: block;
+    width: 100%;
+    height: 260px;
+}
+
+.arena2d-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.45);
+    font-size: 0.9rem;
+    letter-spacing: 0.3px;
+}
+
+.arena2d-joystick {
+    position: absolute;
+    left: 14px;
+    bottom: 14px;
+    width: 96px;
+    height: 96px;
+    touch-action: none;
+}
+
+.arena2d-joystick-base {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(6px);
+}
+
+.arena2d-joystick-knob {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 44px;
+    height: 44px;
+    margin-left: -22px;
+    margin-top: -22px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transition: transform 0.05s linear;
+}
+
+@media (max-width: 720px) {
+    .arena2d {
+        padding: 0 1rem;
+    }
+
+    .arena2d-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .arena2d-joystick {
+        width: 84px;
+        height: 84px;
+    }
+}

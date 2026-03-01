@@ -37,6 +37,21 @@
     width: 120px;
 }
 
+.add-btn {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 0 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.add-btn:hover {
+    background: #2563eb;
+}
+
 .members-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));

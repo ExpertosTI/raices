@@ -1,4 +1,5 @@
 
+import type { PropsWithChildren } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { SelectionScreen } from './modules/family/components/SelectionScreen';
 import { AppDashboard } from './modules/home/components/AppDashboard';
@@ -41,6 +42,14 @@ import { AngelitoGame } from './modules/utilities/components/AngelitoGame';
 import { ImpostorGame } from './modules/utilities/components/ImpostorGame';
 import { MafiaGame } from './modules/utilities/components/MafiaGame';
 import { BastaGame } from './modules/utilities/components/BastaGame';
+import { Arena2D } from './modules/utilities/components/Arena2D';
+
+const UtilitiesShell = ({ children }: PropsWithChildren) => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <Arena2D />
+    {children}
+  </div>
+);
 
 function App() {
   return (
@@ -67,17 +76,17 @@ function App() {
           <Route path="/join/:token" element={<FamilyOnboardingScreen />} />
 
           {/* Public Utilities - No login required */}
-          <Route path="/utilities" element={<UtilitiesScreen />} />
-          <Route path="/utilities/domino" element={<DominoScorekeeper />} />
-          <Route path="/utilities/basket" element={<BasketScorekeeper />} />
-          <Route path="/utilities/tictactoe" element={<TicTacToeUltimate />} />
-          <Route path="/utilities/battleship" element={<BattleshipGame />} />
-          <Route path="/utilities/timeline" element={<TimelineGame />} />
-          <Route path="/utilities/snake" element={<SnakeGame />} />
-          <Route path="/utilities/space-invaders" element={<SpaceInvadersGame />} />
-          <Route path="/utilities/word-search" element={<WordSearchGame />} />
-          <Route path="/utilities/compass" element={<CompassGame />} />
-          <Route path="/utilities/blackjack" element={<BlackJackOnline />} />
+          <Route path="/utilities" element={<UtilitiesShell><UtilitiesScreen /></UtilitiesShell>} />
+          <Route path="/utilities/domino" element={<UtilitiesShell><DominoScorekeeper /></UtilitiesShell>} />
+          <Route path="/utilities/basket" element={<UtilitiesShell><BasketScorekeeper /></UtilitiesShell>} />
+          <Route path="/utilities/tictactoe" element={<UtilitiesShell><TicTacToeUltimate /></UtilitiesShell>} />
+          <Route path="/utilities/battleship" element={<UtilitiesShell><BattleshipGame /></UtilitiesShell>} />
+          <Route path="/utilities/timeline" element={<UtilitiesShell><TimelineGame /></UtilitiesShell>} />
+          <Route path="/utilities/snake" element={<UtilitiesShell><SnakeGame /></UtilitiesShell>} />
+          <Route path="/utilities/space-invaders" element={<UtilitiesShell><SpaceInvadersGame /></UtilitiesShell>} />
+          <Route path="/utilities/word-search" element={<UtilitiesShell><WordSearchGame /></UtilitiesShell>} />
+          <Route path="/utilities/compass" element={<UtilitiesShell><CompassGame /></UtilitiesShell>} />
+          <Route path="/utilities/blackjack" element={<UtilitiesShell><BlackJackOnline /></UtilitiesShell>} />
 
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
@@ -93,11 +102,11 @@ function App() {
             <Route path="/profile" element={<ProfileScreen />} />
             <Route path="/settings" element={<FamilySettingsScreen />} />
             {/* Who-is-Who needs photos from API */}
-            <Route path="/utilities/who-is-who" element={<WhoIsWhoGame />} />
-            <Route path="/utilities/angelito" element={<AngelitoGame />} />
-            <Route path="/utilities/impostor" element={<ImpostorGame />} />
-            <Route path="/utilities/mafia" element={<MafiaGame />} />
-            <Route path="/utilities/basta" element={<BastaGame />} />
+            <Route path="/utilities/who-is-who" element={<UtilitiesShell><WhoIsWhoGame /></UtilitiesShell>} />
+            <Route path="/utilities/angelito" element={<UtilitiesShell><AngelitoGame /></UtilitiesShell>} />
+            <Route path="/utilities/impostor" element={<UtilitiesShell><ImpostorGame /></UtilitiesShell>} />
+            <Route path="/utilities/mafia" element={<UtilitiesShell><MafiaGame /></UtilitiesShell>} />
+            <Route path="/utilities/basta" element={<UtilitiesShell><BastaGame /></UtilitiesShell>} />
           </Route>
           {/* Redirect unknown routes to home */}
           <Route path="*" element={<Navigate to="/" replace />} />

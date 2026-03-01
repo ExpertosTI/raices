@@ -104,7 +104,7 @@ export const GameMemberSelector = ({ onStart, minPlayers, gameTitle }: GameMembe
                         onChange={(e) => setManualName(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleManualAdd()}
                     />
-                    <button onClick={handleManualAdd}>Add</button>
+                    <button className="add-btn" onClick={handleManualAdd}>Add</button>
                 </div>
             </div>
 
